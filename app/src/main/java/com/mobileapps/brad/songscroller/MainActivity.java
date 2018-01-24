@@ -1,11 +1,14 @@
 package com.mobileapps.brad.songscroller;
 
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -30,6 +33,18 @@ public class MainActivity extends AppCompatActivity {
         getMusic();
         adapter = new CustomMusicAdapter(this, R.layout.custom_music_item, arrayList);
         songList.setAdapter(adapter);
+
+ /*       songList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+
+                Music music = (Music) songList.getItemAtPosition(position);
+                Intent intent = new Intent(getApplicationContext(), ScrollActivity.class);
+                intent.putExtra("ScrollSong", music);
+                getApplicationContext().startActivity (intent);
+
+            }
+        });*/
     }
 
     public void getMusic () {

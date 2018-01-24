@@ -1,12 +1,13 @@
 package com.mobileapps.brad.songscroller;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * Created by brad on 1/23/18.
  */
 
-public class Music implements Comparable<Music>{
+public class Music implements Comparable<Music>, Serializable {
     private String name;
     private String singer;
     private String song;

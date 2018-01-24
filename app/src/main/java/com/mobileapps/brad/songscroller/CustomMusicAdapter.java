@@ -1,6 +1,7 @@
 package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
@@ -22,7 +23,7 @@ public class CustomMusicAdapter extends BaseAdapter {
     private Context context;
     private int layout;
     private ArrayList<Music> arrayList;
-    private MediaPlayer mediaPlayer;
+    //private MediaPlayer mediaPlayer;
 
     public CustomMusicAdapter(Context context, int layout, ArrayList<Music> arrayList) {
         this.context = context;
@@ -72,31 +73,32 @@ public class CustomMusicAdapter extends BaseAdapter {
         viewHolder.txtName.setText(music.getName());
         viewHolder.txtSinger.setText(music.getSinger());
 
-        viewHolder.ivPlay.setOnClickListener(new View.OnClickListener() {
+        convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // String storage = Environment.getExternalStorageDirectory().getPath();
-                String songpath = music.getSong();
+         /*       String songpath = music.getSong();
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     mediaPlayer.pause ();
-                    //viewHolder.ivPlay.setImageResource(R.drawable.ic_play);
                 }
                 mediaPlayer = MediaPlayer.create(context, Uri.parse(songpath));
-                mediaPlayer.start();
+                mediaPlayer.start();*/
+
+                Intent intent = new Intent(v.getContext(), ScrollActivity.class);
+                intent.putExtra("ScrollSong", music);
+                v.getContext().startActivity (intent);
              }
         });
 
-        viewHolder.ivPause.setOnClickListener(new View.OnClickListener() {
+   /*     viewHolder.ivPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // String storage = Environment.getExternalStorageDirectory().getPath();
                 String songpath = music.getSong();
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     mediaPlayer.pause ();
                     //viewHolder.ivPlay.setImageResource(R.drawable.ic_play);
                 }
             }
-        });
+        });*/
 
         return convertView;
     }
