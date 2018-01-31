@@ -64,7 +64,7 @@ public class AlbumAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        Log.e("Media", "Entered Album Adaptor: getView");
+        //Log.e("Media", "Entered Album Adaptor: getView");
         ///////// find the views
         final ViewHolder viewHolder;
         if (convertView == null) {

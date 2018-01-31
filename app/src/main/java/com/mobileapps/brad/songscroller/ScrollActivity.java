@@ -103,7 +103,6 @@ public class ScrollActivity extends AppCompatActivity {
 
         //Find the view by its id
         text = formatText(text);
-        titleView.setText(song.getTitle());
         textView.setText(text);
         textView.measure(0,0);
         textVeiwHeight = textView.getMeasuredHeight();

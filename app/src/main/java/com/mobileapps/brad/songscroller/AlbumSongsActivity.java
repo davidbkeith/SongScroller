@@ -1,11 +1,12 @@
 package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.ListView;
-
-import java.util.ArrayList;
+import android.widget.TextView;
 
 public class AlbumSongsActivity extends AppCompatActivity {
     private SongAdapter adapter;
@@ -21,6 +22,9 @@ public class AlbumSongsActivity extends AppCompatActivity {
         this.album = album;
     }
 
+    private TextView txtAlbum, txtArtist, txtSongCount;
+    private ImageView ivAlbumArt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +39,16 @@ public class AlbumSongsActivity extends AppCompatActivity {
         // adapter = new CustomMusicAdapter(this, R.layout.custom_music_item, arrayList);
         adapter = new SongAdapter(this, R.layout.song_list_item, album);
         songList.setAdapter(adapter);
+
+        txtAlbum = (TextView) findViewById(R.id.textAlbum);
+        txtArtist = (TextView) findViewById(R.id.textArtist);
+        ivAlbumArt = (ImageView) findViewById(R.id.album_art);
+
+
+        Drawable albumimage = Drawable.createFromPath(album.getArt());
+        ivAlbumArt.setImageDrawable(albumimage);
+        txtAlbum.setText(album.getAlbum());
+        txtArtist.setText(album.getArtist());
 
     }
 }
