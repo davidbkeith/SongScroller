@@ -92,7 +92,6 @@ public class AlbumAdapter extends BaseAdapter {
         //File bkground = new File(sdcard, "/Music/" + album.getSinger() + "-" + music.getName() + ".jpg");
         //String path =
         Drawable albumimage = Drawable.createFromPath(album.getArt());
-        //viewHolder.ivAlbumArt.setBackgroundDrawable(bgimage);
         viewHolder.ivAlbumArt.setImageDrawable(albumimage);
 
         ///////// event listeners

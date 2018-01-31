@@ -34,7 +34,7 @@ public class SongAdapter extends BaseAdapter {
         this.context = context;
         this.layout = layout;
         this.album = album;
-        getAlbumSongs(album.getId());
+        getAlbumSongs(album);
     }
 
     @Override
@@ -110,14 +110,14 @@ public class SongAdapter extends BaseAdapter {
         return convertView;
     }
 
-    public void getAlbumSongs (long albumId) {
+    public void getAlbumSongs (Album album) {
         songList = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         MediaStore.Audio.Media media = new MediaStore.Audio.Media();
         String selection = "is_music != 0";
 
-        if (albumId > 0) {
-            selection = selection + " and album_id = " + albumId;
+        if (album.getId() > 0) {
+            selection = selection + " and album_id = " + album.getId();
         }
 
         String[] projection = new String[]{
@@ -151,6 +151,7 @@ public class SongAdapter extends BaseAdapter {
                     song.setAlbumId(songCursor.getInt(5));
                     song.setTrack(songCursor.getString(6));
                     song.setPosition(position);
+                    song.setArt(album.getArt());
                     songList.add(song);
 
                     songCursor.moveToNext();

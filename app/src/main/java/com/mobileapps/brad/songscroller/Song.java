@@ -10,6 +10,7 @@ import java.util.Comparator;
 public class Song implements Serializable {
     private String title;
     private String dispayName;
+    private String art;
     private String artist;
     private String path;
     private long duration;
@@ -31,6 +32,14 @@ public class Song implements Serializable {
     public String getTitle() {
 
         return title;
+    }
+
+    public String getArt() {
+        return art;
+    }
+
+    public void setArt(String art) {
+        this.art = art;
     }
 
     public void setTitle(String title) {

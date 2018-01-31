@@ -34,6 +34,7 @@ public class ScrollActivity extends AppCompatActivity {
     private TextView textView, titleView;
     private ImageView ivPlay;
     private ImageView ivPause;
+    private ImageView ivAlbumArt;
     private MediaPlayer mediaPlayer;
     private Song song;
     private android.os.Handler handler = new android.os.Handler();
@@ -108,6 +109,10 @@ public class ScrollActivity extends AppCompatActivity {
         textVeiwHeight = textView.getMeasuredHeight();
 
         //// set background
+
+        //ivAlbumArt = (ImageView) findViewById(R.id.album_art);
+        //Drawable albumimage = Drawable.createFromPath(song.getArt());
+        //ivAlbumArt.setImageDrawable(albumimage);
         //Drawable bgimage = Drawable.createFromPath(bkground.getAbsolutePath());
         //bgimage.setAlpha(80);
         //scrollView.setBackgroundDrawable(bgimage);
