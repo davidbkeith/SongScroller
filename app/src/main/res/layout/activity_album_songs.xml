@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.mobileapps.brad.songscroller.MainActivity">
+    tools:context="com.mobileapps.brad.songscroller.AlbumSongsActivity">
 
     <ListView
-        android:id="@+id/albumList"
+        android:id="@+id/songList"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </android.support.constraint.ConstraintLayout>

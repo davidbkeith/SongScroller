@@ -21,12 +21,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="228dp"
+        android:layout_marginStart="8dp"
         android:text="Singer"
         android:textColor="#7019c1"
         android:textSize="24sp"
         app:layout_constraintEnd_toStartOf="@+id/ivPlay"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imageView"
         tools:layout_editor_absoluteY="8dp" />
 
 
@@ -50,4 +50,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/ic_media_pause" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="86dp"
+        android:layout_height="74dp"
+        app:srcCompat="@android:drawable/picture_frame"
+        tools:layout_editor_absoluteX="4dp"
+        tools:layout_editor_absoluteY="11dp" />
 </android.support.constraint.ConstraintLayout>
