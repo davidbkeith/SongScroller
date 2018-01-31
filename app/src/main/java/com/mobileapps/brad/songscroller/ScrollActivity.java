@@ -58,7 +58,7 @@ public class ScrollActivity extends AppCompatActivity {
 
                 //int duration = mediaPlayer.getDuration();
                 double newPosition = (double)( (double) mediaPos_new/song.getDuration()) * textVeiwHeight;
-                scrollView.scrollTo(0, (int) newPosition - screenHeight/2);
+                scrollView.scrollTo(0, (int) newPosition - screenHeight/3);
             }
         }
     };
