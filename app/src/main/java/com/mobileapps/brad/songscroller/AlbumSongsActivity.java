@@ -1,9 +1,12 @@
 package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,6 +31,7 @@ public class AlbumSongsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = this;
         setContentView(R.layout.activity_album_songs); //activity_album_songs - list view
 
         album = (Album) getIntent().getSerializableExtra("songscroller_album");
@@ -49,6 +53,20 @@ public class AlbumSongsActivity extends AppCompatActivity {
         ivAlbumArt.setImageDrawable(albumimage);
         txtAlbum.setText(album.getAlbum());
         txtArtist.setText(album.getArtist());
+
+        songList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+
+                Song song = (Song) songList.getItemAtPosition(position);
+
+                Intent intent = new Intent(context, ScrollActivity.class);
+                intent.putExtra("songscroller_song", song);
+                context.startActivity (intent);
+
+            }
+        });
+
 
     }
 }

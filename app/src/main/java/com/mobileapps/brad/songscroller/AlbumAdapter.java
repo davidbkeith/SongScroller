@@ -95,9 +95,9 @@ public class AlbumAdapter extends BaseAdapter {
         viewHolder.ivAlbumArt.setImageDrawable(albumimage);
 
         ///////// event listeners
-        convertView.setOnClickListener(new View.OnClickListener() {
+       /* convertView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
             Intent intent = new Intent(context, AlbumSongsActivity.class);
             intent.putExtra("songscroller_album", album);
             context.startActivity (intent);
@@ -113,8 +113,8 @@ public class AlbumAdapter extends BaseAdapter {
                 //Intent intent = new Intent(v.getContext(), ScrollActivity.class);
                 //intent.putExtra("ScrollSong", music);
                 //v.getContext().startActivity (intent);
-            }
-        });
+           // }
+       // });
 
    /*     viewHolder.ivPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,7 +137,7 @@ public class AlbumAdapter extends BaseAdapter {
         Uri songUri = albums.EXTERNAL_CONTENT_URI;
         String selection = "is_music != 0";
         String[] projection = new String[] {albums._ID, albums.ALBUM, albums.ARTIST, albums.ALBUM_ART, albums.NUMBER_OF_SONGS};
-        //String sortOrder = MediaStore.Audio.Media.ALBUM + "ASC";
+        String sortOrder = MediaStore.Audio.Media.ALBUM + "ASC";
         Cursor songCursor = contentResolver.query(songUri, projection,null,null,null);
         //Cursor songCursor = context.getContentResolver().query(songUri, projection,null,null,null);
 

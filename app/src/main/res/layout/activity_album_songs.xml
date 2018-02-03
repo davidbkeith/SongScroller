@@ -4,60 +4,74 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorScreen"
     tools:context="com.mobileapps.brad.songscroller.AlbumSongsActivity">
 
     <ImageView
         android:id="@+id/imageBackground"
         android:layout_width="match_parent"
-        android:layout_height="178dp"
-        android:layout_marginStart="24dp"
-        app:layout_constraintBottom_toTopOf="@+id/songList"
+        android:layout_height="214dp"
+        android:background="@color/colorMenuBar"
+        android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.9"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintStart_toStartOf="@+id/album_art"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@android:drawable/screen_background_dark_transparent" />
+        app:srcCompat="@android:drawable/menuitem_background" />
 
     <ImageView
         android:id="@+id/album_art"
         android:layout_width="200dp"
         android:layout_height="178dp"
-
-        android:layout_marginStart="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageBackground"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@android:drawable/list_selector_background" />
-
-    <ListView
-        android:id="@+id/songList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/album_art" />
 
     <TextView
         android:id="@+id/textArtist"
-        android:layout_width="0dp"
-        android:layout_height="34dp"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="20dp"
         android:text="TextView"
         android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-        app:layout_constraintStart_toStartOf="@+id/textAlbum"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintEnd_toEndOf="@+id/imageBackground"
+        app:layout_constraintStart_toEndOf="@+id/album_art"
         app:layout_constraintTop_toBottomOf="@+id/textAlbum" />
 
     <TextView
         android:id="@+id/textAlbum"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="30dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="40dp"
         android:text="TextView"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textAppearance="@style/TextAppearance.AppCompat.Light.SearchResult.Title"
+        android:textColor="@color/colorAccentLight"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/album_art"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ListView
+        android:id="@+id/songList"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorScreen"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageBackground" />
 
 
 </android.support.constraint.ConstraintLayout>

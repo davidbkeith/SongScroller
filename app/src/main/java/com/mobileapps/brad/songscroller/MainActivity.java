@@ -1,6 +1,7 @@
 package com.mobileapps.brad.songscroller;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,11 +23,22 @@ public class MainActivity extends AppCompatActivity {
     //private CustomMusicAdapter adapter;
     private AlbumAdapter adapter;
     private ListView albumList;
+    private Album album;
+    private Context context;
+
+    public Album getAlbum() {
+        return album;
+    }
+
+    public void setAlbum(Album album) {
+        this.album = album;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = this;
 
         albumList = (ListView) findViewById(R.id.albumList); //activity_main.xml - list view
        // arrayList = new ArrayList<>();
@@ -35,18 +47,21 @@ public class MainActivity extends AppCompatActivity {
        // adapter = new CustomMusicAdapter(this, R.layout.custom_music_item, arrayList);
         adapter = new AlbumAdapter(this, R.layout.album_list_item);
         albumList.setAdapter(adapter);
+        albumList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
-        //albumList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            //@Override
-            //public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                album = (Album) albumList.getItemAtPosition(position);
 
-            //    Music music = (Music) songList.getItemAtPosition(position);
+                Intent intent = new Intent(context, AlbumSongsActivity.class);
+                intent.putExtra("songscroller_album", album);
+                context.startActivity (intent);
             //    Intent intent = new Intent(getApplicationContext(), ScrollActivity.class);
             //    intent.putExtra("ScrollSong", music);
             //    getApplicationContext().startActivity (intent);
 
-            //}
-        //});
+            }
+        });
     }
 
  /*   public void getMusic () {

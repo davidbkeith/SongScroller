@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by brad on 1/23/18.
@@ -77,12 +78,21 @@ public class SongAdapter extends BaseAdapter {
         }
 
         final Song song = (Song) getItem(position);
-        viewHolder.txtSongName.setText(song.getTrack() + ". " + song.getTitle());
-        viewHolder.txtDuration.setText(Long.toString(song.getDuration()));
 
-        convertView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        long duration = song.getDuration();
+        viewHolder.txtSongName.setText(song.getTrack() + ". " + song.getTitle());
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % TimeUnit.HOURS.toMinutes(1);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % TimeUnit.MINUTES.toSeconds(1);
+    //    long seconds=(duration/1000)%60;
+     //   long minutes =((duration-seconds)/1000)/60;
+
+        viewHolder.txtDuration.setText(String.format("%d:%02d", minutes, seconds));
+        // viewHolder.txtDuration.setText(Long.toString(minutes), Long.toString(seconds)));
+
+
+       // convertView.setOnClickListener(new View.OnClickListener() {
+        //    @Override
+        //    public void onClick(View v) {
          /*       String songpath = music.getSong();
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     mediaPlayer.pause ();
@@ -90,11 +100,11 @@ public class SongAdapter extends BaseAdapter {
                 mediaPlayer = MediaPlayer.create(context, Uri.parse(songpath));
                 mediaPlayer.start();*/
 
-                Intent intent = new Intent(v.getContext(), ScrollActivity.class);
-                intent.putExtra("songscroller_song", song);
-                v.getContext().startActivity (intent);
-             }
-        });
+        //        Intent intent = new Intent(v.getContext(), ScrollActivity.class);
+         //       intent.putExtra("songscroller_song", song);
+        //        v.getContext().startActivity (intent);
+        //     }
+        //});
 
    /*     viewHolder.ivPause.setOnClickListener(new View.OnClickListener() {
             @Override
