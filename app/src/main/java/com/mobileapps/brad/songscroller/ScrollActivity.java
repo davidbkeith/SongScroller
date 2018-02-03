@@ -44,10 +44,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private Song song;
     private android.os.Handler handler = new android.os.Handler();
     private ScrollViewExt scrollView;
-    private double textVeiwHeight, offsetFraction, posOffset;
+    private int textVeiwHeight, posOffset, calculatedPos;
+    private double offsetFraction;
     private int screenHeight;
     private ArrayList<Point> chordPos;
-    //private Boolean autoScroll;
+    private double playRate;
+    private double elapsedTime;
 
     /**
      * The Move seek bar. Thread to move seekbar based on the current position
@@ -56,23 +58,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
-            Log.e("Media", "%s: %s".format("<<<<enableScrolling value is:%s>>>>>>", scrollView.isEnableScrolling().toString()));
             if (mediaPlayer.isPlaying() && scrollView.isEnableScrolling()) {
 
                 int mediaPos_new = mediaPlayer.getCurrentPosition();
                 int mediaMax_new = mediaPlayer.getDuration();
-                //seekBar.setMax(mediaMax_new);
-                //seekBar.setProgress(mediaPos_new);
 
-                //int duration = mediaPlayer.getDuration();
-                double newPosition = (double) ((double) mediaPos_new / mediaMax_new) * textVeiwHeight;
-                int scrollTo = (int) newPosition + (int) posOffset - (int) (offsetFraction * textVeiwHeight);
-
-
-                if (scrollTo > (int) posOffset) {
-                    scrollView.scrollTo(0, scrollTo);
+                int calculatedPos = (int) ((double) ((double) mediaPos_new / mediaMax_new) * textVeiwHeight) + posOffset - (int) (offsetFraction * textVeiwHeight);
+                if (calculatedPos > posOffset) {
+                    scrollView.scrollTo(0, calculatedPos);
                 }
-
             }
             handler.postDelayed(this, 100); //Looping the thread after 0.1 second
         }
@@ -86,14 +80,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         context = this.context;
         chordPos = new ArrayList<>();
         posOffset = 0;
-        //autoScroll = true;
 
         textView = (TextView) findViewById(R.id.textView);
         //titleView = (TextView) findViewById(R.id.textTitle);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
         scrollView.setScrollViewListener(this);
-
-       // scrollView.setScrollViewListener();
 
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -101,7 +92,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         screenHeight = size.y;
 
         song = (Song) getIntent().getSerializableExtra("songscroller_song");
-
 
         File sdcard = Environment.getExternalStorageDirectory();
         File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
@@ -117,7 +107,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             while ((line = br.readLine()) != null) {
                 text.append(line);
                 text.append('\n');
-                //text = formatText(text);
             }
             br.close();
         } catch (IOException e) {
@@ -127,17 +116,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //Find the view by its id
         text = formatText(text);
         textView.setText(text);
-   //     int firstText = chordPos.get(0).y;
         int textLength = text.length();
-
-  //      double percent = (double) firstText / (double) textLength;
 
         String beforeString = text.toString().substring(0, chordPos.get(0).x);
         int startLine = beforeString.split("\n").length;
         int totLines = text.toString().split("\n").length;
         offsetFraction = (double) startLine / (double) totLines;
-
-
 
         textView.measure(0,0);
         textVeiwHeight = textView.getMeasuredHeight();
@@ -169,12 +153,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                     handler.removeCallbacks(moveSeekBarThread);
                     handler.postDelayed(moveSeekBarThread, 100); //cal the thread after 1000 milliseconds
 
-               /*     posOffset = scrollView.getScrollY();
-                    textVeiwHeight -= posOffset;
-                    if (posOffset > 0) {
-                        offsetFraction = 0.15;   /// scroll when music is farther down a bit
-                    }*/
-
                     mediaPlayer.start();
                     ivPlay.setImageResource(android.R.drawable.ic_media_pause);
                 }
@@ -188,17 +166,19 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         View view = (View) scrollView.getChildAt(scrollView.getChildCount() - 1);
         //int diff = (view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY()));
 
-        // if diff is zero, then the bottom has been reached
-        //if (diff == 0) {
+        if (mediaPlayer == null || !mediaPlayer.isPlaying()) {
             posOffset = scrollView.getScrollY();
-        //    textVeiwHeight -= posOffset;
-        //    if (posOffset > 0) {
-        //        offsetFraction = 0.15;   /// scroll when music is farther down a bit
-        //    }
-        //}
-        //if (moveSeekBarThread == null) {
-        //    createAutoScrollThread();
-        //}
+
+        }
+        else {
+            int mediaPos_new = mediaPlayer.getCurrentPosition();
+            int mediaMax_new = mediaPlayer.getDuration();
+
+            ///////// how it is calulated for moving scroller
+            //scrollY = calculatedPos + posOffet
+            //posOffest = scrollY - calculatedPos;
+            posOffset = scrollView.getScrollY() - ((int) ((double) ((double) mediaPos_new / mediaMax_new) * textVeiwHeight)- (int) (offsetFraction * textVeiwHeight)) ;
+        }
     }
 
     private SpannableStringBuilder formatText(SpannableStringBuilder sb) {
