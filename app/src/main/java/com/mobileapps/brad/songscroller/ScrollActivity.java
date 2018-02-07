@@ -11,20 +11,27 @@ import android.os.Environment;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.NodeList;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,6 +50,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private MediaPlayer mediaPlayer;
     private Song song;
     private android.os.Handler handler = new android.os.Handler();
+    private android.os.Handler tempoHandler = new android.os.Handler();
     private ScrollViewExt scrollView;
     private int textVeiwHeight, posOffset, calculatedPos;
     private double offsetFraction;
@@ -50,6 +58,13 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private ArrayList<Point> chordPos;
     private double playRate;
     private double elapsedTime;
+    private int tempoIndicator;
+    private int bpmShow;
+    private ImageView imageTapTempo, imageTapTempo2, imageTapTempo3, imageTapTempo4;
+    private int BeatInterval;
+    private int Beats;
+    private EditText textEditBPM;
+    private ArrayList<String> songData;
 
     /**
      * The Move seek bar. Thread to move seekbar based on the current position
@@ -58,20 +73,41 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
+            int mediaPos_new;
             if (mediaPlayer.isPlaying() && scrollView.isEnableScrolling()) {
 
-                int mediaPos_new = mediaPlayer.getCurrentPosition();
+                mediaPos_new = mediaPlayer.getCurrentPosition();
                 int mediaMax_new = mediaPlayer.getDuration();
 
                 int calculatedPos = (int) ((double) ((double) mediaPos_new / mediaMax_new) * textVeiwHeight) + posOffset - (int) (offsetFraction * textVeiwHeight);
                 if (calculatedPos > posOffset) {
                     scrollView.scrollTo(0, calculatedPos);
                 }
+
+                int measure = mediaPos_new / BeatInterval;
+                switch (measure % 4) {
+                    case 0:
+                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        break;
+                    case 1:
+                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                        break;
+                    case 2:
+                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                        break;
+                    case 3:
+                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                        break;
+
+                }
             }
+
             handler.postDelayed(this, 100); //Looping the thread after 0.1 second
         }
     };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,8 +116,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         context = this.context;
         chordPos = new ArrayList<>();
         posOffset = 0;
+        tempoIndicator = 0;
+        bpmShow = 0;
+
 
         textView = (TextView) findViewById(R.id.textView);
+        imageTapTempo = (ImageView) findViewById(R.id.imageTapTempo);
+        imageTapTempo2 = (ImageView) findViewById(R.id.imageTapTempo2);
+        imageTapTempo3 = (ImageView) findViewById(R.id.imageTapTempo3);
+        imageTapTempo4 = (ImageView) findViewById(R.id.imageTapTempo4);
+
+        textEditBPM = (EditText) findViewById(R.id.textEdit);
+
         //titleView = (TextView) findViewById(R.id.textTitle);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
         scrollView.setScrollViewListener(this);
@@ -95,7 +141,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         File sdcard = Environment.getExternalStorageDirectory();
         File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
-        //File bkground = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".jpg");
 
         //Read text from file
         SpannableStringBuilder text = new SpannableStringBuilder();
@@ -120,7 +165,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         String beforeString = text.toString().substring(0, chordPos.get(0).x);
         int startLine = beforeString.split("\n").length;
-        int totLines = text.toString().split("\n").length;
+        final int totLines = text.toString().split("\n").length;
+        final int playLines = text.toString().substring(chordPos.get(0).x).split("\n").length;
         offsetFraction = (double) startLine / (double) totLines;
 
         textView.measure(0,0);
@@ -128,14 +174,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         //// set title
         getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
-        //// set background
-
-        //ivAlbumArt = (ImageView) findViewById(R.id.album_art);
-        //Drawable albumimage = Drawable.createFromPath(song.getArt());
-        //ivAlbumArt.setImageDrawable(albumimage);
-        //Drawable bgimage = Drawable.createFromPath(bkground.getAbsolutePath());
-        //bgimage.setAlpha(80);
-        //scrollView.setBackgroundDrawable(bgimage);
 
         ivPlay = findViewById(R.id.ivPlay);
         ivPlay.setOnClickListener(new View.OnClickListener() {
@@ -148,23 +186,56 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 } else {
                     if (mediaPlayer == null) {
                         mediaPlayer = MediaPlayer.create(context, Uri.parse(songpath));
+                      //  estBPM = (mediaPlayer.getDuration()/playLines)/16;
+                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mediaPlayer) {
+                                ivPlay.setImageResource(android.R.drawable.ic_media_play);
+                                handler.removeCallbacks(moveSeekBarThread);
+
+                                imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                            }
+                        });
                     }
 
-                    handler.removeCallbacks(moveSeekBarThread);
-                    handler.postDelayed(moveSeekBarThread, 100); //cal the thread after 1000 milliseconds
 
                     mediaPlayer.start();
                     ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+
+                    handler.removeCallbacks(moveSeekBarThread);
+                    handler.postDelayed(moveSeekBarThread, 100); //cal the thread after 100 milliseconds
+                }
+            }
+        });
+
+
+        textEditBPM.addTextChangedListener(new TextWatcher () {
+
+            @Override
+            public void afterTextChanged (Editable s) {
+                BeatInterval = (int) (60000 / Double.parseDouble(s.toString()));
+            }
+            @Override
+            public void beforeTextChanged (CharSequence s, int start, int count, int after) {
+
+            }
+            @Override
+            public void onTextChanged (CharSequence s, int start, int before, int count){
+                if (!s.equals("")) {
+
                 }
             }
         });
     }
 
+
     @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {
         // We take the last son in the scrollview
         View view = (View) scrollView.getChildAt(scrollView.getChildCount() - 1);
-        //int diff = (view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY()));
 
         if (mediaPlayer == null || !mediaPlayer.isPlaying()) {
             posOffset = scrollView.getScrollY();
@@ -181,14 +252,56 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         }
     }
 
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        int avgTapSpeed = 0;
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_UP:
+                int tapSpeed = (int) scrollView.getAvgTapSpeed();
+                if (tapSpeed > 0) {
+                    BeatInterval = tapSpeed;
+                    String bpmtext = String.format("%d", (60000 / BeatInterval));
+                    textEditBPM.setText(bpmtext);
+                }
+        }
+        return super.onTouchEvent(ev);
+    }
+
+
+
     private SpannableStringBuilder formatText(SpannableStringBuilder sb) {
 
-        Matcher matcher = java.util.regex.Pattern.compile("@!.+?\\n").matcher(sb.toString());
+        Matcher matcher = java.util.regex.Pattern.compile("(.+?)songdata>").matcher(sb.toString());
+        String songText;
+        if (matcher.find()) {
+            String xml = matcher.group(0);
+            try {
+                XMLParser xmlParser = new XMLParser(xml);
+                BeatInterval = Integer.parseInt(xmlParser.getSingleItem("bpm"));
+                Beats = Integer.parseInt(xmlParser.getSingleItem("beats"));
+                songText = xmlParser.getSingleItem("song");
+                if (songText.length() > 0) {
+                    sb = new SpannableStringBuilder(songText);
+                }
+            }
+            catch (Exception e) {
+                Log.e("Error", e.toString());
+            }
+        }
+
+        matcher = java.util.regex.Pattern.compile("@!.+?\\n").matcher(sb.toString());
         int lastCommentEnd = 0;
+        String next;
 
         while (matcher.find()) {
-            //final ForegroundColorSpan fcs = new ForegroundColorSpan(Color.rgb(192, 192, 192));
-            //sb.delete(matcher.start(), matcher.end());
+            next = matcher.group(0);
+            String[] data = next.split("bpm");
+            if (data.length == 2) {
+                BeatInterval = (int) (60000 / Double.parseDouble(data[1]));
+                textEditBPM.setText(data[1]);
+                continue;
+            }
             lastCommentEnd = matcher.end();
         }
         sb = new SpannableStringBuilder(sb.toString().substring(lastCommentEnd));

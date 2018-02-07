@@ -160,4 +160,8 @@ Please correct me if I'm wrong....
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="action_settings">Settings</string>
+    <string name="one"> - </string>
+    <string name="two"> - - </string>
+    <string name="three"> - - - </string>
+    <string name="four"> - - - - </string>
 </resources>
