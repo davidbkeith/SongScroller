@@ -1,10 +1,12 @@
 package com.mobileapps.brad.songscroller;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -16,6 +18,7 @@ public class AlbumSongsActivity extends AppCompatActivity {
     private ListView songList;
     private Context context;
     private Album album;
+    private Song selectedsong;
 
     public Album getAlbum() {
         return album;
@@ -34,7 +37,7 @@ public class AlbumSongsActivity extends AppCompatActivity {
         context = this;
         setContentView(R.layout.activity_album_songs); //activity_album_songs - list view
 
-        album = (Album) getIntent().getSerializableExtra("songscroller_album");
+        album = album == null ? (Album) getIntent().getSerializableExtra("songscroller_album") : album;
 
         songList = (ListView) findViewById(R.id.songList);
        // arrayList = new ArrayList<>();
@@ -42,31 +45,34 @@ public class AlbumSongsActivity extends AppCompatActivity {
         // getMusic();
         // adapter = new CustomMusicAdapter(this, R.layout.custom_music_item, arrayList);
         adapter = new SongAdapter(this, R.layout.song_list_item, album);
-        songList.setAdapter(adapter);
+        try {
+            songList.setAdapter(adapter);
 
-        txtAlbum = (TextView) findViewById(R.id.textAlbum);
-        txtArtist = (TextView) findViewById(R.id.textArtist);
-        ivAlbumArt = (ImageView) findViewById(R.id.album_art);
-
-
-        Drawable albumimage = Drawable.createFromPath(album.getArt());
-        ivAlbumArt.setImageDrawable(albumimage);
-        txtAlbum.setText(album.getAlbum());
-        txtArtist.setText(album.getArtist());
-
-        songList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-
-                Song song = (Song) songList.getItemAtPosition(position);
-
-                Intent intent = new Intent(context, ScrollActivity.class);
-                intent.putExtra("songscroller_song", song);
-                context.startActivity (intent);
-
-            }
-        });
+            txtAlbum = (TextView) findViewById(R.id.textAlbum);
+            txtArtist = (TextView) findViewById(R.id.textArtist);
+            ivAlbumArt = (ImageView) findViewById(R.id.album_art);
 
 
-    }
+            Drawable albumimage = Drawable.createFromPath(album.getArt());
+            ivAlbumArt.setImageDrawable(albumimage);
+            txtAlbum.setText(album.getAlbum());
+            txtArtist.setText(album.getArtist());
+
+            songList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+
+                    selectedsong = (Song) songList.getItemAtPosition(position);
+
+                    Intent intent = new Intent(context, ScrollActivity.class);
+                    intent.putExtra("songscroller_song", selectedsong);
+                    startActivityForResult (intent, 1);
+
+                }
+            });
+        }
+        catch (Exception e){
+            Log.e("Error", e.toString());
+        }
+     }
 }

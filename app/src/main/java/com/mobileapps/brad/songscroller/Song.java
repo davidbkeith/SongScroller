@@ -13,6 +13,10 @@ public class Song implements Serializable {
     private String art;
     private String artist;
     private String path;
+
+
+
+    private String sheetMusicPath;
     private long duration;
     private int position;
     private int albumId;
@@ -64,6 +68,14 @@ public class Song implements Serializable {
 
     public String getPath() {
         return path;
+    }
+
+    public String getSheetMusicPath() {
+        return sheetMusicPath;
+    }
+
+    public void setSheetMusicPath(String sheetMusicPath) {
+        this.sheetMusicPath = sheetMusicPath;
     }
 
     public void setPath(String path) {

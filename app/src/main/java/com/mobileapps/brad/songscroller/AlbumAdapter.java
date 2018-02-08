@@ -42,7 +42,7 @@ public class AlbumAdapter extends BaseAdapter {
         this.layout = layout;
        //  sdcard = Environment.getExternalStorageDirectory();
 
-        getAlbums();
+        albumList = Album.getAllAlbums(context);
     }
 
     @Override
@@ -129,45 +129,4 @@ public class AlbumAdapter extends BaseAdapter {
 
         return convertView;
     }
-
-    public void getAlbums () {
-        albumList = new ArrayList<>();
-        ContentResolver contentResolver = context.getContentResolver();
-        MediaStore.Audio.Albums albums = new MediaStore.Audio.Albums();
-        Uri songUri = albums.EXTERNAL_CONTENT_URI;
-        String selection = "is_music != 0";
-        String[] projection = new String[] {albums._ID, albums.ALBUM, albums.ARTIST, albums.ALBUM_ART, albums.NUMBER_OF_SONGS};
-        String sortOrder = MediaStore.Audio.Media.ALBUM + "ASC";
-        Cursor songCursor = contentResolver.query(songUri, projection,null,null,null);
-        //Cursor songCursor = context.getContentResolver().query(songUri, projection,null,null,null);
-
-        if (songCursor != null && songCursor.moveToFirst()) {
-            //   int songTitle = songCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-            //   int songArtist = songCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-            //   int songLocation = songCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
-            //   int songDuration = songCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-            int songAlbumId = songCursor.getColumnIndex(albums._ID);
-            int songAlbum = songCursor.getColumnIndex(albums.ALBUM);
-            int songArtist = songCursor.getColumnIndex(albums.ARTIST);
-            int songArt = songCursor.getColumnIndex(albums.ALBUM_ART);
-            int songNumberOfSongs = songCursor.getColumnIndex(albums.NUMBER_OF_SONGS);
-
-
-            do {
-                long id = songCursor.getLong(songAlbumId);
-                String album = songCursor.getString(songAlbum);
-                String artist = songCursor.getString(songArtist);
-                String art = songCursor.getString(songArt);
-                String numberSongs = songCursor.getString(songNumberOfSongs);
-
-               // if (!"<unknown>".equals(artist)) {
-                    albumList.add(new Album (id, album, art, artist, numberSongs));
-               // }
-            } while (songCursor.moveToNext());
-
-            //Collections.sort(arrayList);
-        }
-
-    }
-
 }

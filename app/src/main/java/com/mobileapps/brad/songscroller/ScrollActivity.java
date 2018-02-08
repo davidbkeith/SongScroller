@@ -1,7 +1,9 @@
 package com.mobileapps.brad.songscroller;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
@@ -20,6 +22,7 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -153,24 +156,29 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 text.append(line);
                 text.append('\n');
             }
+
             br.close();
+
+            //Find the view by its id
+            text = formatText(text);
+            textView.setText(text);
+            int textLength = text.length();
+
+            String beforeString = text.toString().substring(0, chordPos.get(0).x);
+            int startLine = beforeString.split("\n").length;
+            final int totLines = text.toString().split("\n").length;
+            final int playLines = text.toString().substring(chordPos.get(0).x).split("\n").length;
+            offsetFraction = (double) startLine / (double) totLines;
+
+            textView.measure(0,0);
+            textVeiwHeight = textView.getMeasuredHeight();
+
         } catch (IOException e) {
             //You'll need to add proper error handling here
+            Log.d("Message", " Song has no associated text file");
+
         }
 
-        //Find the view by its id
-        text = formatText(text);
-        textView.setText(text);
-        int textLength = text.length();
-
-        String beforeString = text.toString().substring(0, chordPos.get(0).x);
-        int startLine = beforeString.split("\n").length;
-        final int totLines = text.toString().split("\n").length;
-        final int playLines = text.toString().substring(chordPos.get(0).x).split("\n").length;
-        offsetFraction = (double) startLine / (double) totLines;
-
-        textView.measure(0,0);
-        textVeiwHeight = textView.getMeasuredHeight();
 
         //// set title
         getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
@@ -201,7 +209,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                         });
                     }
 
-
                     mediaPlayer.start();
                     ivPlay.setImageResource(android.R.drawable.ic_media_pause);
 
@@ -231,6 +238,27 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         });
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // click on 'up' button in the action bar, handle it here
+                onBackPressed();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(getApplicationContext(), AlbumSongsActivity.class);
+        //intent.putExtra("songscroller_song", song);
+        setResult(Activity.RESULT_OK, intent);
+        finishActivity(1);
+        super.onBackPressed();
+    }
 
     @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {

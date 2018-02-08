@@ -28,29 +28,32 @@ public class SongAdapter extends BaseAdapter {
     private Context context;
     private int layout;
     private Album album;
-    private ArrayList<Song> songList;
+    //private ArrayList<Song> songList;
     //private MediaPlayer mediaPlayer;
 
     public SongAdapter(Context context, int layout, Album album) {
         this.context = context;
         this.layout = layout;
+        album.getAlbumSongs(context);
         this.album = album;
-        getAlbumSongs(album);
+        //songList = album.getSongs();
+        this.album.getAlbumSongs(context);
+        //getAlbumSongs(album);
     }
 
     @Override
     public int getCount() {
-        return songList.size();
+        return album.getSongs().size();
     }
 
     @Override
     public Object getItem(int i) {
-        return songList.get(i);
+        return album.getSongs().get(i);
     }
 
     @Override
     public long getItemId(int i) {
-        return songList.get(i).getAlbumId();
+        return album.getSongs().get(i).getAlbumId();
     }
 
     private class ViewHolder {
@@ -81,6 +84,14 @@ public class SongAdapter extends BaseAdapter {
 
         long duration = song.getDuration();
         viewHolder.txtSongName.setText(song.getTrack() + ". " + song.getTitle());
+        if (song.getSheetMusicPath() != null && !song.getSheetMusicPath().isEmpty()) {
+            Log.d("Message", "Path is: " + song.getSheetMusicPath());
+            viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorAccentLight));
+            //viewHolder.txtSongName.setSelected(true);
+        }
+        else {
+            viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorScreenLight));
+        }
         long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % TimeUnit.HOURS.toMinutes(1);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % TimeUnit.MINUTES.toSeconds(1);
     //    long seconds=(duration/1000)%60;
@@ -120,7 +131,7 @@ public class SongAdapter extends BaseAdapter {
         return convertView;
     }
 
-    public void getAlbumSongs (Album album) {
+  /*  public void getAlbumSongs (Album album) {
         songList = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         MediaStore.Audio.Media media = new MediaStore.Audio.Media();
@@ -175,5 +186,5 @@ public class SongAdapter extends BaseAdapter {
                 songCursor.close();
             }
         }
-    }
+    }*/
 }
