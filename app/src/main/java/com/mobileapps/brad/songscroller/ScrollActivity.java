@@ -87,24 +87,26 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                     scrollView.scrollTo(0, calculatedPos);
                 }
 
-                int measure = mediaPos_new / BeatInterval;
-                switch (measure % 4) {
-                    case 0:
-                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                        imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                        break;
-                    case 1:
-                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
-                        break;
-                    case 2:
-                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
-                        break;
-                    case 3:
-                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
-                        break;
+                if (BeatInterval > 0) {
+                    int measure = mediaPos_new / BeatInterval;
+                    switch (measure % 4) {
+                        case 0:
+                            imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                            imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                            imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                            imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                            break;
+                        case 1:
+                            imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                            break;
+                        case 2:
+                            imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                            break;
+                        case 3:
+                            imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                            break;
 
+                    }
                 }
             }
 
@@ -178,7 +180,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             Log.d("Message", " Song has no associated text file");
 
         }
-
 
         //// set title
         getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));

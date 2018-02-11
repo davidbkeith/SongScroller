@@ -17,12 +17,20 @@ import java.util.ArrayList;
  */
 
 public class Album implements Serializable {
+
     private long id;
     private String album;
     private String art;
     private String artist;
     private String numberSongs;
-    private ArrayList<Song> songs;
+
+    public Album(Album album) {
+        this.id = album.id;
+        this.album = album.album;
+        this.art = album.art;
+        this.artist = album.artist;
+        this.numberSongs = album.numberSongs;
+    }
 
     public Album(long id, String album, String art, String artist, String numberSongs) {
         this.id = id;
@@ -33,43 +41,8 @@ public class Album implements Serializable {
     }
 
     public Album (Context context, long albumid) {
-       // ArrayList albumList = new ArrayList<>();
-        ContentResolver contentResolver = context.getContentResolver();
-        MediaStore.Audio.Albums albums = new MediaStore.Audio.Albums();
-        Uri songUri = albums.EXTERNAL_CONTENT_URI;
-        String selection = "is_music != 0 and album_id = " + Long.toString(albumid);
-        String[] projection = new String[] {albums._ID, albums.ALBUM, albums.ARTIST, albums.ALBUM_ART, albums.NUMBER_OF_SONGS};
-        String sortOrder = MediaStore.Audio.Media.ALBUM + "ASC";
-        Cursor songCursor = contentResolver.query(songUri, projection,null,null,null);
-        //Cursor songCursor = context.getContentResolver().query(songUri, projection,null,null,null);
-
-        if (songCursor != null && songCursor.moveToFirst()) {
-            //   int songTitle = songCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-            //   int songArtist = songCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-            //   int songLocation = songCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
-            //   int songDuration = songCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-            int songAlbumId = songCursor.getColumnIndex(albums._ID);
-            int songAlbum = songCursor.getColumnIndex(albums.ALBUM);
-            int songArtist = songCursor.getColumnIndex(albums.ARTIST);
-            int songArt = songCursor.getColumnIndex(albums.ALBUM_ART);
-            int songNumberOfSongs = songCursor.getColumnIndex(albums.NUMBER_OF_SONGS);
-
-
-          ///  do {
-                id = albumid;
-                album = songCursor.getString(songAlbum);
-                artist = songCursor.getString(songArtist);
-                art = songCursor.getString(songArt);
-                numberSongs = songCursor.getString(songNumberOfSongs);
-
-                // if (!"<unknown>".equals(artist)) {
-                //albumList.add(new Album (id, album, art, artist, numberSongs));
-                // }
-         //   } while (songCursor.moveToNext());*/
-
-            //Collections.sort(arrayList);
-        }
-
+        ArrayList<Album> albumArrayList = getAlbumById(context, albumid, MainActivity.ALBUM);
+        this.equals(albumArrayList.get(0));
     }
 
     public long getId() {
@@ -104,13 +77,13 @@ public class Album implements Serializable {
         this.numberSongs = numberSongs;
     }
 
-    public ArrayList<Song> getSongs() {
-        return songs;
-    }
+   // public ArrayList<Song> getSongs() {
+   //     return songs;
+   // }
 
-    public void setSongs(ArrayList<Song> songs) {
-        this.songs = songs;
-    }
+    ///public void setSongs(ArrayList<Song> songs) {
+    //    this.songs = songs;
+    //}
 
     public String getAlbum() {
         return album;
@@ -120,16 +93,30 @@ public class Album implements Serializable {
         this.album = album;
     }
 
-    static public ArrayList<Album> getAllAlbums (Context context) {
+    static public ArrayList<Album> getAlbumById (Context context, long albumid, int sortBy) {
+
+        File dirmusic = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
         ArrayList albumList = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         MediaStore.Audio.Albums albums = new MediaStore.Audio.Albums();
         Uri songUri = albums.EXTERNAL_CONTENT_URI;
         String selection = "is_music != 0";
+        if (albumid > 0) {
+            selection += " and album_id = " + Long.toString(albumid);
+        }
+
         String[] projection = new String[] {albums._ID, albums.ALBUM, albums.ARTIST, albums.ALBUM_ART, albums.NUMBER_OF_SONGS};
-        String sortOrder = MediaStore.Audio.Media.ALBUM + "ASC";
-        Cursor songCursor = contentResolver.query(songUri, projection,null,null,null);
+        String sortOrder;
+        if (sortBy == MainActivity.ALBUM) {
+            sortOrder = MediaStore.Audio.AlbumColumns.ALBUM + " COLLATE LOCALIZED ASC";
+        }
+        else {
+            sortOrder = MediaStore.Audio.AlbumColumns.ARTIST + " COLLATE LOCALIZED ASC";
+        }
+
+        Cursor songCursor = contentResolver.query(songUri, projection,null,null, sortOrder);
         //Cursor songCursor = context.getContentResolver().query(songUri, projection,null,null,null);
+
 
         if (songCursor != null && songCursor.moveToFirst()) {
             //   int songTitle = songCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
@@ -142,17 +129,28 @@ public class Album implements Serializable {
             int songArt = songCursor.getColumnIndex(albums.ALBUM_ART);
             int songNumberOfSongs = songCursor.getColumnIndex(albums.NUMBER_OF_SONGS);
 
-
             do {
                 long id = songCursor.getLong(songAlbumId);
                 String album = songCursor.getString(songAlbum);
                 String artist = songCursor.getString(songArtist);
                 String art = songCursor.getString(songArt);
                 String numberSongs = songCursor.getString(songNumberOfSongs);
+                Log.d("Album Info", "Album: " + album);
+                Log.d("Artist Info", "Artist: " + artist);
+                Log.d("Art Info", "Art: " + art);
+                Log.d("Art URI", songUri.toString());
 
-                // if (!"<unknown>".equals(artist)) {
+                if (art == null || art.isEmpty()) {
+                    //File audioDir = new File (dirmusic.getAbsolutePath() + "/" + artist, "folder.jpg");
+                    File audioDir = FindFile.find("folder.jpg", new File(dirmusic, artist));
+                    if (audioDir.exists()) {
+                        art = audioDir.getAbsolutePath();
+                    }
+                    Log.d("Album Directory", audioDir.getAbsolutePath());
+                }
+
                 albumList.add(new Album (id, album, art, artist, numberSongs));
-                // }
+
             } while (songCursor.moveToNext());
 
             //Collections.sort(arrayList);
@@ -160,7 +158,8 @@ public class Album implements Serializable {
         return albumList;
     }
 
-    public void getAlbumSongs (Context context) {
+
+/*    public void getAlbumSongs (Context context) {
         songs = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         MediaStore.Audio.Media media = new MediaStore.Audio.Media();
@@ -221,5 +220,5 @@ public class Album implements Serializable {
                 songCursor.close();
             }
         }
-    }
+    }*/
 }

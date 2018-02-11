@@ -1,6 +1,5 @@
 package com.mobileapps.brad.songscroller;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -14,7 +13,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class AlbumSongsActivity extends AppCompatActivity {
-    private SongAdapter adapter;
+    private AlbumSongAdapter adapter;
     private ListView songList;
     private Context context;
     private Album album;
@@ -44,7 +43,7 @@ public class AlbumSongsActivity extends AppCompatActivity {
 
         // getMusic();
         // adapter = new CustomMusicAdapter(this, R.layout.custom_music_item, arrayList);
-        adapter = new SongAdapter(this, R.layout.song_list_item, album);
+        adapter = new AlbumSongAdapter(this, R.layout.album_song_list_item);
         try {
             songList.setAdapter(adapter);
 

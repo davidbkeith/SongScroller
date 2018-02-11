@@ -3,6 +3,7 @@ package com.mobileapps.brad.songscroller;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by brad on 1/29/18.
@@ -25,12 +28,9 @@ import java.util.ArrayList;
 
 public class AlbumAdapter extends BaseAdapter {
 
-    private Context context;
+    private MainActivity mainActivity;
     private int layout;
-  //  private Album album;
-  //  private File sdcard;
     private ArrayList<Album> albumList;
-
 
     private class ViewHolder {
         TextView txtAlbum, txtArtist, txtSongCount;
@@ -38,11 +38,30 @@ public class AlbumAdapter extends BaseAdapter {
     }
 
     public AlbumAdapter(Context context, int layout) {
-        this.context = context;
+        this.mainActivity = (MainActivity) context;
         this.layout = layout;
-       //  sdcard = Environment.getExternalStorageDirectory();
+        albumList = Album.getAlbumById(context, 0, mainActivity.getmAlbumView());
+    }
 
-        albumList = Album.getAllAlbums(context);
+    class ArtistCompare implements Comparator<Album> {
+        @Override
+        public int compare(Album alb1, Album alb2) {
+            return alb1.getArtist().compareTo(alb2.getArtist());
+        }
+    }
+    class AlbumCompare implements Comparator<Album> {
+        @Override
+        public int compare(Album alb1, Album alb2) {
+            return alb1.getAlbum().compareTo(alb2.getAlbum());
+        }
+    }
+    public void sortAblumsBy (int sortOrder) {
+        if (sortOrder == MainActivity.ARTIST) {
+            Collections.sort(albumList, new ArtistCompare());
+        }
+        else {
+            Collections.sort(albumList, new AlbumCompare());
+        }
     }
 
     @Override
@@ -69,7 +88,7 @@ public class AlbumAdapter extends BaseAdapter {
         final ViewHolder viewHolder;
         if (convertView == null) {
             viewHolder = new ViewHolder();
-            LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater layoutInflater = (LayoutInflater) mainActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             convertView= layoutInflater.inflate(layout, null);
             viewHolder.txtAlbum = (TextView) convertView.findViewById(R.id.album_name);
@@ -86,13 +105,31 @@ public class AlbumAdapter extends BaseAdapter {
         final Album album = albumList.get(position);
         //final Music music = new Music("","","","","");
         viewHolder.txtAlbum.setText(album.getAlbum());
-        viewHolder.txtSongCount.setText(album.getArtist());
-        viewHolder.txtArtist.setText(album.getNumberSongs() + " songs");
+        viewHolder.txtArtist.setText(album.getArtist());
+        viewHolder.txtSongCount.setText(album.getNumberSongs() + " songs ");
 
         //File bkground = new File(sdcard, "/Music/" + album.getSinger() + "-" + music.getName() + ".jpg");
-        //String path =
-        Drawable albumimage = Drawable.createFromPath(album.getArt());
-        viewHolder.ivAlbumArt.setImageDrawable(albumimage);
+      //  String artpath = album.getArt();
+     //   if (artpath != null && !artpath.isEmpty()) {
+            Drawable albumimage = Drawable.createFromPath(album.getArt());
+            viewHolder.ivAlbumArt.setImageDrawable(albumimage);
+     //   }
+     //   else {
+     //       artpath = null;
+     //   }
+  /*      else {
+            AssetManager assetManager = context.getAssets();
+            try {
+                String[] list = assetManager.list("./");
+                for (String s : list)  {
+                    Log.d("File:", s);
+                }
+            }
+            catch (Exception e) {
+
+            }
+
+        }*/
 
         ///////// event listeners
        /* convertView.setOnClickListener(new View.OnClickListener() {

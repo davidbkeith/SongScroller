@@ -29,7 +29,7 @@
         android:background="@color/colorMenuBar"
         app:layout_constraintTop_toTopOf="@+id/imageBackground"
         app:srcCompat="@android:drawable/menuitem_background"
-        tools:layout_editor_absoluteX="0dp" />
+        tools:layout_editor_absoluteX="206dp" />
 
     <ListView
         android:id="@+id/albumList"
@@ -40,39 +40,25 @@
         app:layout_constraintTop_toBottomOf="@+id/imageBackground"
         tools:layout_editor_absoluteX="0dp" />
 
-    <RadioButton
-        android:id="@+id/radArtists"
-        android:layout_width="95dp"
-        android:layout_height="0dp"
-        android:text="Artist"
-        app:layout_constraintRight_toLeftOf="@+id/radAlbums"
-        app:layout_constraintTop_toTopOf="@+id/radAlbums" />
-
-    <RadioButton
-        android:id="@+id/radAlbums"
-        android:layout_width="95dp"
+    <Button
+        android:id="@+id/buttonArtists"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:checked="true"
-        android:text="Albums"
-        app:layout_constraintEnd_toStartOf="@+id/radSongs"
-        app:layout_constraintTop_toTopOf="@+id/radSongs" />
+        android:text="Artists"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <RadioButton
-        android:id="@+id/radSongs"
-        android:layout_width="95dp"
+
+    <Button
+        android:id="@+id/buttonSongs"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:text="Songs"
-        app:layout_constraintEnd_toStartOf="@+id/radPlayLists"
-        app:layout_constraintTop_toTopOf="@+id/radPlayLists" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <RadioButton
-        android:id="@+id/radPlayLists"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="16dp"
-        android:text="Play Lists"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView2"
-        app:layout_constraintEnd_toEndOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
