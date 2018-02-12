@@ -149,10 +149,10 @@ public class Song implements Serializable {
                 media.DURATION,
                 media.ALBUM_ID,
                 media.TRACK
-
         };
 
-        Uri songUri = media.EXTERNAL_CONTENT_URI;
+        File dirmusic = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        //Uri songUri = media.EXTERNAL_CONTENT_URI;
         String sortOrder = SortOrder + " COLLATE LOCALIZED ASC";
         Cursor songCursor = null;
 
@@ -168,9 +168,11 @@ public class Song implements Serializable {
                     Song song = new Song();
                     song.setArtist(songCursor.getString(0));
                     song.setTitle(songCursor.getString(1));
-                    File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
-                    if (file.exists()){
-                        song.setSheetMusicPath(file.getPath());
+                    //File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
+                    File score = FindFile.find(song.getArtist() + "-" + song.getTitle() + ".txt", dirmusic, false );
+                    Log.d("Score Path is: ", score.getPath());
+                    if (score.exists()){
+                        song.setSheetMusicPath(score.getPath());
                     }
 /*                    else if (mainActivity.getmView() == MainActivity.SCORE )  {
                         continue;

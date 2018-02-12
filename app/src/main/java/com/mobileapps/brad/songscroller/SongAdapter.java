@@ -21,13 +21,13 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class SongAdapter extends BaseAdapter {
-    public MainActivity getMainActivity() {
+   /* public MainActivity getMainActivity() {
         return mainActivity;
     }
 
     public void setMainActivity(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-    }
+    }*/
 
     public ArrayList<Song> getSongList() {
         return songList;
@@ -37,17 +37,21 @@ public class SongAdapter extends BaseAdapter {
         this.songList = songList;
     }
 
-    private MainActivity mainActivity;
+    private Context context;
     private int layout;
+    private int mView;
     //private Song song;
     private ArrayList<Song> songList;
     private ArrayList<Integer> scoreIndices;
     //private MediaPlayer mediaPlayer;
 
-    public SongAdapter(Context context, int layout) {
-        mainActivity = (MainActivity) context;
+    public SongAdapter(Context context, int layout, int View) {
+        //mainActivity = (MainActivity) context;
+        mView = View;
+        this.context = context;
         this.layout = layout;
         setSongList(Song.getSongs(context, 0, MediaStore.Audio.AudioColumns.TITLE));
+        SetView (View);
     }
 
     class SongCompare implements Comparator<Song> {
@@ -63,27 +67,48 @@ public class SongAdapter extends BaseAdapter {
         }
     }
     public void sortAblumsBy (int sortOrder) {
-        if (sortOrder == MainActivity.ARTIST) {
+        if (sortOrder == MainActivity.ARTIST || sortOrder == MainActivity.SCORE_ARTIST) {
             Collections.sort(songList, new ArtistCompare());
         }
         else {
             Collections.sort(songList, new SongCompare());
         }
     }
+
     public void getScores () {
-        scoreIndices = new ArrayList<>();
-        int i=0;
-        for (Song song : songList) {
-            if(song.getSheetMusicPath() != null) {
-                scoreIndices.add(i);
+       // if (scoreIndices == null) {
+            scoreIndices = new ArrayList<>();
+            int i = 0;
+            for (Song song : songList) {
+                if (song.getSheetMusicPath() != null) {
+                    scoreIndices.add(i);
+                }
+                i++;
             }
-            i++;
+       // }
+    }
+
+    public void SetView (int View)  {
+        mView = View;
+        sortAblumsBy(mView);
+        switch (mView) {
+            case MainActivity.SONG:
+             //   scoreIndices = null;
+                break;
+            case MainActivity.ARTIST:
+                break;
+            case MainActivity.SCORE_SONG:
+                getScores();
+                break;
+            case MainActivity.SCORE_ARTIST:
+                getScores();
+                break;
         }
     }
 
     @Override
     public int getCount() {
-        if (mainActivity.getmSongView() == mainActivity.SCORE) {
+        if (mView == MainActivity.SCORE_SONG || mView == MainActivity.SCORE_ARTIST) {
             return scoreIndices.size();
         }
         else {
@@ -93,7 +118,7 @@ public class SongAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int i) {
-        if (mainActivity.getmSongView() == mainActivity.SCORE) {
+        if (mView == MainActivity.SCORE_SONG || mView == MainActivity.SCORE_ARTIST) {
             return songList.get(scoreIndices.get(i));
         }
         else {
@@ -117,24 +142,13 @@ public class SongAdapter extends BaseAdapter {
         //Log.d("Inside", "entered Song Adaptor getView....");
         final Song song = (Song) getItem(position);
 
-        //return inflater.inflate(R.layout.null_item, null);
-
         if (convertView == null) {
             viewHolder = new SongAdapter.ViewHolder();
-            LayoutInflater layoutInflater = (LayoutInflater) getMainActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             convertView= layoutInflater.inflate(layout, null);
-
-           // if (mainActivity.getmSongView() == mainActivity.ARTIST) {
-           //     Log.d("View Set To: ", "ARTIST");
-          //      viewHolder.txtSongName = (TextView) convertView.findViewById(R.id.subtitle);
-          //      viewHolder.txtArtist = (TextView) convertView.findViewById(R.id.title);
-           // }
-           // else {
-                viewHolder.txtTitle = (TextView) convertView.findViewById(R.id.title);
-                viewHolder.txtSubtitle = (TextView) convertView.findViewById(R.id.subtitle);
-           // }
-           // viewHolder.ivAlbumArt = (ImageView) convertView.findViewById(R.id.album_art);
+            viewHolder.txtTitle = (TextView) convertView.findViewById(R.id.title);
+            viewHolder.txtSubtitle = (TextView) convertView.findViewById(R.id.subtitle);
             viewHolder.txtDuration = (TextView) convertView.findViewById(R.id.song_duration);
 
             convertView.setTag(viewHolder);
@@ -142,18 +156,9 @@ public class SongAdapter extends BaseAdapter {
             viewHolder = (SongAdapter.ViewHolder) convertView.getTag();
         }
 
-     /*   if (mainActivity.getmView() == mainActivity.SCORE && song.getSheetMusicPath() == null) {
-            convertView = new View(mainActivity);
-            return convertView;
-        }*/
-
-       // Log.d("Art Path", song.getArt());
-       // Drawable albumimage = Drawable.createFromPath(song.getArt());
-      //  viewHolder.ivAlbumArt.setImageDrawable(albumimage);
-
         long duration = song.getDuration();
 
-        if (mainActivity.getmSongView() == mainActivity.ARTIST) {
+        if (mView == MainActivity.ARTIST || mView == MainActivity.SCORE_ARTIST) {
             viewHolder.txtSubtitle.setText(song.getTitle());
             viewHolder.txtTitle.setText(song.getArtist());
         }
@@ -162,25 +167,23 @@ public class SongAdapter extends BaseAdapter {
             viewHolder.txtSubtitle.setText(song.getArtist());
         }
 
-    /*    if (song.getSheetMusicPath() != null && !song.getSheetMusicPath().isEmpty()) {
+        if (song.getSheetMusicPath() != null && !song.getSheetMusicPath().isEmpty()) {
             //Log.d("Message", "Path is: " + song.getSheetMusicPath());
-            viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorAccentLight));
+            //viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorAccentLight));
+            viewHolder.txtDuration.setTextColor(viewHolder.txtDuration.getResources().getColor(R.color.colorAccentLight));
             //viewHolder.txtSongName.setSelected(true);
         }
         else {
-            viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorScreenLight));
-        }*/
+            viewHolder.txtDuration.setTextColor(viewHolder.txtDuration.getResources().getColor(R.color.colorMenuBarLight));
+            //viewHolder.txtSongName.setSelected(true);
+            //viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorScreenLight));
+        }
+
         long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % TimeUnit.HOURS.toMinutes(1);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % TimeUnit.MINUTES.toSeconds(1);
 
         viewHolder.txtDuration.setText(String.format("%d:%02d", minutes, seconds));
 
-      /*  if (mainActivity.getmSongView() == mainActivity.SCORE && song.getSheetMusicPath() == null) {
-            convertView.setVisibility(View.INVISIBLE);
-        }
-        else {
-            convertView.setVisibility(View.VISIBLE);
-        }*/
         return convertView;
     }
 

@@ -26,9 +26,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final int ALBUM = 0;
     public static final int ARTIST = 1;
     public static final int SONG = 0;
-    public static final int SCORE = 2;
+    public static final int SCORE_SONG = 2;
+    public static final int SCORE_ARTIST = 3;
     private String[] albumViews = {"ALBUM", "ARTIST"};
-    private String[] songViews = {"SONG", "ARTIST", "SCORE"};
+    private String[] songViews = {"SONG", "ARTIST", "SONG", "ARTIST"};
+
+    private String[] albumTitleBar = {"Albums", "Artists"};
+    private String[] songTitleBar = {"Songs", "Songs", "Scores", "Scores"};
 
     //private ArrayList<Album> arrayList;
     //private CustomMusicAdapter adapter;
@@ -36,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SongAdapter songAdapter;
     private ListView albumList;
 
+    private Integer mAlbumView;
+    private Integer mSongView;
+    private boolean mShowSongsWithScore;
     private Button artistsButton, songsButton;
     private Album album;
     private Context context;
@@ -48,17 +55,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         this.mAlbumView = AlbumView;
     }
 
+    public Integer getCurrentView () {
+        if (albumAdapter!= null) {
+            return mAlbumView;
+        }
+        return mSongView;
+    }
+
     public Integer getmSongView() {
         return mSongView;
     }
 
     public void setmSongView(Integer SongView) {
-        this.mSongView = SongView > 2 ? 0 : SongView;
+        this.mSongView = SongView > 3 ? 0 : SongView;
     }
-
-    private Integer mAlbumView;
-    private Integer mSongView;
-    private boolean mShowSongsWithScore;
 
     public Album getAlbum() {
         return album;
@@ -76,8 +86,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setmAlbumView(ALBUM);
         setmSongView(SONG);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        //// set title
-        getSupportActionBar().setTitle(String.format("%s: %s", getSupportActionBar().getTitle(), "Albums"));
 
         albumList = (ListView) findViewById(R.id.albumList); //activity_main.xml - list view
         artistsButton = (Button) findViewById(R.id.buttonArtists);
@@ -134,11 +142,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 button.setText(albumViews[getmAlbumView()]);
 
                 if (albumAdapter != null) {
-                    albumAdapter.sortAblumsBy(mAlbumView);
+                    albumAdapter.SetView (getmAlbumView());
                     albumAdapter.notifyDataSetChanged();
                 }
                 else {
-                    albumAdapter = new AlbumAdapter(this, R.layout.album_list_item);
+                    albumAdapter = new AlbumAdapter(this, R.layout.album_list_item, getmAlbumView());
                     albumList.setAdapter(albumAdapter);
                     albumList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -150,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     });
                 }
+
+                //// set title
+                getSupportActionBar().setTitle(String.format("Song Scroller: %s", albumTitleBar[getmAlbumView()]));
                 songAdapter = null;
                 break;
             }
@@ -158,17 +169,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 button.setText(songViews[getmSongView()]);
 
                 if (songAdapter != null) {
-                    songAdapter.sortAblumsBy(getmSongView());
-                    if (getmSongView() == SCORE) {
-                        songAdapter.getScores();
-                    }
+                    songAdapter.SetView (getmSongView());
                     songAdapter.notifyDataSetChanged();
                 }
                 else {
-                    songAdapter = new SongAdapter(this, R.layout.song_list_item);
+                    songAdapter = new SongAdapter(this, R.layout.song_list_item, getmSongView());
                     albumList.setAdapter(songAdapter);
-                    songAdapter.sortAblumsBy(getmSongView());
-
                     albumList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -179,6 +185,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     });
                 }
+
+                //// set title
+                getSupportActionBar().setTitle(String.format("Song Scroller: %s", songTitleBar[getmSongView()]));
                 albumAdapter = null;
                 break;
             }

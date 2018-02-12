@@ -66,7 +66,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private ImageView imageTapTempo, imageTapTempo2, imageTapTempo3, imageTapTempo4;
     private int BeatInterval;
     private int Beats;
-    private EditText textEditBPM;
+    //private EditText textEditBPM;
     private ArrayList<String> songData;
 
     /**
@@ -131,7 +131,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         imageTapTempo3 = (ImageView) findViewById(R.id.imageTapTempo3);
         imageTapTempo4 = (ImageView) findViewById(R.id.imageTapTempo4);
 
-        textEditBPM = (EditText) findViewById(R.id.textEdit);
+      //  textEditBPM = (EditText) findViewById(R.id.textEdit);
 
         //titleView = (TextView) findViewById(R.id.textTitle);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
@@ -220,7 +220,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         });
 
 
-        textEditBPM.addTextChangedListener(new TextWatcher () {
+       /* textEditBPM.addTextChangedListener(new TextWatcher () {
 
             @Override
             public void afterTextChanged (Editable s) {
@@ -236,7 +236,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
                 }
             }
-        });
+        });*/
     }
 
     @Override
@@ -290,8 +290,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 int tapSpeed = (int) scrollView.getAvgTapSpeed();
                 if (tapSpeed > 0) {
                     BeatInterval = tapSpeed;
-                    String bpmtext = String.format("%d", (60000 / BeatInterval));
-                    textEditBPM.setText(bpmtext);
+                   // String bpmtext = String.format("%d", (60000 / BeatInterval));
+                   // textEditBPM.setText(bpmtext);
                 }
         }
         return super.onTouchEvent(ev);
@@ -328,7 +328,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             String[] data = next.split("bpm");
             if (data.length == 2) {
                 BeatInterval = (int) (60000 / Double.parseDouble(data[1]));
-                textEditBPM.setText(data[1]);
+               // textEditBPM.setText(data[1]);
                 continue;
             }
             lastCommentEnd = matcher.end();

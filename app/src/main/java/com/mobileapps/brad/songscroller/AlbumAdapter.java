@@ -30,6 +30,7 @@ public class AlbumAdapter extends BaseAdapter {
 
     private MainActivity mainActivity;
     private int layout;
+    private int mView;
     private ArrayList<Album> albumList;
 
     private class ViewHolder {
@@ -37,10 +38,13 @@ public class AlbumAdapter extends BaseAdapter {
         ImageView ivAlbumArt;
     }
 
-    public AlbumAdapter(Context context, int layout) {
+    public AlbumAdapter(Context context, int layout, int View) {
         this.mainActivity = (MainActivity) context;
         this.layout = layout;
+        mView = View;
         albumList = Album.getAlbumById(context, 0, mainActivity.getmAlbumView());
+        sortAblumsBy(mView);
+        SetView (mView);
     }
 
     class ArtistCompare implements Comparator<Album> {
@@ -79,6 +83,10 @@ public class AlbumAdapter extends BaseAdapter {
         return 0;
     }
 
+    public void SetView (int View)  {
+        mView = View;
+        sortAblumsBy(mView);
+    }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {

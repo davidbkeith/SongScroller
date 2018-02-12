@@ -142,7 +142,7 @@ public class Album implements Serializable {
 
                 if (art == null || art.isEmpty()) {
                     //File audioDir = new File (dirmusic.getAbsolutePath() + "/" + artist, "folder.jpg");
-                    File audioDir = FindFile.find("folder.jpg", new File(dirmusic, artist));
+                    File audioDir = FindFile.find("folder.jpg", new File(dirmusic, artist), true);
                     if (audioDir.exists()) {
                         art = audioDir.getAbsolutePath();
                     }

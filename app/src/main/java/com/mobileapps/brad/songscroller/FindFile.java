@@ -1,6 +1,10 @@
 package com.mobileapps.brad.songscroller;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Collection;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -9,19 +13,20 @@ import java.util.Scanner;
 
 public class FindFile {
 
-    static public File find(String name,File file)
+    static public File find(String name, File file, boolean recurse)
     {
-        File foundFile;
+        File foundFile = new File(file, name);
         File[] list = file.listFiles();
         if(list!=null) {
             for (File fil : list) {
-                if (fil.isDirectory()) {
-                    return find(name, fil);
-                } else if (name.equalsIgnoreCase(fil.getName())) {
+                if (recurse && fil.isDirectory()) {
+                    find (name, fil, recurse);
+                 } else if (name.equalsIgnoreCase(fil.getName())) {
+                    foundFile = fil;
                     return fil;
                 }
             }
         }
-        return new File("");
+        return foundFile;
     }
 }
