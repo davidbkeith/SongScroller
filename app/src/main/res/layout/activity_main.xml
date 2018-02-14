@@ -8,7 +8,7 @@
     tools:layout_editor_absoluteY="65dp">
 
     <ImageView
-        android:id="@+id/imageBackground"
+        android:id="@+id/ivBackground"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:background="@color/colorMenuBar"
@@ -27,7 +27,7 @@
         android:layout_height="50dp"
         android:alpha=".8"
         android:background="@color/colorMenuBar"
-        app:layout_constraintTop_toTopOf="@+id/imageBackground"
+        app:layout_constraintTop_toTopOf="@+id/ivBackground"
         app:srcCompat="@android:drawable/menuitem_background"
         tools:layout_editor_absoluteX="206dp" />
 
@@ -37,7 +37,7 @@
         android:layout_height="0dp"
         android:background="@color/colorScreen"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageBackground"
+        app:layout_constraintTop_toBottomOf="@+id/ivBackground"
         tools:layout_editor_absoluteX="0dp" />
 
     <Button

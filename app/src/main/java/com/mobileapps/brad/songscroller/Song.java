@@ -32,6 +32,10 @@ public class Song implements Serializable {
 
     public Song() {}
 
+    public boolean equals(Object object2) {
+        return object2 instanceof Song && path.equals(((Song)object2).path);
+    }
+
     public String getLyrics() {
         return lyrics;
     }
@@ -39,8 +43,6 @@ public class Song implements Serializable {
     public void setLyrics(String lyrics) {
         this.lyrics = lyrics;
     }
-
-
 
     public String getTrack() {
         int intTrack = Integer.parseInt(track);

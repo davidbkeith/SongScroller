@@ -5,13 +5,11 @@
     <color name="colorAccentLight">#f4e8be</color>
     <color name="colorAccentDark">#c2a232</color>
     <color name="colorPrimary">#1a2930</color>
-    <color name="colorMenuDark">#29404b</color>
     <color name="colorScreenLight">#d5e8f1</color>
     <color name="colorScreen">#1a2930</color>
-    <color name="colorScreenDark">#111a1e</color>
+    <color name="colorScreenDark">#000000</color>
     <color name="colorTitleBar">#081115</color>
     <color name="colorMenuBar">#395563</color>
     <color name="colorMenuBarLight">#466778</color>
-
 
 </resources>
