@@ -1,6 +1,5 @@
 package com.mobileapps.brad.songscroller;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -36,26 +35,32 @@ import java.util.regex.Matcher;
 public class ScrollActivity extends AppCompatActivity implements ScrollViewListener {
 
     private Context context;
-    private TextView textView;
-    private TextView textCountdown;
+
+    private int textVeiwHeight, posOffset;
+    private int offset;
+    private int BeatInterval;
+    private int Beats;
+    private int newSeek;
+
     private ImageView ivPlay;
     private ImageView ivPause;
     private ImageView ivAlbumArt;
     private ImageView ivMute;
     private ImageView ivBackground;
-    private SeekBar seekBar;
-    static MediaPlayer mediaPlayer;
-    private Song song;
-    static private Song playingSong;
-    private android.os.Handler handler = new android.os.Handler();
-    private ScrollViewExt scrollView;
-    private int textVeiwHeight, posOffset;
-    private int offset;
-    private ArrayList<Point> chordPos;
     private ImageView imageTapTempo, imageTapTempo2, imageTapTempo3, imageTapTempo4;
-    private int BeatInterval;
-    private int Beats;
-    private int newSeek;
+    private ScrollViewExt scrollView;
+    private TextView textView;
+    private TextView textCountdown;
+
+    private android.os.Handler handler = new android.os.Handler();
+    private SeekBar seekBar;
+    private Song song;
+
+    static MediaPlayer mediaPlayer;
+    static private Song playingSong;
+
+    private ArrayList<Point> chordPos;
+
 
     /**
      * The Move seek bar. Thread to move seekbar based on the current position

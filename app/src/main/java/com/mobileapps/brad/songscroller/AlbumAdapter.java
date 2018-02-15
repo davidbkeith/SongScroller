@@ -1,15 +1,7 @@
 package com.mobileapps.brad.songscroller;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.res.AssetManager;
-import android.database.Cursor;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +9,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +29,7 @@ public class AlbumAdapter extends BaseAdapter {
         ImageView ivAlbumArt;
     }
 
+    /// constructors
     public AlbumAdapter(Context context, int layout, int View) {
         this.mainActivity = (MainActivity) context;
         this.layout = layout;
@@ -111,7 +103,6 @@ public class AlbumAdapter extends BaseAdapter {
 
         ///////// set view values
         final Album album = albumList.get(position);
-        //final Music music = new Music("","","","","");
         viewHolder.txtAlbum.setText(album.getAlbum());
         viewHolder.txtArtist.setText(album.getArtist());
         viewHolder.txtSongCount.setText(album.getNumberSongs() + " songs ");

@@ -9,8 +9,11 @@ import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.Serializable;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by brad on 1/29/18.
@@ -18,12 +21,13 @@ import java.util.ArrayList;
 
 public class Album implements Serializable {
 
-    private long id;
     private String album;
     private String art;
     private String artist;
+    private long id;
     private String numberSongs;
 
+    /// constructors
     public Album(Album album) {
         this.id = album.id;
         this.album = album.album;
@@ -45,12 +49,13 @@ public class Album implements Serializable {
         this.equals(albumArrayList.get(0));
     }
 
-    public long getId() {
-        return id;
+    //// getters and setters
+    public String getAlbum() {
+        return album;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setAlbum(String album) {
+        this.album = album;
     }
 
     public String getArt() {
@@ -69,6 +74,14 @@ public class Album implements Serializable {
         this.artist = artist;
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
     public String getNumberSongs() {
         return numberSongs;
     }
@@ -77,22 +90,8 @@ public class Album implements Serializable {
         this.numberSongs = numberSongs;
     }
 
-   // public ArrayList<Song> getSongs() {
-   //     return songs;
-   // }
 
-    ///public void setSongs(ArrayList<Song> songs) {
-    //    this.songs = songs;
-    //}
-
-    public String getAlbum() {
-        return album;
-    }
-
-    public void setAlbum(String album) {
-        this.album = album;
-    }
-
+    /// global functions
     static public ArrayList<Album> getAlbumById (Context context, long albumid, int sortBy) {
 
         File dirmusic = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
@@ -115,14 +114,8 @@ public class Album implements Serializable {
         }
 
         Cursor songCursor = contentResolver.query(songUri, projection,null,null, sortOrder);
-        //Cursor songCursor = context.getContentResolver().query(songUri, projection,null,null,null);
-
 
         if (songCursor != null && songCursor.moveToFirst()) {
-            //   int songTitle = songCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-            //   int songArtist = songCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-            //   int songLocation = songCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
-            //   int songDuration = songCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
             int songAlbumId = songCursor.getColumnIndex(albums._ID);
             int songAlbum = songCursor.getColumnIndex(albums.ALBUM);
             int songArtist = songCursor.getColumnIndex(albums.ARTIST);
@@ -135,90 +128,23 @@ public class Album implements Serializable {
                 String artist = songCursor.getString(songArtist);
                 String art = songCursor.getString(songArt);
                 String numberSongs = songCursor.getString(songNumberOfSongs);
-                Log.d("Album Info", "Album: " + album);
-                Log.d("Artist Info", "Artist: " + artist);
-                Log.d("Art Info", "Art: " + art);
-                Log.d("Art URI", songUri.toString());
 
                 if (art == null || art.isEmpty()) {
-                    //File audioDir = new File (dirmusic.getAbsolutePath() + "/" + artist, "folder.jpg");
-                    File audioDir = FindFile.find("folder.jpg", new File(dirmusic, artist), true);
+                    List<String> arrPattern = new ArrayList<>();
+                    arrPattern.add (artist);
+                    arrPattern.add (album);
+
+                    File audioDir = FindFile.findFileWithExt(dirmusic, arrPattern, ".jpg");
                     if (audioDir.exists()) {
                         art = audioDir.getAbsolutePath();
                     }
-                    Log.d("Album Directory", audioDir.getAbsolutePath());
+                    //Log.d("Album Directory", audioDir.getAbsolutePath());
                 }
 
                 albumList.add(new Album (id, album, art, artist, numberSongs));
 
             } while (songCursor.moveToNext());
-
-            //Collections.sort(arrayList);
         }
         return albumList;
     }
-
-
-/*    public void getAlbumSongs (Context context) {
-        songs = new ArrayList<>();
-        ContentResolver contentResolver = context.getContentResolver();
-        MediaStore.Audio.Media media = new MediaStore.Audio.Media();
-        String selection = "is_music != 0";
-
-        if (getId() > 0) {
-            selection = selection + " and album_id = " + getId();
-        }
-
-        String[] projection = new String[]{
-                media.ARTIST,
-                media.TITLE,
-                media.DATA,
-                media.DISPLAY_NAME,
-                media.DURATION,
-                media.ALBUM_ID,
-                media.TRACK
-        };
-
-        Uri songUri = media.EXTERNAL_CONTENT_URI;
-        String sortOrder = MediaStore.Audio.AudioColumns.TRACK + " COLLATE LOCALIZED ASC";
-        Cursor songCursor = null;
-
-        File sdcard = Environment.getExternalStorageDirectory();
-        try {
-            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-            songCursor = contentResolver.query(uri, projection, selection, null, sortOrder);
-            if (songCursor != null) {
-                songCursor.moveToFirst();
-                int position = 1;
-
-                while (!songCursor.isAfterLast()) {
-                    Song song = new Song();
-                    song.setArtist(songCursor.getString(0));
-                    song.setTitle(songCursor.getString(1));
-                    song.setPath(songCursor.getString(2));
-                    File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
-                    if (file.exists()){
-                        song.setSheetMusicPath(file.getPath());
-                    }
-                    song.setDispayName((songCursor.getString(3)));
-                    song.setDuration(songCursor.getLong(4));
-                    song.setAlbumId(songCursor.getInt(5));
-                    song.setTrack(songCursor.getString(6));
-                    song.setPosition(position);
-                    song.setArt(getArt());
-                    songs.add(song);
-
-                    songCursor.moveToNext();
-                }
-                songCursor.close();
-
-            }
-        } catch (Exception e) {
-            Log.e("Media", e.toString());
-        } finally {
-            if (songCursor != null) {
-                songCursor.close();
-            }
-        }
-    }*/
 }
