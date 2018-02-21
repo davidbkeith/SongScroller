@@ -26,11 +26,17 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -43,6 +49,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private int BeatInterval;
     private int Beats;
     private int newSeek;
+    private int measuresPerLine;
+    private int numGroups;
+    private int wrapLength;
+
+    private float actualLineHeight;
 
     private ImageView ivPlay;
     private ImageView ivPause;
@@ -61,8 +72,95 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     static MediaPlayer mediaPlayer;
     static private Song playingSong;
 
-    private ArrayList<Point> chordPos;
+    private List<Point> chordPos;
+    private List<LineStat> arrayLineStarts;
 
+
+    public class LineStat implements Serializable {
+        int position;
+        int length;
+
+        public int getPosition() {
+            return position;
+        }
+
+        public void setPosition(int position) {
+            this.position = position;
+        }
+
+        public int getLength() {
+            return length;
+        }
+
+        public void setLength(int length) {
+            this.length = length;
+        }
+
+        public int getRepeat() {
+            return repeat;
+        }
+
+        public void setRepeat(int repeat) {
+            this.repeat = repeat;
+        }
+
+        int repeat;
+
+        public LineStat (int position, int length, int repeat) {
+            this.position = position;
+            this.length = length;
+            this.repeat = repeat;
+        }
+    }
+
+    class PositionCompare implements Comparator<LineStat> {
+        @Override
+        public int compare(LineStat ls1, LineStat ls2) {
+            return ls1.getPosition() - ls2.getPosition();
+        }
+    }
+
+    class LengthCompare implements Comparator<LineStat> {
+        @Override
+        public int compare(LineStat ls1, LineStat ls2) {
+            return ls2.getLength() - ls1.getLength();
+        }
+    }
+
+    public void sortLineStarts (int sortOrder) {
+        if (sortOrder == 0) {
+            Collections.sort(arrayLineStarts, new PositionCompare());
+        }
+        else {
+            Collections.sort(arrayLineStarts, new LengthCompare());
+        }
+    }
+
+    public class ScoreData {
+        int bpm;
+        int beats;
+        int measures;
+
+        ScoreData (int bmp, int beats, int measures) {
+            this.bpm = bmp;
+            this.beats = beats;
+            this.measures = measures;
+        }
+    }
+
+    private ScoreData scoreData;
+
+    int getActualScrollPos (int groupIndex) {
+        //int grouptHeight = textVeiwHeight / numGroups;
+        //int i=0;
+        //while (++i*grouptHeight < calculatedPos);
+        //return --i*grouptHeight;
+        float scrollTo = groupIndex * actualLineHeight * 3;
+        if (arrayLineStarts.get(groupIndex * 3 + 1).getLength() >= wrapLength) {
+            scrollTo += actualLineHeight;
+        }
+        return (int) scrollTo;
+    }
 
     /**
      * The Move seek bar. Thread to move seekbar based on the current position
@@ -85,10 +183,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
                 long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
 
-                int calculatedPos = (int) ((double) ((double) currentPos / song.getDuration()) * songStartHeight) + posOffset - offset;
+                //int calculatedPos = (int) ((double) ((double) currentPos / song.getDuration()) * textVeiwHeight) + posOffset - offset;
+                int calculatedPos = (int) ((double) ((double) currentPos / song.getDuration()) * numGroups);
+
 //                int calculatedPos = (int) ( ((double)currentPos / song.getDuration()) * textVeiwHeight) + posOffset - offset;
-                if (calculatedPos > posOffset) {
-                    scrollView.scrollTo(0, calculatedPos);
+                int scrollSegmentPos = getActualScrollPos(calculatedPos);
+                Log.d("Scrollpos", Integer.toString(scrollSegmentPos));
+
+                if (scrollSegmentPos > posOffset) {
+                    scrollView.scrollTo(0, scrollSegmentPos);
                 }
 
                 if (BeatInterval > 0) {
@@ -120,7 +223,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     @Override
     protected void onResume () {
-
         super.onResume();
     }
 
@@ -134,6 +236,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         chordPos = new ArrayList<>();
         posOffset = 0;
         newSeek = -1;
+        numGroups = 0;
+        wrapLength = -1;
 
 
         textView = (TextView) findViewById(R.id.textView);
@@ -154,7 +258,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             public boolean onPreDraw() {
                 ivBackground.getViewTreeObserver().removeOnPreDrawListener(this);
                 int titlebarY = getSupportActionBar().getHeight();
-                offset = ivBackground.getTop() / 3; // estimate a good point to start scrolling
+                //offset = ivBackground.getTop() / 3; // estimate a good point to start scrolling
 
                 int visibleScreenHeight = ivBackground.getTop();
               /*    if (textVeiwHeight % visibleScreenHeight > 0) {
@@ -192,21 +296,46 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
 
-            while ((line = br.readLine()) != null) {
-                text.append(line);
-                text.append('\n');
+            int lineCount = 0;
+            arrayLineStarts = new ArrayList();
+
+            if ((line = br.readLine()) != null) {
+                text.append(getMetaData (line));
+                if (text.length() > 0) {
+                    text.append('\n');
+                    lineCount++;
+                    arrayLineStarts.add(new LineStat(lineCount, line.length(), 0));
+                }
             }
+
+            while ((line = br.readLine()) != null) {
+                //if (line.trim().length() > 0) {
+                    text.append(line);
+                    text.append('\n');
+                    arrayLineStarts.add(new LineStat(lineCount, line.length(), 0));
+
+                    if (++lineCount % 3 == 0) {
+                        numGroups++;
+                    }
+               // }
+             }
 
             br.close();
 
             //Find the view by its id
-            text = formatText(text);
+            text = formatText(text, arrayLineStarts);
             textView.setText(text);
             int textLength = text.length();
 
-            final int totLines = text.toString().split("\n").length;;
+            final int totLines = text.toString().trim().split("\n").length;;
             textView.measure(0,0);
             textVeiwHeight = textView.getMeasuredHeight();
+
+            actualLineHeight = textView.getPaint().getFontMetrics().bottom - textView.getPaint().getFontMetrics().top;
+            int actualNumLines = (int) ((textVeiwHeight + actualLineHeight - 1)/actualLineHeight);
+            getWrapLength (totLines - actualNumLines - 1);
+
+            //float calculatedLineHeight = textVeiwHeight/(float) totLines;
 
 
         } catch (IOException e) {
@@ -377,29 +506,36 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return super.onTouchEvent(ev);
     }
 
-
-
-    private SpannableStringBuilder formatText(SpannableStringBuilder sb) {
-
-        Matcher matcher = java.util.regex.Pattern.compile("(.+?)songdata>").matcher(sb.toString());
-        String songText;
-        if (matcher.find()) {
-            String xml = matcher.group(0);
-            try {
-                XMLParser xmlParser = new XMLParser(xml);
-                BeatInterval = Integer.parseInt(xmlParser.getSingleItem("bpm"));
-                Beats = Integer.parseInt(xmlParser.getSingleItem("beats"));
-                songText = xmlParser.getSingleItem("song");
-                if (songText.length() > 0) {
-                    sb = new SpannableStringBuilder(songText);
-                }
-            }
-            catch (Exception e) {
-                Log.e("Error", e.toString());
-            }
+    private String getMetaData (String JSON) {
+        try {
+            JSONObject jsonObject = new JSONObject(JSON);
+            scoreData = new ScoreData(jsonObject.getInt("bpm"), jsonObject.getInt("beats"), jsonObject.getInt("measures"));
+            return "";
         }
+        catch (Exception e){
+            Log.e("JSON Parsing Error:", e.toString());
+            return JSON;
+        }
+    }
 
-        matcher = java.util.regex.Pattern.compile("@!.+?\\n").matcher(sb.toString());
+    private void getWrapLength (int numWrapped) {
+        sortLineStarts(1);
+        if (numWrapped > 0) {
+            wrapLength = arrayLineStarts.get(numWrapped-1).getLength();
+        }
+        sortLineStarts(0);
+        //return -1;
+    }
+
+    boolean isChordLine (int position, List<LineStat> arrayLineStarts) {
+        int i=0;
+        while (i < arrayLineStarts.size() && position < arrayLineStarts.get(i++).getLength());
+        return --i % 2 == 0;
+    }
+
+    private SpannableStringBuilder formatText(SpannableStringBuilder sb, List<LineStat> arrayLineStarts) {
+
+        Matcher matcher = java.util.regex.Pattern.compile("@!.+?\\n").matcher(sb.toString());
         int lastCommentEnd = 0;
         String next;
 
@@ -429,9 +565,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         matcher = java.util.regex.Pattern.compile("(\\(*[CDEFGAB](?:b|bb)*(?:|#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\(]?[\\d\\/-/+]*[\\)]?(?:[CDEFGAB](?:b|bb)*(?:#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\d\\/]*)*\\)*)(?=[\\s|$])(?! [a-z])").matcher(sb.toString());
         while (matcher.find()) {
-            final ForegroundColorSpan fcs = new ForegroundColorSpan(Color.rgb(255, 0, 0));
-            sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            chordPos.add (new Point(matcher.start(), matcher.end()));
+            if (isChordLine(matcher.start(), arrayLineStarts)) {
+                final ForegroundColorSpan fcs = new ForegroundColorSpan(Color.rgb(255, 0, 0));
+                sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                chordPos.add(new Point(matcher.start(), matcher.end()));
+            }
         }
 
         return sb;
