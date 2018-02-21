@@ -12,6 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 
 /**
  * Created by brad on 1/29/18.
@@ -39,6 +40,7 @@ public class AlbumAdapter extends BaseAdapter {
         SetView (mView);
     }
 
+    //// sort albums
     class ArtistCompare implements Comparator<Album> {
         @Override
         public int compare(Album alb1, Album alb2) {
@@ -60,6 +62,15 @@ public class AlbumAdapter extends BaseAdapter {
         }
     }
 
+    public Album getAlbumById (long albumId) {
+        for (Album album : albumList) {
+            if (album.getId() == albumId) {
+                return album;
+            }
+        }
+        return null;
+    }
+
     @Override
     public int getCount() {
         return albumList.size();
@@ -69,6 +80,7 @@ public class AlbumAdapter extends BaseAdapter {
     public Album getItem(int i) {
         return (Album) albumList.get(i);
     }
+
 
     @Override
     public long getItemId(int i) {

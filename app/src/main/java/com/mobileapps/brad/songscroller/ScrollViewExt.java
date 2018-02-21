@@ -18,7 +18,7 @@ public class ScrollViewExt extends ScrollView {
     protected int tapIntervalIndex = 0;
 
     public long getAvgTapSpeed () {
-        Log.e("Media", String.format("7 to 8: %d", tapIntervals[7]));
+      /*  Log.e("Media", String.format("7 to 8: %d", tapIntervals[7]));
         Log.e("Media", String.format("6 to 7: %d", tapIntervals[6]));
         Log.e("Media", String.format("5 to 6: %d", tapIntervals[5]));
         Log.e("Media", String.format("4 to 5: %d", tapIntervals[4]));
@@ -26,7 +26,7 @@ public class ScrollViewExt extends ScrollView {
         Log.e("Media", String.format("2 to 3: %d", tapIntervals[2]));
         Log.e("Media", String.format("1 to 2: %d", tapIntervals[1]));
         Log.e("Media", String.format("0 to 1: %d", tapIntervals[0]));
-
+*/
         int Sum = 0;
         int Count = 0;
         for (int i=0; i<8; i++) {

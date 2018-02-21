@@ -32,29 +32,29 @@ public class FindFile {
 
     static public File findFileWithExt (File parent, List<String> arrSubfolders, String ext) {
 
-        final String folderName = arrSubfolders.get(0);
+        final String folderName;
         final String extension = ext;
-        arrSubfolders.remove(0);
         final Pattern p;
-        File[] flists;
+        File[] flists = null;
 
-        p = Pattern.compile(".*" + folderName + ".*", Pattern.CASE_INSENSITIVE);
-        flists = parent.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return p.matcher(file.getName()).matches();
-            }
-        });
-
-        if (flists != null && flists.length > 0) {
-            if (arrSubfolders.size() > 0) {
+        if (parent != null) {
+            if (arrSubfolders != null && arrSubfolders.size() > 0) {
+                folderName = arrSubfolders.get(0);
+                arrSubfolders.remove(0);
+                p = Pattern.compile(".*" + folderName + ".*", Pattern.CASE_INSENSITIVE);
+                flists = parent.listFiles(new FileFilter() {
+                    @Override
+                    public boolean accept(File file) {
+                    return p.matcher(file.getName()).matches();
+                    }
+                });
                 return findFileWithExt(flists[0], arrSubfolders, extension);
             } else {
                 //// last one has to be file type
                 flists = parent.listFiles(new FilenameFilter() {
                     @Override
                     public boolean accept(File file, String name) {
-                        return name.endsWith(extension);
+                    return name.endsWith(extension);
                     }
                 });
 

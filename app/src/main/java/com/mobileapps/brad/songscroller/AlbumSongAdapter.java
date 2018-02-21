@@ -27,11 +27,9 @@ public class AlbumSongAdapter extends BaseAdapter {
 
     private AlbumSongsActivity albumSongsActivity;
     private int layout;
-
     public Album getAlbum() {
         return album;
     }
-
     public void setAlbum(Album album) {
         this.album = album;
     }
@@ -52,7 +50,7 @@ public class AlbumSongAdapter extends BaseAdapter {
     public AlbumSongAdapter(Context context, int layout) {
         albumSongsActivity = (AlbumSongsActivity) context;
         this.layout = layout;
-        songs = Song.getSongs(context, albumSongsActivity.getAlbum().getId(), MediaStore.Audio.AudioColumns.TRACK);
+        songs = Song.getSongs(context, albumSongsActivity.getAlbum(), MediaStore.Audio.AudioColumns.TRACK);
         //this.album = album;
         //songList = album.getSongs();
         //this.album.getAlbumSongs(context);
@@ -65,7 +63,7 @@ public class AlbumSongAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int i) {
+    public Song getItem(int i) {
         return getSongs().get(i);
     }
 

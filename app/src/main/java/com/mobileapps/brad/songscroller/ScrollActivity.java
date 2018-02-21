@@ -1,6 +1,7 @@
 package com.mobileapps.brad.songscroller;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 
@@ -10,6 +11,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Spannable;
@@ -36,7 +38,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private Context context;
 
-    private int textVeiwHeight, posOffset;
+    private int textVeiwHeight, posOffset, songStartHeight;
     private int offset;
     private int BeatInterval;
     private int Beats;
@@ -83,7 +85,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
                 long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
 
-                int calculatedPos = (int) ( ((double)currentPos / song.getDuration()) * textVeiwHeight) + posOffset - offset;
+                int calculatedPos = (int) ((double) ((double) currentPos / song.getDuration()) * songStartHeight) + posOffset - offset;
+//                int calculatedPos = (int) ( ((double)currentPos / song.getDuration()) * textVeiwHeight) + posOffset - offset;
                 if (calculatedPos > posOffset) {
                     scrollView.scrollTo(0, calculatedPos);
                 }
@@ -125,6 +128,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scroll);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         context = this.context;
         chordPos = new ArrayList<>();
         posOffset = 0;
@@ -149,12 +154,33 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             public boolean onPreDraw() {
                 ivBackground.getViewTreeObserver().removeOnPreDrawListener(this);
                 int titlebarY = getSupportActionBar().getHeight();
-                offset = ivBackground.getTop() / 2;
+                offset = ivBackground.getTop() / 3; // estimate a good point to start scrolling
+
+                int visibleScreenHeight = ivBackground.getTop();
+              /*    if (textVeiwHeight % visibleScreenHeight > 0) {
+                    textVeiwHeight = (textVeiwHeight / visibleScreenHeight) * textVeiwHeight + visibleScreenHeight;
+                }
+                else {
+                    textVeiwHeight = textVeiwHeight / visibleScreenHeight * textVeiwHeight;
+                }*/
+
+               // textVeiwHeight = visibleScreenHeight*(textVeiwHeight/visibleScreenHeight) + textVeiwHeight % visibleScreenHeight;
                 return true;
             }
         });
 
         song = (Song) getIntent().getSerializableExtra("songscroller_song");
+        if (song.getArt() == null) {
+            File albumFile = new File(song.getPath());
+            File artFile = FindFile.findFileWithExt(albumFile.getParentFile(), null, ".jsp");
+            if (artFile.exists()) {
+                Uri artworkUri = Uri.parse("content://media/external/albumart");
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("album_id", song.getAlbumId());
+                contentValues.put("_data", artFile.getAbsolutePath());
+                getContentResolver().insert (artworkUri, contentValues);
+            }
+        }
 
         File sdcard = Environment.getExternalStorageDirectory();
         File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
@@ -192,6 +218,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //// set title
         getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
 
+
+
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -202,7 +230,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
                 textCountdown.setText(String.format("%d:%02d", minutes, seconds));
 
-                int calculatedPos = (int) ((double) ((double) newPos / song.getDuration()) * textVeiwHeight) + posOffset - offset;
+                int calculatedPos = (int) ((double) ((double) newPos / song.getDuration()) * songStartHeight) + posOffset - offset;
                 if (calculatedPos > posOffset) {
                     scrollView.scrollTo(0, calculatedPos);
                 }
@@ -231,13 +259,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             @Override
             public void onClick(View v) {
                 String songpath = song.getPath();
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
-                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
+                if (mediaPlayer != null) {
+                    if (mediaPlayer.isPlaying()) {
+                        mediaPlayer.pause();
+                        ivPlay.setImageResource(android.R.drawable.ic_media_play);
+                    }
+                    else {
+                        songStartHeight = textVeiwHeight - posOffset;
+                    }
                 } else {
                     if (mediaPlayer == null) {
                         mediaPlayer = MediaPlayer.create(context, Uri.parse(songpath));
-                        //duration = mediaPlayer.getDuration();
+                        song.setDuration(mediaPlayer.getDuration());
                       //  estBPM = (mediaPlayer.getDuration()/playLines)/16;
                         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                             @Override
@@ -251,14 +284,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                                 imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                             }
                         });
+                        //textVeiwHeight -= posOffset;
                     }
 
                     mediaPlayer.start();
                     ivPlay.setImageResource(android.R.drawable.ic_media_pause);
                     seekBar.setMax((int)song.getDuration());
                     playingSong = song;
-
-                 }
+                    songStartHeight = textVeiwHeight - posOffset;
+                }
             }
         });
 
@@ -276,7 +310,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         handler.postDelayed(moveSeekBarThread, 100); //cal the thread after 100 milliseconds
     }
 
-    @Override
+   @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
@@ -303,23 +337,27 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         if (mediaPlayer == null || !mediaPlayer.isPlaying()) {
             posOffset = y;
+     //       textVeiwHeight -= posOffset;
         }
         else {
             int mediaPos_new = mediaPlayer.getCurrentPosition();
-            if (ivMute.isActivated()) {
+            //int mediaMax_new = mediaPlayer.getDuration();
+
+            if (posOffset == posOffset || ivMute.isActivated()) {
                 ///////// how it is calulated for moving scroller
                 //scrollY = calculatedPos + posOffet
                 //posOffest = scrollY - calculatedPos;
-                posOffset = y - ((int) ((double) ( mediaPos_new / song.getDuration()) * textVeiwHeight) - offset);
+                ///////// this code allows user to shift position of vertical scroll while mp3 is playing
+                posOffset = y - ((int) (((double) mediaPos_new / song.getDuration()) * songStartHeight) - offset);
             }
             else {
                 ///////// how it is calulated for new song seek position
                 //scrollY = calculatedPos + posOffet (from that equation)
-                newSeek = (int)  (( song.getDuration() * (y - (posOffset - offset))/(double)textVeiwHeight));
+                ///////// this code sets the mp3 current position to match the vertical scroll position
+                newSeek = (int)  (( song.getDuration() * (y - (posOffset - offset))/(double)songStartHeight));
             }
         }
     }
-
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {

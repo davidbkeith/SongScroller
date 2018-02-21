@@ -69,4 +69,11 @@ Never free. Never me. So I dub the unforgiven.
 Please correct me if I'm wrong....
 
     </string>
+    <string name="preference_file_key">com.mobileapps.brad.songscroller.PREFERENCE_FILE_KEY</string>
+    <string-array name="view_spinner">
+        <item>Album</item>
+        <item>Song</item>
+        <item>Score</item>
+        <item>Playlist</item>
+    </string-array>
 </resources>

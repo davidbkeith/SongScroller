@@ -129,17 +129,18 @@ public class Album implements Serializable {
                 String art = songCursor.getString(songArt);
                 String numberSongs = songCursor.getString(songNumberOfSongs);
 
-                if (art == null || art.isEmpty()) {
-                    List<String> arrPattern = new ArrayList<>();
+                ///// code to find album cover - not recommended to use
+                //if (art == null || art.isEmpty()) {
+                   /* List<String> arrPattern = new ArrayList<>();
                     arrPattern.add (artist);
                     arrPattern.add (album);
 
                     File audioDir = FindFile.findFileWithExt(dirmusic, arrPattern, ".jpg");
                     if (audioDir.exists()) {
                         art = audioDir.getAbsolutePath();
-                    }
+                    }*/
                     //Log.d("Album Directory", audioDir.getAbsolutePath());
-                }
+               // }
 
                 albumList.add(new Album (id, album, art, artist, numberSongs));
 

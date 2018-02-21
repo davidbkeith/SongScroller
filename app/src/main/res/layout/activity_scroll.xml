@@ -22,7 +22,7 @@
         android:layout_marginStart="8dp"
         android:layout_weight="1"
         android:fillViewport="true"
-        app:layout_constraintBottom_toTopOf="@+id/ivBackground"
+        app:layout_constraintBottom_toTopOf="@id/ivBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -35,7 +35,7 @@
             android:background="@color/colorScreenDark"
             android:text="@string/songtest"
             android:textColor="@color/colorScreenLight"
-            android:textSize="12sp"
+            android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.6"
@@ -49,6 +49,7 @@
         android:id="@+id/ivBackground"
         android:layout_width="match_parent"
         android:layout_height="56dp"
+        android:alpha=".995"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@android:drawable/screen_background_light_transparent" />
@@ -60,7 +61,6 @@
         android:layout_marginBottom="4dp"
         android:layout_gravity="center"
         android:contentDescription="Play song"
-        android:tint="@color/colorPrimary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="@+id/ivBackground"
@@ -112,21 +112,19 @@
         android:id="@+id/textCountdown"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="6dp"
         android:text="5:34"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView" />
+        android:textColor="@android:color/darker_gray"
+        app:layout_constraintEnd_toEndOf="@+id/ivMute"
+        app:layout_constraintTop_toTopOf="@+id/ivBackground" />
 
 
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="300dp"
         android:layout_height="0dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/textCountdown"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView" />
+        app:layout_constraintEnd_toStartOf="@id/textCountdown"
+        app:layout_constraintTop_toTopOf="@+id/ivBackground" />
 
     <ImageView
         android:id="@+id/imageView3"

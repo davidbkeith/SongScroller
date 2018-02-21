@@ -1,8 +1,10 @@
 package com.mobileapps.brad.songscroller;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,22 +37,19 @@ public class AlbumSongsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         setContentView(R.layout.activity_album_songs); //activity_album_songs - list view
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         album = album == null ? (Album) getIntent().getSerializableExtra("songscroller_album") : album;
 
         songList = (ListView) findViewById(R.id.songList);
-       // arrayList = new ArrayList<>();
-
-        // getMusic();
-        // adapter = new CustomMusicAdapter(this, R.layout.custom_music_item, arrayList);
         adapter = new AlbumSongAdapter(this, R.layout.album_song_list_item);
+
         try {
             songList.setAdapter(adapter);
 
             txtAlbum = (TextView) findViewById(R.id.textAlbum);
             txtArtist = (TextView) findViewById(R.id.textArtist);
             ivAlbumArt = (ImageView) findViewById(R.id.album_art);
-
 
             Drawable albumimage = Drawable.createFromPath(album.getArt());
             ivAlbumArt.setImageDrawable(albumimage);
@@ -62,11 +61,9 @@ public class AlbumSongsActivity extends AppCompatActivity {
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
                     selectedsong = (Song) songList.getItemAtPosition(position);
-
                     Intent intent = new Intent(context, ScrollActivity.class);
                     intent.putExtra("songscroller_song", selectedsong);
                     startActivityForResult (intent, 1);
-
                 }
             });
         }

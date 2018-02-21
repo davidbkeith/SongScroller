@@ -1,6 +1,8 @@
 package com.mobileapps.brad.songscroller;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -132,15 +134,17 @@ public class Song implements Serializable {
     //    return this.artist.compareToIgnoreCase(music.artist);
     //}
 
-    static public ArrayList<Song> getSongs (Context context, long AlbumId, String SortOrder) {
+    static public ArrayList<Song> getSongs (Context context, Album album, String SortOrder) {
        // MainActivity mainActivity = (MainActivity) context;
         ArrayList<Song> songs = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         MediaStore.Audio.Media media = new MediaStore.Audio.Media();
         String selection = "is_music != 0";
+        Uri artworkUri = Uri.parse("content://media/external/audio/albumart");
+        long albumId = album == null ? 0 : album.getId();
 
-        if (AlbumId > 0) {
-            selection = selection + " and album_id = " + AlbumId;
+        if (albumId > 0) {
+            selection = selection + " and album_id = " + albumId;
         }
 
         String[] projection = new String[]{
@@ -186,11 +190,27 @@ public class Song implements Serializable {
                     song.setTrack(songCursor.getString(6));
                     song.setPosition(position);
 
-                    //song.setArt(getArt());
+                    if (album != null && album.getArt() == null) {
+                        //// to delete existing artwork!!!!!!!
+                        //int deleted = context.getContentResolver ().delete (ContentUris.withAppendedId(artworkUri, song.getAlbumId()), null, null);
+                        File albumFile = new File(song.getPath());
+                        File artFile = FindFile.findFileWithExt(albumFile.getParentFile(), null, ".jpg");
+
+                        if (artFile.exists()) {
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put("album_id", song.getAlbumId());
+                            contentValues.put("_data", artFile.getAbsolutePath());
+                            context.getContentResolver().insert (artworkUri, contentValues);
+                            song.setArt(artFile.getAbsolutePath());
+                            album.setArt(artFile.getAbsolutePath());
+                        }
+                    }
+
                     songs.add(song);
                     songCursor.moveToNext();
 
                     ////// no album in particular must find album art (works but too slow)
+
                     /*if (AlbumId == 0) {
                         Cursor cursor = contentResolver.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                                 new String[]{MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},

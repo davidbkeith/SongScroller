@@ -21,13 +21,13 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class SongAdapter extends BaseAdapter {
-   /* public MainActivity getMainActivity() {
+    public MainActivity getMainActivity() {
         return mainActivity;
     }
 
     public void setMainActivity(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-    }*/
+    }
 
     public ArrayList<Song> getSongList() {
         return songList;
@@ -38,20 +38,22 @@ public class SongAdapter extends BaseAdapter {
     }
 
     private Context context;
-    private int layout;
-    private int mView;
-    //private Song song;
-    private ArrayList<Song> songList;
-    private ArrayList<Integer> scoreIndices;
-    //private MediaPlayer mediaPlayer;
+    protected int layout;
+    static protected ArrayList<Song> songList;
+    private MainActivity mainActivity;
+    private int numScores;
+    protected SongAdapter.ViewHolder viewHolder;
 
-    public SongAdapter(Context context, int layout, int View) {
-        //mainActivity = (MainActivity) context;
-        mView = View;
+    public SongAdapter () {}
+
+    public SongAdapter(Context context, int layout) {
+        mainActivity = (MainActivity) context;
         this.context = context;
         this.layout = layout;
-        setSongList(Song.getSongs(context, 0, MediaStore.Audio.AudioColumns.TITLE));
-        SetView (View);
+
+        if (songList == null) {
+            setSongList(Song.getSongs(context, null, MediaStore.Audio.AudioColumns.TITLE));
+        }
     }
 
     class SongCompare implements Comparator<Song> {
@@ -60,14 +62,16 @@ public class SongAdapter extends BaseAdapter {
             return song1.getTitle().compareTo(song2.getTitle());
         }
     }
+
     class ArtistCompare implements Comparator<Song> {
         @Override
         public int compare(Song song1, Song song2) {
             return song1.getArtist().compareTo(song2.getArtist());
         }
     }
-    public void sortAblumsBy (int sortOrder) {
-        if (sortOrder == MainActivity.ARTIST || sortOrder == MainActivity.SCORE_ARTIST) {
+
+    public void sortSongsBy (int sortOrder) {
+        if (sortOrder == MainActivity.ARTIST) {
             Collections.sort(songList, new ArtistCompare());
         }
         else {
@@ -75,55 +79,14 @@ public class SongAdapter extends BaseAdapter {
         }
     }
 
-    public void getScores () {
-       // if (scoreIndices == null) {
-            scoreIndices = new ArrayList<>();
-            int i = 0;
-            for (Song song : songList) {
-                if (song.getSheetMusicPath() != null) {
-                    scoreIndices.add(i);
-                }
-                i++;
-            }
-       // }
-    }
-
-    public void SetView (int View)  {
-        mView = View;
-        sortAblumsBy(mView);
-        switch (mView) {
-            case MainActivity.SONG:
-             //   scoreIndices = null;
-                break;
-            case MainActivity.ARTIST:
-                break;
-            case MainActivity.SCORE_SONG:
-                getScores();
-                break;
-            case MainActivity.SCORE_ARTIST:
-                getScores();
-                break;
-        }
-    }
-
     @Override
     public int getCount() {
-        if (mView == MainActivity.SCORE_SONG || mView == MainActivity.SCORE_ARTIST) {
-            return scoreIndices.size();
-        }
-        else {
-            return songList.size();
-        }
+        return songList.size();
     }
 
     @Override
-    public Object getItem(int i) {
-        if (mView == MainActivity.SCORE_SONG || mView == MainActivity.SCORE_ARTIST) {
-            return songList.get(scoreIndices.get(i));
-        }
-        else {
-            return songList.get(i);
-        }
+    public Song getItem(int i) {
+        return songList.get(i);
     }
 
     @Override
@@ -131,14 +94,13 @@ public class SongAdapter extends BaseAdapter {
         return songList.get(i).getAlbumId();
     }
 
-    private class ViewHolder {
+    protected class ViewHolder {
         TextView txtTitle, txtSubtitle, txtDuration;
         ImageView ivAlbumArt;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        final SongAdapter.ViewHolder viewHolder;
         //Log.d("Inside", "entered Song Adaptor getView....");
         final Song song = (Song) getItem(position);
 
@@ -157,33 +119,19 @@ public class SongAdapter extends BaseAdapter {
         }
 
         long duration = song.getDuration();
-
-        if (mView == MainActivity.ARTIST || mView == MainActivity.SCORE_ARTIST) {
-            viewHolder.txtSubtitle.setText(song.getTitle());
-            viewHolder.txtTitle.setText(song.getArtist());
-        }
-        else {
-            viewHolder.txtTitle.setText(song.getTitle());
-            viewHolder.txtSubtitle.setText(song.getArtist());
-        }
+        viewHolder.txtTitle.setText(song.getTitle());
+        viewHolder.txtSubtitle.setText(song.getArtist());
 
         if (song.getSheetMusicPath() != null && !song.getSheetMusicPath().isEmpty()) {
-            //Log.d("Message", "Path is: " + song.getSheetMusicPath());
-            //viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorAccentLight));
-            viewHolder.txtDuration.setTextColor(viewHolder.txtDuration.getResources().getColor(R.color.colorAccentLight));
-            //viewHolder.txtSongName.setSelected(true);
+             viewHolder.txtDuration.setTextColor(viewHolder.txtDuration.getResources().getColor(R.color.colorAccentLight));
         }
         else {
             viewHolder.txtDuration.setTextColor(viewHolder.txtDuration.getResources().getColor(R.color.colorMenuBarLight));
-            //viewHolder.txtSongName.setSelected(true);
-            //viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorScreenLight));
         }
 
         long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % TimeUnit.HOURS.toMinutes(1);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % TimeUnit.MINUTES.toSeconds(1);
-
         viewHolder.txtDuration.setText(String.format("%d:%02d", minutes, seconds));
-
         return convertView;
     }
 
