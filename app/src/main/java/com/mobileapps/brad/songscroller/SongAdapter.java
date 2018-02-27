@@ -46,13 +46,13 @@ public class SongAdapter extends BaseAdapter {
 
     public SongAdapter () {}
 
-    public SongAdapter(Context context, int layout) {
+    public SongAdapter(Context context, int layout, String sortBy) {
         mainActivity = (MainActivity) context;
         this.context = context;
         this.layout = layout;
 
         if (songList == null) {
-            setSongList(Song.getSongs(context, null, MediaStore.Audio.AudioColumns.TITLE));
+            setSongList(Song.getSongs(context, null, sortBy));
         }
     }
 
@@ -70,8 +70,8 @@ public class SongAdapter extends BaseAdapter {
         }
     }
 
-    public void sortSongsBy (int sortOrder) {
-        if (sortOrder == MainActivity.ARTIST) {
+    public void sortSongsBy (String sortOrder) {
+        if (MediaStore.Audio.AudioColumns.ARTIST.compareTo(sortOrder) == 0) {
             Collections.sort(songList, new ArtistCompare());
         }
         else {

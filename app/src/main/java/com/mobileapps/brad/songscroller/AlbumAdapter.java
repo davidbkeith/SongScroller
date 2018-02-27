@@ -2,6 +2,7 @@ package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,7 @@ public class AlbumAdapter extends BaseAdapter {
 
     private MainActivity mainActivity;
     private int layout;
-    private int mView;
+    //private String mSortBy;
     private ArrayList<Album> albumList;
 
     private class ViewHolder {
@@ -31,13 +32,13 @@ public class AlbumAdapter extends BaseAdapter {
     }
 
     /// constructors
-    public AlbumAdapter(Context context, int layout, int View) {
+    public AlbumAdapter(Context context, int layout, String SortBy) {
         this.mainActivity = (MainActivity) context;
         this.layout = layout;
-        mView = View;
-        albumList = Album.getAlbumById(context, 0, mainActivity.getmAlbumView());
-        sortAblumsBy(mView);
-        SetView (mView);
+        //mSortBy = SortBy;
+        albumList = Album.getAlbumById(context, 0, SortBy);
+        //sortAblumsBy(mSortBy);
+        //SetView (mSortBy);
     }
 
     //// sort albums
@@ -53,8 +54,8 @@ public class AlbumAdapter extends BaseAdapter {
             return alb1.getAlbum().compareTo(alb2.getAlbum());
         }
     }
-    public void sortAblumsBy (int sortOrder) {
-        if (sortOrder == MainActivity.ARTIST) {
+    public void sortAblumsBy (String sortBy) {
+        if (MediaStore.Audio.AlbumColumns.ALBUM.compareTo(sortBy) == 0) {
             Collections.sort(albumList, new ArtistCompare());
         }
         else {
@@ -81,16 +82,15 @@ public class AlbumAdapter extends BaseAdapter {
         return (Album) albumList.get(i);
     }
 
-
     @Override
     public long getItemId(int i) {
         return 0;
     }
 
-    public void SetView (int View)  {
+  /*  public void SetView (String View)  {
         mView = View;
         sortAblumsBy(mView);
-    }
+    }*/
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {

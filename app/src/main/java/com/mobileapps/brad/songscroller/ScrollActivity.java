@@ -26,17 +26,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -44,14 +34,17 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private Context context;
 
-    private int textVeiwHeight, posOffset, songStartHeight;
-    private int offset;
-    private int BeatInterval;
+    private int textVeiwHeight, posOffset;
+    private int pause;
+    private int currentScrollPos;
+    //private int BeatInterval;
     private int Beats;
     private int newSeek;
     private int measuresPerLine;
-    private int numGroups;
     private int wrapLength;
+    private int totLines;
+    private int measure, beatPos;
+    private long elapsedTime;
 
     private float actualLineHeight;
 
@@ -64,6 +57,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private ScrollViewExt scrollView;
     private TextView textView;
     private TextView textCountdown;
+    private AutoScroll autoScroll;
 
     private android.os.Handler handler = new android.os.Handler();
     private SeekBar seekBar;
@@ -72,96 +66,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     static MediaPlayer mediaPlayer;
     static private Song playingSong;
 
-    private List<Point> chordPos;
-    private List<LineStat> arrayLineStarts;
-
-
-    public class LineStat implements Serializable {
-        int position;
-        int length;
-
-        public int getPosition() {
-            return position;
-        }
-
-        public void setPosition(int position) {
-            this.position = position;
-        }
-
-        public int getLength() {
-            return length;
-        }
-
-        public void setLength(int length) {
-            this.length = length;
-        }
-
-        public int getRepeat() {
-            return repeat;
-        }
-
-        public void setRepeat(int repeat) {
-            this.repeat = repeat;
-        }
-
-        int repeat;
-
-        public LineStat (int position, int length, int repeat) {
-            this.position = position;
-            this.length = length;
-            this.repeat = repeat;
-        }
-    }
-
-    class PositionCompare implements Comparator<LineStat> {
-        @Override
-        public int compare(LineStat ls1, LineStat ls2) {
-            return ls1.getPosition() - ls2.getPosition();
-        }
-    }
-
-    class LengthCompare implements Comparator<LineStat> {
-        @Override
-        public int compare(LineStat ls1, LineStat ls2) {
-            return ls2.getLength() - ls1.getLength();
-        }
-    }
-
-    public void sortLineStarts (int sortOrder) {
-        if (sortOrder == 0) {
-            Collections.sort(arrayLineStarts, new PositionCompare());
-        }
-        else {
-            Collections.sort(arrayLineStarts, new LengthCompare());
-        }
-    }
-
-    public class ScoreData {
-        int bpm;
-        int beats;
-        int measures;
-
-        ScoreData (int bmp, int beats, int measures) {
-            this.bpm = bmp;
-            this.beats = beats;
-            this.measures = measures;
-        }
-    }
-
-    private ScoreData scoreData;
-
-    int getActualScrollPos (int groupIndex) {
-        //int grouptHeight = textVeiwHeight / numGroups;
-        //int i=0;
-        //while (++i*grouptHeight < calculatedPos);
-        //return --i*grouptHeight;
-        float scrollTo = groupIndex * actualLineHeight * 3;
-        if (arrayLineStarts.get(groupIndex * 3 + 1).getLength() >= wrapLength) {
-            scrollTo += actualLineHeight;
-        }
-        return (int) scrollTo;
-    }
-
     /**
      * The Move seek bar. Thread to move seekbar based on the current position
      * of the song
@@ -169,57 +73,74 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
-
             if (mediaPlayer != null && mediaPlayer.isPlaying() && scrollView.isEnableScrolling()) {
-                int currentPos = mediaPlayer.getCurrentPosition();
+                int currentPos;
                 if (newSeek != -1) {
                     mediaPlayer.seekTo(newSeek);
                     currentPos = newSeek;
                     newSeek = -1;
                 }
-                seekBar.setProgress(currentPos);
-
-                int timeLeft = (int) (song.getDuration() - currentPos);
-                long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
-                long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
-
-                //int calculatedPos = (int) ((double) ((double) currentPos / song.getDuration()) * textVeiwHeight) + posOffset - offset;
-                int calculatedPos = (int) ((double) ((double) currentPos / song.getDuration()) * numGroups);
-
-//                int calculatedPos = (int) ( ((double)currentPos / song.getDuration()) * textVeiwHeight) + posOffset - offset;
-                int scrollSegmentPos = getActualScrollPos(calculatedPos);
-                Log.d("Scrollpos", Integer.toString(scrollSegmentPos));
-
-                if (scrollSegmentPos > posOffset) {
-                    scrollView.scrollTo(0, scrollSegmentPos);
+                else {
+                    currentPos = mediaPlayer.getCurrentPosition();
                 }
+                seekBar.setProgress(currentPos);
+                //handler.postDelayed(this, 100); //Looping the thread after 0.1 second
+            }
 
-                if (BeatInterval > 0) {
-                    int measure = currentPos / BeatInterval;
-                    switch (measure % 4) {
-                        case 0:
-                            imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                            imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                            imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                            imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                            break;
-                        case 1:
-                            imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
-                            break;
-                        case 2:
-                            imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
-                            break;
-                        case 3:
-                            imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
-                            break;
+            if (autoScroll.getBeatInterval() > 0) {
+                elapsedTime +=  100;
+                elapsedTime = 100 * autoScroll.getBeatInterval() == elapsedTime ? 0 : elapsedTime;
+                int beatpos = mediaPlayer != null && mediaPlayer.isPlaying() ? measure : (int) elapsedTime / autoScroll.getBeatInterval();
+               // textCountdown.setText(String.format("%d",elapsedTime));
 
-                    }
+                switch (beatpos % 4) {
+                    case 0:
+              //          if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                        imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+              //          }
+                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        break;
+                    case 1:
+                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                        break;
+                    case 2:
+                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                        break;
+                    case 3:
+                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                        break;
                 }
             }
 
             handler.postDelayed(this, 100); //Looping the thread after 0.1 second
         }
     };
+
+    private void updateView(int currentSongPos) {
+      //  int timeLeft = (int) (song.getDuration() - currentSongPos);
+      //  long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
+      //  long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
+
+        int scrollSegmentPos;
+
+     //   int measure = 0;
+        if (autoScroll.isValid()) {
+            scrollSegmentPos = (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight  + posOffset);
+            textCountdown.setText(String.format("%d",measure));
+            //scrollSegmentPos = getActualScrollPos(measure);
+        }
+        else {
+            scrollSegmentPos = (int) (((currentSongPos-pause) /(double) song.getDuration()) * textVeiwHeight  + posOffset);
+        }
+        ///Log.d("Scrollpos", Integer.toString(scrollSegmentPos));
+
+        //currentScrollPos = currentScrollPos + (scrollSegmentPos - currentScrollPos)/20;  //// allows smooth transition
+       // textCountdown.setText(String.format("%d", currentScrollPos));
+        //if (partialScrollPos > offset && scrollSegmentPos != partialScrollPos) {
+        scrollView.scrollTo(0, scrollSegmentPos);
+    }
 
     @Override
     protected void onResume () {
@@ -233,12 +154,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         context = this.context;
-        chordPos = new ArrayList<>();
-        posOffset = 0;
         newSeek = -1;
-        numGroups = 0;
-        wrapLength = -1;
-
+        //startTime = System.currentTimeMillis();
 
         textView = (TextView) findViewById(R.id.textView);
         imageTapTempo = (ImageView) findViewById(R.id.imageTapTempo);
@@ -253,28 +170,16 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
         scrollView.setScrollViewListener(this);
 
-        ViewTreeObserver vto = ivBackground.getViewTreeObserver();
+        /*ViewTreeObserver vto = ivBackground.getViewTreeObserver();
         vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             public boolean onPreDraw() {
                 ivBackground.getViewTreeObserver().removeOnPreDrawListener(this);
-                int titlebarY = getSupportActionBar().getHeight();
-                //offset = ivBackground.getTop() / 3; // estimate a good point to start scrolling
-
-                int visibleScreenHeight = ivBackground.getTop();
-              /*    if (textVeiwHeight % visibleScreenHeight > 0) {
-                    textVeiwHeight = (textVeiwHeight / visibleScreenHeight) * textVeiwHeight + visibleScreenHeight;
-                }
-                else {
-                    textVeiwHeight = textVeiwHeight / visibleScreenHeight * textVeiwHeight;
-                }*/
-
-               // textVeiwHeight = visibleScreenHeight*(textVeiwHeight/visibleScreenHeight) + textVeiwHeight % visibleScreenHeight;
                 return true;
             }
-        });
+        });*/
 
         song = (Song) getIntent().getSerializableExtra("songscroller_song");
-        if (song.getArt() == null) {
+        /*if (song.getArt() == null) {
             File albumFile = new File(song.getPath());
             File artFile = FindFile.findFileWithExt(albumFile.getParentFile(), null, ".jsp");
             if (artFile.exists()) {
@@ -284,70 +189,33 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 contentValues.put("_data", artFile.getAbsolutePath());
                 getContentResolver().insert (artworkUri, contentValues);
             }
-        }
+        }*/
 
         File sdcard = Environment.getExternalStorageDirectory();
         File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
 
         //Read text from file
-        SpannableStringBuilder text = new SpannableStringBuilder();
+        autoScroll = new AutoScroll(this, file);
+        SpannableStringBuilder text = formatText(new SpannableStringBuilder(autoScroll.getText()));
+        textView.setText(text);
 
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
+        //int textLength = text.length();
+        totLines = autoScroll.getNumLines();
 
-            int lineCount = 0;
-            arrayLineStarts = new ArrayList();
+        //float calculatedLineHeight = textVeiwHeight/(float) totLines;
+        textView.measure(0, 0);
+        textVeiwHeight = textView.getMeasuredHeight();
+        actualLineHeight = textView.getPaint().getFontMetrics().bottom - textView.getPaint().getFontMetrics().top;
 
-            if ((line = br.readLine()) != null) {
-                text.append(getMetaData (line));
-                if (text.length() > 0) {
-                    text.append('\n');
-                    lineCount++;
-                    arrayLineStarts.add(new LineStat(lineCount, line.length(), 0));
-                }
-            }
+        int actualNumLines = (int) (textVeiwHeight / actualLineHeight);
 
-            while ((line = br.readLine()) != null) {
-                //if (line.trim().length() > 0) {
-                    text.append(line);
-                    text.append('\n');
-                    arrayLineStarts.add(new LineStat(lineCount, line.length(), 0));
-
-                    if (++lineCount % 3 == 0) {
-                        numGroups++;
-                    }
-               // }
-             }
-
-            br.close();
-
-            //Find the view by its id
-            text = formatText(text, arrayLineStarts);
-            textView.setText(text);
-            int textLength = text.length();
-
-            final int totLines = text.toString().trim().split("\n").length;;
-            textView.measure(0,0);
-            textVeiwHeight = textView.getMeasuredHeight();
-
-            actualLineHeight = textView.getPaint().getFontMetrics().bottom - textView.getPaint().getFontMetrics().top;
-            int actualNumLines = (int) ((textVeiwHeight + actualLineHeight - 1)/actualLineHeight);
-            getWrapLength (totLines - actualNumLines - 1);
-
-            //float calculatedLineHeight = textVeiwHeight/(float) totLines;
-
-
-        } catch (IOException e) {
-            //You'll need to add proper error handling here
-            Log.e("Message", " Song has no associated text file");
-
+        if (autoScroll.isValid()) {
+            autoScroll.getGroupArray().setPriorWrappedLines(totLines - actualNumLines);
         }
+        actualLineHeight -= actualLineHeight / 9;
 
         //// set title
         getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
-
-
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -357,12 +225,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 int timeLeft = seekBar.getMax() - newPos;
                 long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
                 long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
-                textCountdown.setText(String.format("%d:%02d", minutes, seconds));
+               // textCountdown.setText(String.format("%d:%02d", minutes, seconds));
 
-                int calculatedPos = (int) ((double) ((double) newPos / song.getDuration()) * songStartHeight) + posOffset - offset;
-                if (calculatedPos > posOffset) {
-                    scrollView.scrollTo(0, calculatedPos);
-                }
+                //beatPos = newPos / autoScroll.getBeatInterval();
+                measure = newPos / (autoScroll.getBeatInterval() * autoScroll.getScoreData().getBeats());
+                updateView (newPos);
             }
 
             @Override
@@ -373,7 +240,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             public void onStopTrackingTouch(SeekBar seekBar) {
                 int progress = seekBar.getProgress();
                 if (progress == song.getDuration()) {
-                    //mediaPlayer.pause();
+                    mediaPlayer.pause();
                     ivPlay.setImageResource(android.R.drawable.ic_media_play);
                 }
                 else {
@@ -394,7 +261,9 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                         ivPlay.setImageResource(android.R.drawable.ic_media_play);
                     }
                     else {
-                        songStartHeight = textVeiwHeight - posOffset;
+                        //songStartHeight = textVeiwHeight - posOffset;
+                        mediaPlayer.start();
+                        ivPlay.setImageResource(android.R.drawable.ic_media_pause);
                     }
                 } else {
                     if (mediaPlayer == null) {
@@ -405,7 +274,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                             @Override
                             public void onCompletion(MediaPlayer mediaPlayer) {
                                 ivPlay.setImageResource(android.R.drawable.ic_media_play);
-                                handler.removeCallbacks(moveSeekBarThread);
+                                seekBar.setProgress(0);
+                                //handler.removeCallbacks(moveSeekBarThread);
 
                                 imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                                 imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
@@ -420,7 +290,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                     ivPlay.setImageResource(android.R.drawable.ic_media_pause);
                     seekBar.setMax((int)song.getDuration());
                     playingSong = song;
-                    songStartHeight = textVeiwHeight - posOffset;
+                   // songStartHeight = textVeiwHeight - posOffset;
                 }
             }
         });
@@ -470,20 +340,26 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         }
         else {
             int mediaPos_new = mediaPlayer.getCurrentPosition();
-            //int mediaMax_new = mediaPlayer.getDuration();
+            if (autoScroll.isValid()) {
+            /*
+            * y = (int) (autoScroll.getGroupArray().getScrollLine(measure / 4) * actualLineHeight + posOffset);
+            * */
+                posOffset = (int) (y -  (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight));
 
-            if (posOffset == posOffset || ivMute.isActivated()) {
-                ///////// how it is calulated for moving scroller
-                //scrollY = calculatedPos + posOffet
-                //posOffest = scrollY - calculatedPos;
-                ///////// this code allows user to shift position of vertical scroll while mp3 is playing
-                posOffset = y - ((int) (((double) mediaPos_new / song.getDuration()) * songStartHeight) - offset);
             }
             else {
-                ///////// how it is calulated for new song seek position
-                //scrollY = calculatedPos + posOffet (from that equation)
-                ///////// this code sets the mp3 current position to match the vertical scroll position
-                newSeek = (int)  (( song.getDuration() * (y - (posOffset - offset))/(double)songStartHeight));
+                if (posOffset == posOffset || ivMute.isActivated()) {
+                    ///////// how it is calulated for moving scroller
+                    //scrollY = calculatedPos + posOffet
+                    //posOffest = scrollY - calculatedPos;
+                    ///////// this code allows user to shift position of vertical scroll while mp3 is playing
+                    posOffset = y - ((int) (((double) (mediaPos_new - pause) / song.getDuration()) * textVeiwHeight));
+                } else {
+                    ///////// how it is calulated for new song seek position
+                    //scrollY = calculatedPos + posOffet (from that equation)
+                    ///////// this code sets the mp3 current position to match the vertical scroll position
+                    newSeek = (int) ((song.getDuration() * (y - (posOffset)) / (double) textVeiwHeight) + pause);
+                }
             }
         }
     }
@@ -495,7 +371,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             case MotionEvent.ACTION_UP:
                 int tapSpeed = (int) scrollView.getAvgTapSpeed();
                 if (tapSpeed > 0) {
-                    BeatInterval = tapSpeed;
+                    autoScroll.setBeatInterval(tapSpeed);
                    // String bpmtext = String.format("%d", (60000 / BeatInterval));
                    // textEditBPM.setText(bpmtext);
                 }
@@ -506,50 +382,26 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return super.onTouchEvent(ev);
     }
 
-    private String getMetaData (String JSON) {
-        try {
-            JSONObject jsonObject = new JSONObject(JSON);
-            scoreData = new ScoreData(jsonObject.getInt("bpm"), jsonObject.getInt("beats"), jsonObject.getInt("measures"));
-            return "";
-        }
-        catch (Exception e){
-            Log.e("JSON Parsing Error:", e.toString());
-            return JSON;
-        }
-    }
-
-    private void getWrapLength (int numWrapped) {
-        sortLineStarts(1);
-        if (numWrapped > 0) {
-            wrapLength = arrayLineStarts.get(numWrapped-1).getLength();
-        }
-        sortLineStarts(0);
-        //return -1;
-    }
-
-    boolean isChordLine (int position, List<LineStat> arrayLineStarts) {
-        int i=0;
-        while (i < arrayLineStarts.size() && position < arrayLineStarts.get(i++).getLength());
-        return --i % 2 == 0;
-    }
-
-    private SpannableStringBuilder formatText(SpannableStringBuilder sb, List<LineStat> arrayLineStarts) {
+    private SpannableStringBuilder formatText(SpannableStringBuilder sb) {
 
         Matcher matcher = java.util.regex.Pattern.compile("@!.+?\\n").matcher(sb.toString());
-        int lastCommentEnd = 0;
+        //int lastCommentEnd = 0;
         String next;
 
+        String noMetadata = sb.toString();
         while (matcher.find()) {
             next = matcher.group(0);
             String[] data = next.split("bpm");
             if (data.length == 2) {
-                BeatInterval = (int) (60000 / Double.parseDouble(data[1]));
+                autoScroll.setBeatInterval((int) (60000 / Double.parseDouble(data[1])));
                // textEditBPM.setText(data[1]);
-                continue;
+                //continue;
             }
-            lastCommentEnd = matcher.end();
+            //lastCommentEnd = matcher.end();
+            noMetadata = noMetadata.replace(next, "");
         }
-        sb = new SpannableStringBuilder(sb.toString().substring(lastCommentEnd));
+
+        sb = new SpannableStringBuilder(noMetadata);
 
         matcher = java.util.regex.Pattern.compile("\\[(.*?)\\]").matcher(sb.toString());
         while (matcher.find()) {
@@ -565,10 +417,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         matcher = java.util.regex.Pattern.compile("(\\(*[CDEFGAB](?:b|bb)*(?:|#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\(]?[\\d\\/-/+]*[\\)]?(?:[CDEFGAB](?:b|bb)*(?:#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\d\\/]*)*\\)*)(?=[\\s|$])(?! [a-z])").matcher(sb.toString());
         while (matcher.find()) {
-            if (isChordLine(matcher.start(), arrayLineStarts)) {
+            if (autoScroll.getScoreData() == null || autoScroll.getGroupArray().isChordLine(matcher.start())) {
                 final ForegroundColorSpan fcs = new ForegroundColorSpan(Color.rgb(255, 0, 0));
                 sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                chordPos.add(new Point(matcher.start(), matcher.end()));
+                //chordPos.add(new Point(matcher.start(), matcher.end()));
             }
         }
 

@@ -19,8 +19,8 @@ public class ScoreAdapter extends SongAdapter {
     Context context;
     static private ArrayList<Song> scores;
 
-    public ScoreAdapter(Context context, int layout) {
-        super(context, layout);
+    public ScoreAdapter(Context context, int layout, String sortBy) {
+        super(context, layout, sortBy);
         if (scores == null) {
             scores = new ArrayList<>();
             for (Song song : songList) {
@@ -29,10 +29,13 @@ public class ScoreAdapter extends SongAdapter {
                 }
             }
         }
+       // if (getMainActivity().getmSongView() == MainActivity.ARTIST) {
+       //     sortSongsBy(MainActivity.ARTIST);
+       // }
     }
 
-    public void sortSongsBy (int sortOrder) {
-        if (sortOrder == MainActivity.ARTIST) {
+    public void sortSongsBy (String sortOrder) {
+        if (MediaStore.Audio.AudioColumns.ARTIST.compareTo(sortOrder) == 0) {
             Collections.sort(scores, new ArtistCompare());
         }
         else {

@@ -3,6 +3,7 @@ package com.mobileapps.brad.songscroller;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -44,20 +45,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ListView albumList;
     private Spinner viewSpinner;
 
-    private Integer mAlbumView;
-    private Integer mSongView;
-    private Integer mScoreView;
+    private String mAlbumView;
+    private String mSongView;
+    private String mScoreView;
     private boolean mShowSongsWithScore;
     private Button songsButton;
     private Album album;
     private Context context;
 
-    public Integer getmAlbumView() {
+    public String getmAlbumView() {
         return mAlbumView;
     }
 
-    public void setmAlbumView(Integer AlbumView) {
-        this.mAlbumView = AlbumView > 1 ? 0: AlbumView;
+    public void setmAlbumView(String AlbumView) {
+        this.mAlbumView = AlbumView;
     }
 
     public String getCurrentView () {
@@ -69,20 +70,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         albumAdapter = null;
     }
 
-    public Integer getmSongView() {
+    public String getmSongView() {
         return mSongView;
     }
 
-    public void setmSongView(Integer SongView) {
-        this.mSongView = SongView > 1 ? 0 : SongView;
+    public void setmSongView(String SongView) {
+        this.mSongView = SongView;
     }
 
-    public Integer getmScoreView() {
+    public String getmScoreView() {
         return mScoreView;
     }
 
-    public void setmScoreView(Integer ScoreView) {
-        this.mScoreView = ScoreView > 1 ? 0 : ScoreView;
+    public void setmScoreView(String ScoreView) {
+        this.mScoreView = ScoreView;
     }
 
     public Album getAlbum() {
@@ -114,9 +115,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         /// populate view
         SharedPreferences sharedPreferences = this.getPreferences(context.MODE_PRIVATE);
-        setmAlbumView(sharedPreferences.getInt("AlbumView", 0));
-        setmSongView(sharedPreferences.getInt("SongView", 0));
-        setmScoreView(sharedPreferences.getInt("ScoreView", 0));
+        setmAlbumView(sharedPreferences.getString("AlbumView", MediaStore.Audio.AlbumColumns.ALBUM));
+        setmSongView(sharedPreferences.getString("SongView", MediaStore.Audio.AudioColumns.TITLE));
+        setmScoreView(sharedPreferences.getString("ScoreView", MediaStore.Audio.AudioColumns.TITLE));
+
 
         viewSpinner.setSelection(sharedPreferences.getInt("selectedView", 0));
         //setMainView(sharedPreferences.getString("mainView", "Album"));
@@ -134,9 +136,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences sharedPreferences = this.getPreferences(context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt ("selectedView", viewSpinner.getSelectedItemPosition());
-        editor.putInt ("AlbumView", mAlbumView);
-        editor.putInt ("SongView", mSongView);
-        editor.putInt ("ScoreView", mScoreView);
+        editor.putString ("AlbumView", mAlbumView);
+        editor.putString ("SongView", mSongView);
+        editor.putString ("ScoreView", mScoreView);
         editor.commit();
         super.onStop();
     }
@@ -144,13 +146,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onItemSelected (AdapterView<?> parent, View view, int pos, long id) {
         if ("Album".compareTo((String) viewSpinner.getSelectedItem()) == 0) {
-            songsButton.setText(albumViews[getmAlbumView()]);
+            songsButton.setText(getmAlbumView());
         }
         else if ("Song".compareTo((String) viewSpinner.getSelectedItem()) == 0) {
-            songsButton.setText(songViews[getmSongView()]);
+            songsButton.setText(getmSongView());
         }
         else  {
-            songsButton.setText(scoreViews[getmScoreView()]);
+            songsButton.setText(getmScoreView());
         }
         getListItems();
     }
@@ -163,16 +165,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick (View v) {
         if ("Album".compareTo((String) viewSpinner.getSelectedItem()) == 0) {
-            setmAlbumView(getmAlbumView() + 1);
-            songsButton.setText(albumViews[getmAlbumView()]);
+            setmAlbumView(MediaStore.Audio.AlbumColumns.ALBUM.compareTo(getmAlbumView()) == 0 ? MediaStore.Audio.AlbumColumns.ARTIST : MediaStore.Audio.AlbumColumns.ALBUM);
+            songsButton.setText(getmAlbumView());
         }
         else if ("Song".compareTo((String) viewSpinner.getSelectedItem()) == 0) {
-            setmSongView(getmSongView() + 1);
-            songsButton.setText(songViews[getmSongView()]);
+            setmSongView(MediaStore.Audio.AudioColumns.TITLE.compareTo(getmSongView()) == 0 ? MediaStore.Audio.AudioColumns.ARTIST : MediaStore.Audio.AudioColumns.TITLE);
+            songsButton.setText(getmSongView());
         }
         else  {
-            setmScoreView(getmScoreView() + 1);
-            songsButton.setText(scoreViews[getmScoreView()]);
+            setmScoreView(MediaStore.Audio.AudioColumns.TITLE.compareTo(getmScoreView()) == 0 ? MediaStore.Audio.AudioColumns.ARTIST : MediaStore.Audio.AudioColumns.TITLE);
+            songsButton.setText(getmScoreView());
         }
         getListItems ();
     }
@@ -182,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if ("Album".compareTo((String) viewSpinner.getSelectedItem()) == 0) {
 
             if (albumAdapter != null) {
-                albumAdapter.SetView (getmAlbumView());
+                albumAdapter.sortAblumsBy (getmAlbumView());
                 albumAdapter.notifyDataSetChanged();
             }
             else {
@@ -213,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 songAdapter.notifyDataSetChanged();
             }
             else {
-                songAdapter = new SongAdapter(this, R.layout.song_list_item);
+                songAdapter = new SongAdapter(this, R.layout.song_list_item, getmSongView());
                 albumList.setAdapter(songAdapter);
                 albumList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -238,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 scoreAdapter.notifyDataSetChanged();
             }
             else {
-                scoreAdapter = new ScoreAdapter(this, R.layout.song_list_item);
+                scoreAdapter = new ScoreAdapter(this, R.layout.song_list_item, getmScoreView());
                 albumList.setAdapter(scoreAdapter);
                 albumList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override

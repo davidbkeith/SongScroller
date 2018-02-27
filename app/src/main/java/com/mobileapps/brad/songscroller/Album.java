@@ -45,7 +45,7 @@ public class Album implements Serializable {
     }
 
     public Album (Context context, long albumid) {
-        ArrayList<Album> albumArrayList = getAlbumById(context, albumid, MainActivity.ALBUM);
+        ArrayList<Album> albumArrayList = getAlbumById(context, albumid, MediaStore.Audio.AlbumColumns.ALBUM);
         this.equals(albumArrayList.get(0));
     }
 
@@ -92,7 +92,7 @@ public class Album implements Serializable {
 
 
     /// global functions
-    static public ArrayList<Album> getAlbumById (Context context, long albumid, int sortBy) {
+    static public ArrayList<Album> getAlbumById (Context context, long albumid, String sortBy) {
 
         File dirmusic = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
         ArrayList albumList = new ArrayList<>();
@@ -106,7 +106,7 @@ public class Album implements Serializable {
 
         String[] projection = new String[] {albums._ID, albums.ALBUM, albums.ARTIST, albums.ALBUM_ART, albums.NUMBER_OF_SONGS};
         String sortOrder;
-        if (sortBy == MainActivity.ALBUM) {
+        if (MediaStore.Audio.AlbumColumns.ALBUM.compareTo(sortBy) == 0) {
             sortOrder = MediaStore.Audio.AlbumColumns.ALBUM + " COLLATE LOCALIZED ASC";
         }
         else {
