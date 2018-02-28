@@ -1,6 +1,11 @@
 package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.support.constraint.solver.widgets.Rectangle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TimeUtils;
@@ -13,9 +18,27 @@ import android.widget.ScrollView;
 
 public class ScrollViewExt extends ScrollView {
     private Boolean enableScrolling = true;
-    protected long lastTapTime = 0;
+    protected long lastTapTime;
     protected long[] tapIntervals = new long[8];
-    protected int tapIntervalIndex = 0;
+    protected int tapIntervalIndex;
+    private float lineHeight;
+    private int scrollLinePos;
+
+    public float getLineHeight() {
+        return lineHeight;
+    }
+
+    public void setLineHeight(float lineHeight) {
+        this.lineHeight = lineHeight;
+    }
+
+    public int getScrollLinePos() {
+        return scrollLinePos;
+    }
+
+    public void setScrollLinePos(int scrollLinePos) {
+        this.scrollLinePos = scrollLinePos;
+    }
 
     public long getAvgTapSpeed () {
       /*  Log.e("Media", String.format("7 to 8: %d", tapIntervals[7]));
@@ -128,5 +151,22 @@ public class ScrollViewExt extends ScrollView {
         if (scrollViewListener != null) {
             scrollViewListener.onScrollChanged(this, l, t, oldl, oldt);
         }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        //canvas.drawColor(Color.BLUE);
+
+        int x = 50;
+        int y = (int) (scrollLinePos * lineHeight);
+        int sideLength = 200;
+
+        // create a rectangle that we'll draw later
+        Rect rectangle = new Rect(x, y, sideLength, y+4);
+
+        // create the Paint and set its color
+        Paint paint = new Paint();
+        paint.setColor(Color.GRAY);
+       // canvas.drawRect(rectangle, paint);
     }
 }

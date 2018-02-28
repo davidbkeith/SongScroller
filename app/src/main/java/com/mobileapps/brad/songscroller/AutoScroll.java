@@ -17,9 +17,11 @@ public class AutoScroll {
 
     private ScoreData scoreData;
     private int BeatInterval;
+    private int startPos;
     private String text;
     private GroupArray groupArray;
-    private ScrollActivity scrollActivity;
+
+    ScrollActivity scrollActivity;
 
     public boolean isValid () {
         return groupArray != null && groupArray.size() > 0;
@@ -41,8 +43,12 @@ public class AutoScroll {
         return scoreData;
     }
 
+    public int getStartPos() {
+        return startPos;
+    }
+
     public int getNumLines () {
-        return text.split("\n").length;
+        return text.trim().split("\n").length;
     }
 
     public AutoScroll (ScrollActivity scrollActivity, File file) {
@@ -58,6 +64,7 @@ public class AutoScroll {
             while (scoreData == null && (line = br.readLine()) != null) {
                 text += getScoreData(line);
                 text += "\n";
+                scrollActivity.setPosOffset(scrollActivity.getPosOffset()+1);
             }
 
             if (scoreData != null) {

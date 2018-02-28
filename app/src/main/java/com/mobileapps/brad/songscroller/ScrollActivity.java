@@ -5,7 +5,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -21,6 +23,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -34,7 +37,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private Context context;
 
-    private int textVeiwHeight, posOffset;
+    private int textVeiwHeight;
+    private int posOffset;
     private int pause;
     private int currentScrollPos;
     //private int BeatInterval;
@@ -44,16 +48,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private int wrapLength;
     private int totLines;
     private int measure, beatPos;
+    private int scrollSegmentPos;
     private long elapsedTime;
+    private int actualNumLines;
 
-    private float actualLineHeight;
+    //private float actualLineHeight;
 
     private ImageView ivPlay;
     private ImageView ivPause;
     private ImageView ivAlbumArt;
     private ImageView ivMute;
     private ImageView ivBackground;
-    private ImageView imageTapTempo, imageTapTempo2, imageTapTempo3, imageTapTempo4;
+    private ImageView[] imageTapTempo;
     private ScrollViewExt scrollView;
     private TextView textView;
     private TextView textCountdown;
@@ -65,6 +71,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     static MediaPlayer mediaPlayer;
     static private Song playingSong;
+
+    public int getPosOffset() {
+        return posOffset;
+    }
+
+    public void setPosOffset(int posOffset) {
+        this.posOffset = posOffset;
+    }
 
     /**
      * The Move seek bar. Thread to move seekbar based on the current position
@@ -90,26 +104,37 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             if (autoScroll.getBeatInterval() > 0) {
                 elapsedTime +=  100;
                 elapsedTime = 100 * autoScroll.getBeatInterval() == elapsedTime ? 0 : elapsedTime;
-                int beatpos = mediaPlayer != null && mediaPlayer.isPlaying() ? measure : (int) elapsedTime / autoScroll.getBeatInterval();
+                int beatpos;
+
+                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    beatpos = measure;
+                    elapsedTime = 0;
+                }
+                else {
+                     beatpos = (int) elapsedTime / autoScroll.getBeatInterval();
+                }
                // textCountdown.setText(String.format("%d",elapsedTime));
+
+                int[] beatcolor = getResources().getIntArray(R.array.beatcolor);
+                //imageTapTempo[beatpos % 4].setBackgroundColor(beatcolor[beatpos % 4]);
 
                 switch (beatpos % 4) {
                     case 0:
               //          if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                        imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                        //imageTapTempo[0].setBackgroundColor(beatcolor[0]);
               //          }
-                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo[2].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo[1].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                        imageTapTempo[3].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                         break;
                     case 1:
-                        imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                       // imageTapTempo[1].setBackgroundColor(getResources().getColor(R.color.yellow));
                         break;
                     case 2:
-                        imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                       // imageTapTempo[2].setBackgroundColor(getResources().getColor(R.color.orange));
                         break;
                     case 3:
-                        imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorAccentDark));
+                       // imageTapTempo[3].setBackgroundColor(getResources().getColor(R.color.red));
                         break;
                 }
             }
@@ -123,23 +148,24 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
       //  long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
       //  long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
 
-        int scrollSegmentPos;
+     //   int scrollSegmentPos;
 
      //   int measure = 0;
         if (autoScroll.isValid()) {
-            scrollSegmentPos = (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight  + posOffset);
+            scrollView.setScrollLinePos((int) ((autoScroll.getGroupArray().getScrollLine(measure) + posOffset)));
+            currentScrollPos = (int) (scrollView.getScrollLinePos() * scrollView.getLineHeight());
             textCountdown.setText(String.format("%d",measure));
             //scrollSegmentPos = getActualScrollPos(measure);
+            //currentScrollPos = currentScrollPos + (scrollView.getScrollLinePos() - currentScrollPos)/5;  //// allows smooth transition
         }
         else {
-            scrollSegmentPos = (int) (((currentSongPos-pause) /(double) song.getDuration()) * textVeiwHeight  + posOffset);
+            currentScrollPos = ((int) (((currentSongPos-pause) /(double) song.getDuration()) * textVeiwHeight  + posOffset));
         }
         ///Log.d("Scrollpos", Integer.toString(scrollSegmentPos));
 
-        //currentScrollPos = currentScrollPos + (scrollSegmentPos - currentScrollPos)/20;  //// allows smooth transition
        // textCountdown.setText(String.format("%d", currentScrollPos));
-        //if (partialScrollPos > offset && scrollSegmentPos != partialScrollPos) {
-        scrollView.scrollTo(0, scrollSegmentPos);
+       // if (scrollSegmentPos != partialScrollPos) {
+        scrollView.scrollTo(0, currentScrollPos);
     }
 
     @Override
@@ -158,10 +184,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //startTime = System.currentTimeMillis();
 
         textView = (TextView) findViewById(R.id.textView);
-        imageTapTempo = (ImageView) findViewById(R.id.imageTapTempo);
-        imageTapTempo2 = (ImageView) findViewById(R.id.imageTapTempo2);
-        imageTapTempo3 = (ImageView) findViewById(R.id.imageTapTempo3);
-        imageTapTempo4 = (ImageView) findViewById(R.id.imageTapTempo4);
+        imageTapTempo = new ImageView[4];
+        imageTapTempo[0] = (ImageView) findViewById(R.id.imageTapTempo1);
+        imageTapTempo[1] = (ImageView) findViewById(R.id.imageTapTempo2);
+        imageTapTempo[2] = (ImageView) findViewById(R.id.imageTapTempo3);
+        imageTapTempo[3] = (ImageView) findViewById(R.id.imageTapTempo4);
         ivMute = (ImageView) findViewById(R.id.ivMute);
         ivBackground = (ImageView) findViewById(R.id.ivBackground);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
@@ -199,20 +226,33 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         SpannableStringBuilder text = formatText(new SpannableStringBuilder(autoScroll.getText()));
         textView.setText(text);
 
+        //final int actualNumLines;
+        textView.post(new Runnable() {
+            @Override
+            public void run() {
+                actualNumLines = textView.getLineCount();
+                //actualNumLines = textView.getLineCount();
+                // Use lineCount here
+                if (autoScroll.isValid()) {
+                    autoScroll.getGroupArray().setPriorWrappedLines(actualNumLines - totLines - 1);
+                    //posOffset = autoScroll.getStartPos();
+                }
+            }
+        });
+
         //int textLength = text.length();
         totLines = autoScroll.getNumLines();
 
         //float calculatedLineHeight = textVeiwHeight/(float) totLines;
         textView.measure(0, 0);
         textVeiwHeight = textView.getMeasuredHeight();
-        actualLineHeight = textView.getPaint().getFontMetrics().bottom - textView.getPaint().getFontMetrics().top;
+        float actualLineHeight = textView.getPaint().getFontMetrics().bottom - textView.getPaint().getFontMetrics().top;
 
-        int actualNumLines = (int) (textVeiwHeight / actualLineHeight);
-
-        if (autoScroll.isValid()) {
-            autoScroll.getGroupArray().setPriorWrappedLines(totLines - actualNumLines);
-        }
+       // int actualNumLines = (int) (textVeiwHeight / actualLineHeight);
         actualLineHeight -= actualLineHeight / 9;
+        scrollView.setLineHeight(actualLineHeight);
+
+
 
         //// set title
         getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
@@ -225,7 +265,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 int timeLeft = seekBar.getMax() - newPos;
                 long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
                 long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
-               // textCountdown.setText(String.format("%d:%02d", minutes, seconds));
+                // textCountdown.setText(String.format("%d:%02d", minutes, seconds));
 
                 //beatPos = newPos / autoScroll.getBeatInterval();
                 measure = newPos / (autoScroll.getBeatInterval() * autoScroll.getScoreData().getBeats());
@@ -277,10 +317,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                                 seekBar.setProgress(0);
                                 //handler.removeCallbacks(moveSeekBarThread);
 
-                                imageTapTempo.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                                imageTapTempo2.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                                imageTapTempo3.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                                imageTapTempo4.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo[0].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo[1].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo[2].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo[3].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                             }
                         });
                         //textVeiwHeight -= posOffset;
@@ -342,9 +382,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             int mediaPos_new = mediaPlayer.getCurrentPosition();
             if (autoScroll.isValid()) {
             /*
-            * y = (int) (autoScroll.getGroupArray().getScrollLine(measure / 4) * actualLineHeight + posOffset);
+            * y = (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight + posOffset);
             * */
-                posOffset = (int) (y -  (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight));
+                //posOffset = (int) (y -  (int) (autoScroll.getGroupArray().getScrollLine(measure) * scrollView.getLineHeight()));
+                posOffset = (int) (y/scrollView.getLineHeight() - (autoScroll.getGroupArray().getScrollLine(measure)));
 
             }
             else {

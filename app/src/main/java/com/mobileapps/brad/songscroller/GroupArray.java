@@ -141,6 +141,7 @@ public class GroupArray extends ArrayList<GroupData> {
                     prevMeasures = get(count - 1).getMeasuresToEndofLine();
                 }
                 return (int) ((3 * count + gd.getPriorWrappedLines()));
+                //return (int) ((3 * count));
             }
             count++;
         }

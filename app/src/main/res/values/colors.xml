@@ -12,4 +12,15 @@
     <color name="colorMenuBar">#395563</color>
     <color name="colorMenuBarLight">#466778</color>
 
+    <color name="white">#fff</color>
+    <color name="yellow">#fffb00</color>
+    <color name="orange">#ffa200</color>
+    <color name="red">#ff0400</color>
+
+    <array name="beatcolor">
+        <item>@color/white</item>
+        <item>@color/yellow</item>
+        <item>@color/orange</item>
+        <item>@color/red</item>
+    </array>
 </resources>
