@@ -13,19 +13,21 @@ import java.util.ArrayList;
  * Created by brad on 2/26/18.
  */
 
-public class AutoScroll {
+public abstract class AutoScroll {
 
-    private ScoreData scoreData;
-    private int BeatInterval;
-    private int startPos;
-    private String text;
-    private GroupArray groupArray;
+    protected ScoreData scoreData;
+    protected int BeatInterval;
+    protected int startLine;
+    protected String text;
+    protected ScrollActivity scrollActivity;
 
-    ScrollActivity scrollActivity;
-
-    public boolean isValid () {
-        return groupArray != null && groupArray.size() > 0;
+    public AutoScroll (ScrollActivity scrollActivity) {
+        this.scrollActivity = scrollActivity;
     }
+
+    public AutoScroll (ScrollActivity scrollActivity, File file) {}
+
+    public boolean isValid () {return true;}
 
     public int getBeatInterval() {
         return BeatInterval;
@@ -35,62 +37,40 @@ public class AutoScroll {
         BeatInterval = beatInterval;
     }
 
-    public GroupArray getGroupArray() {
-        return groupArray;
-    }
-
     public ScoreData getScoreData() {
         return scoreData;
     }
 
-    public int getStartPos() {
-        return startPos;
+    public void setScoreData (ScoreData scoreData) { this.scoreData = scoreData; }
+
+    public String getText() {
+        return text;
+    }
+
+    public int getStartLine() {
+        return startLine;
     }
 
     public int getNumLines () {
         return text.trim().split("\n").length;
     }
 
-    public AutoScroll (ScrollActivity scrollActivity, File file) {
-        this.scrollActivity = scrollActivity;
-        groupArray = new GroupArray();
-        text = "";
+    public void setPriorWrappedLines () {}
 
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
-            groupArray = new GroupArray();
+    public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {}
 
-            while (scoreData == null && (line = br.readLine()) != null) {
-                text += getScoreData(line);
-                text += "\n";
-                scrollActivity.setPosOffset(scrollActivity.getPosOffset()+1);
-            }
+    public int getLineMeasures (int measure) {return 0;}
 
-            if (scoreData != null) {
-                text = groupArray.create(br, text, scoreData);
-            }
-            br.close();
-        }
-        catch (Exception e) {
-            Log.e("File Read Error", e.toString());
-        }
+    public int getRepeat () {return 1;}
+
+    public int getScrollLine(int measure) {return 0;}
+
+    public boolean isChordLine (int position) {return false;}
+
+    public void showBeat () {};
+
+    public GroupArray getGroupArray() {
+        return null;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    private String getScoreData (String JSON) {
-        try {
-            JSONObject jsonObject = new JSONObject(JSON);
-            scoreData = new ScoreData(jsonObject.optInt("bpm"), jsonObject.optInt("beats", 4), jsonObject.optInt("measures", 16));
-            BeatInterval = 60000 / scoreData.getBpm();
-            return "";
-        }
-        catch (Exception e){
-            Log.e("JSON Parsing Error:", e.toString());
-            return JSON;
-        }
-    }
 }

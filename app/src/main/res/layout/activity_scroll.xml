@@ -19,67 +19,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/imageTapTempo1"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/imageTapTempo2"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/imageTapTempo3"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/imageTapTempo4"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-            <ImageView
-                android:id="@+id/imageTapTempo5"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/imageTapTempo6"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/imageTapTempo7"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/imageTapTempo8"
-                android:layout_height="4dp"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary" />
-        </LinearLayout>
-
         <com.mobileapps.brad.songscroller.ScrollViewExt
             android:id="@+id/scrollView"
             android:layout_width="match_parent"
@@ -88,7 +27,7 @@
             app:layout_constraintBottom_toTopOf="@id/ivBackground"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/imageTapTempo1">
+            app:layout_constraintTop_toBottomOf="parent">
 
                 <TextView
                     android:id="@+id/textView"

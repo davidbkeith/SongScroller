@@ -59,7 +59,6 @@ public class AlbumSongsActivity extends AppCompatActivity {
             songList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-
                     selectedsong = (Song) songList.getItemAtPosition(position);
                     Intent intent = new Intent(context, ScrollActivity.class);
                     intent.putExtra("songscroller_song", selectedsong);

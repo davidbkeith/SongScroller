@@ -1,6 +1,8 @@
 package com.mobileapps.brad.songscroller;
 
+import android.graphics.Rect;
 import android.util.Log;
+import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
@@ -18,10 +20,24 @@ import java.util.List;
 
 public class GroupArray extends ArrayList<GroupData> {
 
-    public GroupArray () {}
+    private ScrollActivity scrollActivity;
+
+    public GroupData getCurrentGroup() {
+        return currentGroup;
+    }
+
+    private GroupData currentGroup;
+
+    public ScrollActivity getScrollActivity() {
+        return scrollActivity;
+    }
+
+    public GroupArray (ScrollActivity scrollActivity) {
+        this.scrollActivity = scrollActivity;
+    }
 
     public String create (BufferedReader br, String scoreText, ScoreData scoreData) {
-        int lineCount = 1;
+        int groupLineCount = 1;
         int measuresToEndofLine = 0;
         String line;
         GroupData groupData = null;
@@ -29,14 +45,15 @@ public class GroupArray extends ArrayList<GroupData> {
         try {
             while ((line = br.readLine()) != null) {
                 //// line 1 is chords
+                line = line.trim();
 
-                if (lineCount == 1) {
+                if (groupLineCount == 1) {
                     groupData = new GroupData(scoreData);
                     groupData.setOffsetChords(scoreText.length());
                     groupData.setChordsLength(line.length());
                 }
                 //// line 2 is lyrics, annotations, etc
-                else if (lineCount == 2) {
+                else if (groupLineCount == 2) {
                     groupData.setLyricsLength(line.length());
                 }
                 //// line 3 is line metadata (number of measures, time signature, etc)
@@ -60,8 +77,8 @@ public class GroupArray extends ArrayList<GroupData> {
                     }
                 }
                 scoreText += line + "\n";
-                if (++lineCount > 3) {
-                    lineCount = 1;
+                if (++groupLineCount > 3) {
+                    groupLineCount = 1;
                 };
             }
         }
@@ -86,39 +103,54 @@ public class GroupArray extends ArrayList<GroupData> {
         return --i % 2 == 0;
     }
 
-    public void setPriorWrappedLines (int numWrapped) {
-        List<Integer> arrlengths = new ArrayList<Integer> ();
+    public void setPriorWrappedLines () {
+        TextView textView = scrollActivity.getTextView();
+        int priorWrapped = 0;
 
-        for (GroupData gd : this) {
-            arrlengths.add(gd.getLyricsLength());
-            arrlengths.add(gd.getChordsLength());
-        }
+        String text = textView.getText().toString();
+        int linePos = scrollActivity.getPosOffset();
 
-        if (arrlengths.size() > numWrapped) {
-            Collections.sort(arrlengths);
-            Integer minWrapLength = (Integer) arrlengths.toArray()[arrlengths.size() - numWrapped];
+        for(GroupData gd: this) {
+            gd.setPriorWrappedLines(priorWrapped);
+            int groupwrapped = 0;
+            for (int groupLine = 0; groupLine < 2; groupLine++) {
+                int lineEnd = textView.getLayout().getLineEnd(linePos + groupLine);
 
-            int priorWrapped = 0;
-            for (GroupData gd : this) {
-                if (gd.getChordsLength() >= minWrapLength || gd.getLyricsLength() >= minWrapLength) {
-                    gd.setPriorWrappedLines(priorWrapped);
-                    if (gd.getChordsLength() >= minWrapLength) {
-                        ++priorWrapped;
-                    }
-                    if (gd.getLyricsLength() >= minWrapLength) {
-                        ++priorWrapped;
-                    }
-                } else {
-                    gd.setPriorWrappedLines(priorWrapped);
+                String lineText = text.substring(0, lineEnd);
+                if (!lineText.endsWith("\n")) {
+                    groupwrapped++;
                 }
             }
+            linePos += (3 + groupwrapped);
+            priorWrapped += groupwrapped;
         }
+    }
+
+    public int getStartOfLineMeasures (int line) {
+        int group = line/3;
+        if (group > 0 && group < size()) {
+            return get(group-1).getMeasuresToEndofLine() + 1;
+        }
+        return (0);
+    }
+
+    public int getEndOfLineMeasures (int line) {
+        int group = line/3;
+        if (group < size()) {
+            return get(group).getMeasuresToEndofLine();
+        }
+        return (0);
+    }
+
+    public int getTotalMeasures () {
+        return get(size()-1).getMeasuresToEndofLine();
     }
 
     public int getLineMeasures (int measure) {
         int count = 0;
         for (GroupData gd : this) {
             if (measure <= gd.getMeasuresToEndofLine()) {
+                currentGroup = gd;
                 int prevMeasures = 0;
                 if (count > 0) {
                     prevMeasures = get(count - 1).getMeasuresToEndofLine();

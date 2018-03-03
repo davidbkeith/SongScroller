@@ -23,6 +23,25 @@ public class ScrollViewExt extends ScrollView {
     protected int tapIntervalIndex;
     private float lineHeight;
     private int scrollLinePos;
+    private int beatpos;
+    private int beatspan;
+    int[] beatcolor = getResources().getIntArray(R.array.beatcolor);
+
+    public int getBeatspan() {
+        return beatspan;
+    }
+
+    public void setBeatspan(int beatspan) {
+        this.beatspan = beatspan;
+    }
+
+    public int getBeatpos() {
+        return beatpos;
+    }
+
+    public void setBeatpos(int beatpos) {
+        this.beatpos = beatpos;
+    }
 
     public float getLineHeight() {
         return lineHeight;
@@ -155,18 +174,28 @@ public class ScrollViewExt extends ScrollView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        //canvas.drawColor(Color.BLUE);
+        //int sideLength = 200;
+        ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
 
-        int x = 50;
-        int y = (int) (scrollLinePos * lineHeight);
-        int sideLength = 200;
+        int x = 0;
+        int y = scrollActivity.getElapsedTime() == 0 ? (int) ((scrollLinePos + 2) * lineHeight) : 0;
 
-        // create a rectangle that we'll draw later
-        Rect rectangle = new Rect(x, y, sideLength, y+4);
+        if (beatspan > 0) {
+            int position = beatpos % beatspan + 1;
 
-        // create the Paint and set its color
-        Paint paint = new Paint();
-        paint.setColor(Color.GRAY);
-       // canvas.drawRect(rectangle, paint);
+            int width = scrollActivity.getTextViewWidth() / beatspan * position;
+
+            // create a rectangle that we'll draw later
+            Rect rectangle = new Rect(x, y, width, y + 4);
+
+            // shrink beat positions to fit into color array available colors
+            float shrinkFactor = beatcolor.length/(float) beatspan;
+            int colorIndex = (int) ((position-1) * shrinkFactor);
+
+            // create the Paint and set its color
+            Paint paint = new Paint();
+            paint.setColor(beatcolor[colorIndex]);
+            canvas.drawRect(rectangle, paint);
+        }
     }
 }

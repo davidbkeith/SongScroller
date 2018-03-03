@@ -1,10 +1,12 @@
 package com.mobileapps.brad.songscroller;
 
+import java.io.Serializable;
+
 /**
  * Created by brad on 2/26/18.
  */
 
-public class ScoreData {
+public class ScoreData implements Serializable {
     int bpm;
     int beats;
     int measuresPerLine;
