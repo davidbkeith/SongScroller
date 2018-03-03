@@ -1,6 +1,7 @@
 package com.mobileapps.brad.songscroller;
 
 import android.util.Log;
+import android.widget.SeekBar;
 
 import org.json.JSONObject;
 
@@ -20,6 +21,16 @@ public abstract class AutoScroll {
     protected int startLine;
     protected String text;
     protected ScrollActivity scrollActivity;
+
+    public int getPosOffset() {
+        return posOffset;
+    }
+
+    public void setPosOffset(int posOffset) {
+        this.posOffset = posOffset;
+    }
+
+    protected int posOffset;
 
     public AutoScroll (ScrollActivity scrollActivity) {
         this.scrollActivity = scrollActivity;
@@ -69,8 +80,13 @@ public abstract class AutoScroll {
 
     public void showBeat () {};
 
-    public GroupArray getGroupArray() {
-        return null;
-    }
+    public GroupArray getGroupArray() { return null; }
+
+    public int getSongDuration () { return 0; }
+
+    public void setOnSeekBarProgressChanged (SeekBar seekBar, int i, boolean b) {}
+
+    //public void setProgress (int progress) {}
+    public int getScrollPosition () { return 0; }
 
 }

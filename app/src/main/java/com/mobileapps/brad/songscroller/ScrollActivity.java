@@ -44,16 +44,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private int textViewWidth;
 
-    public int getPosOffset() {
-        return posOffset;
-    }
-
-    public void setPosOffset(int posOffset) {
-        this.posOffset = posOffset;
-    }
-
-    private int posOffset;
-
     public int getPause() {
         return pause;
     }
@@ -71,15 +61,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private int measuresPerLine;
     private int wrapLength;
     private int totLines;
-    private int measure;
-
-    public int getMeasure() {
-        return measure;
-    }
-
-    public void setMeasure(int measure) {
-        this.measure = measure;
-    }
 
     private int beatPos;
     private int scrollSegmentPos;
@@ -102,6 +83,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private ImageView ivMute;
     private ImageView ivBackground;
     private ImageView[] imageTapTempo;
+
+    public ScrollViewExt getScrollView() {
+        return scrollView;
+    }
 
     private ScrollViewExt scrollView;
 
@@ -181,7 +166,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         }
     };
 
-    private void updateView(int currentSongPos) {
+    private void updateView() {
       //  int timeLeft = (int) (song.getDuration() - currentSongPos);
       //  long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
       //  long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
@@ -335,15 +320,17 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 //mediaPlayer.seekTo(seekBar.getProgress());
-                int newPos = seekBar.getProgress();
-                int timeLeft = seekBar.getMax() - newPos;
-                long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
-                long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
+                //int newPos = seekBar.getProgress();
+                //int timeLeft = seekBar.getMax() - newPos;
+                //long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
+                //long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
                 // textCountdown.setText(String.format("%d:%02d", minutes, seconds));
 
                 //beatPos = newPos / autoScroll.getBeatInterval();
-                measure = newPos / (autoScroll.getBeatInterval() * autoScroll.getScoreData().getBeats());
-                updateView (newPos);
+                //measure = newPos / (autoScroll.getBeatInterval() * autoScroll.getScoreData().getBeats());
+                //autoScroll.setProgress(seekBar.getProgress());
+                scrollView.set
+                scrollView.invalidate ();
             }
 
             @Override
@@ -391,10 +378,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                                 seekBar.setProgress(0);
                                 //handler.removeCallbacks(moveSeekBarThread);
 
-                                imageTapTempo[0].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                /*imageTapTempo[0].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                                 imageTapTempo[1].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
                                 imageTapTempo[2].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                                imageTapTempo[3].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                                imageTapTempo[3].setBackgroundColor(getResources().getColor(R.color.colorPrimary));*/
                             }
                         });
                         //textVeiwHeight -= posOffset;
@@ -402,7 +389,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
                     mediaPlayer.start();
                     ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-                    seekBar.setMax((int)song.getDuration());
+                    //seekBar.setMax((int)song.getDuration());
+                    seekBar.setMax (autoScroll.getSongDuration());
                     playingSong = song;
                    // songStartHeight = textVeiwHeight - posOffset;
                 }

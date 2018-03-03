@@ -2,6 +2,7 @@ package com.mobileapps.brad.songscroller;
 
 import android.util.Log;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 
 import org.json.JSONObject;
 
@@ -18,6 +19,17 @@ public class AutoScrollCalculated extends AutoScroll {
     public GroupArray getGroupArray() {
         return groupArray;
     }
+
+    public int getMeasure() {
+        return measure;
+    }
+
+    public void setMeasure(int measure) {
+        this.measure = measure;
+    }
+
+    private int measure;
+
 
     public boolean isValid () {
         return groupArray != null && groupArray.size() > 0;
@@ -63,14 +75,30 @@ public class AutoScrollCalculated extends AutoScroll {
         }
     }
 
+    public int getSongDuration () {
+        return groupArray.getTotalMeasures();
+    }
+
+    public void setProgress (int measure) {
+        this.measure = measure;
+    }
+
+    public int getScrollPosition () {
+        return ((int) ((getScrollLine(measure) + posOffset) * scrollActivity.getScrollView().getLineHeight()));
+       // currentScrollPos = (int) (scrollView.getScrollLinePos() * scrollView.getLineHeight());
+       // textCountdown.setText(String.format("%d",measure));
+
+    }
+
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {
         /*
         * y = (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight + posOffset * actualLineHeight);
         *
         */
-        scrollActivity.setMeasure(groupArray.getStartOfLineMeasures((int)(y/scrollView.getLineHeight()) - scrollActivity.getPosOffset()));
-        scrollActivity.setNewSeek(scrollActivity.getMeasure() * (BeatInterval * scoreData.getBeats()));
+        measure = groupArray.getStartOfLineMeasures((int)(y/scrollView.getLineHeight()) - posOffset);
+        //scrollActivity.setNewSeek(measure * (BeatInterval * scoreData.getBeats()));
     }
+
 
     public void showBeat () {
         /*long elapsedTime = scrollActivity.getElapsedTime();

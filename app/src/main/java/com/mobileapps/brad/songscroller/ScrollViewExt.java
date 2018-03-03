@@ -177,6 +177,9 @@ public class ScrollViewExt extends ScrollView {
         //int sideLength = 200;
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
 
+        int scrollto = scrollActivity.getAutoScroll().getScrollPosition ();
+        scrollTo(0, scrollto);
+
         int x = 0;
         int y = scrollActivity.getElapsedTime() == 0 ? (int) ((scrollLinePos + 2) * lineHeight) : 0;
 
