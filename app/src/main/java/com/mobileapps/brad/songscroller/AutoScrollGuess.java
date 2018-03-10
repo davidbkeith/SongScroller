@@ -1,24 +1,43 @@
 package com.mobileapps.brad.songscroller;
 
 
+import android.content.Context;
+import android.util.AttributeSet;
+
 import java.io.File;
 
 /**
  * Created by brad on 3/2/18.
  */
 
-public class AutoScrollGuess extends AutoScroll {
+public class AutoScrollGuess extends AutoScroll implements android.widget.SeekBar.OnSeekBarChangeListener{
 
-    public AutoScrollGuess(ScrollActivity scrollActivity) {
-        super(scrollActivity);
+    public AutoScrollGuess(Context context, AutoScroll autoScroll) {
+        super(context);
+        this.setScoreData(autoScroll.scoreData);
+        this.text = autoScroll.text;
     }
 
-    public AutoScrollGuess (ScrollActivity scrollActivity, AutoScroll autoScroll) {
-        super(scrollActivity);
+    public AutoScrollGuess(Context context) {
+        super(context);
+        this.scrollActivity = (ScrollActivity) context;
+    }
+
+    public AutoScrollGuess(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public AutoScrollGuess(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
+
+    @Override
+    public void initialize (AutoScroll autoScroll) {
         this.text = autoScroll.getText();
-        //this.scoreData = autoScroll.scoreData;
+        this.scoreData = autoScroll.getScoreData();
     }
 
+    @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {
         if ( ScrollActivity.mediaPlayer == null || !ScrollActivity.mediaPlayer.isPlaying()) {
             posOffset = y;
@@ -31,7 +50,8 @@ public class AutoScrollGuess extends AutoScroll {
                 //scrollY = calculatedPos + posOffet
                 //posOffest = scrollY - calculatedPos;
                 ///////// this code allows user to shift position of vertical scroll while mp3 is playing
-                posOffset = (y - ((int) (((double) (mediaPos_new - scrollActivity.getPause()) / scrollActivity.getSong().getDuration()) * scrollActivity.getTextVeiwHeight())));
+                //posOffset = (y - ((int) (((double) (mediaPos_new - scrollActivity.getPause()) / scrollActivity.getSong().getDuration()) * scrollActivity.getTextVeiwHeight())));
+                posOffset = (y - ((int) (((double) (getProgress() - scrollActivity.getPause()) / scrollActivity.getSong().getDuration()) * scrollActivity.getTextVeiwHeight())));
             } else {
                 ///////// how it is calulated for new song seek position
                 //scrollY = calculatedPos + posOffet (from that equation)
@@ -41,16 +61,19 @@ public class AutoScrollGuess extends AutoScroll {
         }
     }
 
+    @Override
     public int getSongDuration () {
         if (ScrollActivity.mediaPlayer != null) {
-            return ScrollActivity.mediaPlayer.getDuration();
+            return (int) (ScrollActivity.mediaPlayer.getDuration() / scrollActivity.getActualLineHeight());
         }
         return 0;
     }
 
-    public void setProgress (int posOffset) {
-        this.posOffset = posOffset;
-    }
-
+    @Override
     public boolean isChordLine (int position) {return true;}
+
+    @Override
+    public int getScrollLine() {
+        return getProgress();
+    }
 }

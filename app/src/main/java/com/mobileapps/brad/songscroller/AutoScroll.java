@@ -1,5 +1,8 @@
 package com.mobileapps.brad.songscroller;
 
+import android.content.Context;
+import android.support.v7.widget.AppCompatSeekBar;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.SeekBar;
 
@@ -14,13 +17,14 @@ import java.util.ArrayList;
  * Created by brad on 2/26/18.
  */
 
-public abstract class AutoScroll {
+public abstract class AutoScroll extends AppCompatSeekBar implements android.widget.SeekBar.OnSeekBarChangeListener {
 
     protected ScoreData scoreData;
     protected int BeatInterval;
     protected int startLine;
     protected String text;
     protected ScrollActivity scrollActivity;
+    protected boolean updateProgress;
 
     public int getPosOffset() {
         return posOffset;
@@ -28,15 +32,61 @@ public abstract class AutoScroll {
 
     public void setPosOffset(int posOffset) {
         this.posOffset = posOffset;
+        updateProgress = false;
     }
 
     protected int posOffset;
 
-    public AutoScroll (ScrollActivity scrollActivity) {
-        this.scrollActivity = scrollActivity;
+    public AutoScroll (Context context) {
+        super (context);
+    };
+
+    public AutoScroll(Context context, AttributeSet attrs) {
+        super(context, attrs);
     }
 
-    public AutoScroll (ScrollActivity scrollActivity, File file) {}
+    public AutoScroll(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+        //mediaPlayer.seekTo(seekBar.getProgress());
+        //int newPos = seekBar.getProgress();
+        //int timeLeft = seekBar.getMax() - newPos;
+        //long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
+        //long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
+        // textCountdown.setText(String.format("%d:%02d", minutes, seconds));
+
+        //beatPos = newPos / autoScroll.getBeatInterval();
+        //measure = newPos / (autoScroll.getBeatInterval() * autoScroll.getScoreData().getBeats());
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        updateProgress = true;
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        updateProgress = false;
+  /*      int progress = getProgress();
+        if (progress == getMax()) {
+            ScrollActivity.mediaPlayer.pause();
+            scrollActivity.getIvPlay().setImageResource(android.R.drawable.ic_media_play);
+        }
+        else {
+            ScrollActivity.mediaPlayer.seekTo(seekBar.getProgress());
+        }
+        ScrollActivity.mediaPlayer.seekTo(seekBar.getProgress());*/
+    }
+   // public AutoScroll (ScrollActivity scrollActivity) {
+   //     this.scrollActivity = scrollActivity;
+   // }
+
+  //  public AutoScroll (ScrollActivity scrollActivity, File file) {}*/
+    public void initialize (ScrollActivity scrollActivity, File file) {};
+    public void initialize (AutoScroll autoScroll) {};
 
     public boolean isValid () {return true;}
 
@@ -70,11 +120,13 @@ public abstract class AutoScroll {
 
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {}
 
-    public int getLineMeasures (int measure) {return 0;}
+    public int getLineMeasures (int progress) {return 0;}
 
     public int getRepeat () {return 1;}
 
-    public int getScrollLine(int measure) {return 0;}
+    public int getScrollLine() {return 0;}
+
+    public int getLineMeasures () {return 0;}
 
     public boolean isChordLine (int position) {return false;}
 
@@ -84,9 +136,13 @@ public abstract class AutoScroll {
 
     public int getSongDuration () { return 0; }
 
+    public int getProgressMeasures () { return 0; }
+
     public void setOnSeekBarProgressChanged (SeekBar seekBar, int i, boolean b) {}
 
-    //public void setProgress (int progress) {}
-    public int getScrollPosition () { return 0; }
+    public long getTimePerMeasure () { return 0; }
+
+    public void setSeekBarProgress() {}
+
 
 }

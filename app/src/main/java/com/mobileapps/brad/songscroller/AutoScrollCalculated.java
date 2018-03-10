@@ -1,8 +1,11 @@
 package com.mobileapps.brad.songscroller;
 
+import android.content.Context;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -14,30 +17,45 @@ import java.io.FileReader;
  * Created by brad on 3/2/18.
  */
 
-public class AutoScrollCalculated extends AutoScroll {
+public class AutoScrollCalculated extends AutoScroll implements android.widget.SeekBar.OnSeekBarChangeListener {
     protected GroupArray groupArray;
+
     public GroupArray getGroupArray() {
         return groupArray;
     }
 
-    public int getMeasure() {
-        return measure;
+    public AutoScrollCalculated (Context context) {
+        super(context);
+        this.scrollActivity = (ScrollActivity) context;
     }
 
-    public void setMeasure(int measure) {
-        this.measure = measure;
+    public AutoScrollCalculated(Context context, AttributeSet attrs) {
+        super(context, attrs);
     }
 
-    private int measure;
+    public AutoScrollCalculated(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
 
+    public long getTimePerMeasure () {
+        return scrollActivity.getAutoScroll().getScoreData().getBeats() * scrollActivity.getAutoScroll().getBeatInterval();
+    }
 
+    @Override
     public boolean isValid () {
         return groupArray != null && groupArray.size() > 0;
     }
 
-    public AutoScrollCalculated (ScrollActivity scrollActivity, File file) {
+    //@Override
+    //public void setSongProgress() {
+    //    long elpasedTime = scrollActivity.getSong().getPosition();
+    //    int groupIndex = getGroupArray().getGroupIndexFromSongPos (elpasedTime);
+    //    setProgress(groupIndex);
+    //}
 
-        super(scrollActivity);
+    @Override
+    public void initialize (ScrollActivity scrollActivity, File file) {
+        this.scrollActivity = scrollActivity;
         groupArray = new GroupArray(scrollActivity);
         text = "";
 
@@ -49,13 +67,14 @@ public class AutoScrollCalculated extends AutoScroll {
             while (scoreData == null && (line = br.readLine()) != null) {
                 text += getScoreData(line);
                 text += "\n";
-                scrollActivity.setPosOffset(++startLine);
+                posOffset = ++startLine;
             }
 
             if (scoreData != null) {
                 text = groupArray.create(br, text, scoreData);
             }
             br.close();
+            setMax (getSongDuration());
         }
         catch (Exception e) {
             Log.e("File Read Error", e.toString());
@@ -75,31 +94,53 @@ public class AutoScrollCalculated extends AutoScroll {
         }
     }
 
+    @Override
     public int getSongDuration () {
         return groupArray.getTotalMeasures();
     }
 
-    public void setProgress (int measure) {
-        this.measure = measure;
+
+    @Override
+    public void setSeekBarProgress() {
+        long elpasedTime = scrollActivity.getSong().getPosition();
+
+        setProgress((int) (elpasedTime/getTimePerMeasure ()));
+        //Toast.makeText(scrollActivity, String.format("%d",getProgressMeasures()), Toast.LENGTH_SHORT).show();
     }
 
-    public int getScrollPosition () {
-        return ((int) ((getScrollLine(measure) + posOffset) * scrollActivity.getScrollView().getLineHeight()));
-       // currentScrollPos = (int) (scrollView.getScrollLinePos() * scrollView.getLineHeight());
-       // textCountdown.setText(String.format("%d",measure));
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+        if (updateProgress) {
+            //i = i == getGroupArray().size() ? i - 1 : i;
+            //int measuresToLine = getGroupArray().getStartOfLineMeasures(i);
+            scrollActivity.getSong().setStartPosition(i*getTimePerMeasure ());
+            //scrollActivity.getSong().seekTo (i);
+        }
 
+        //scrollActivity.seekTo(seekBar.getProgress());
+        //int newPos = seekBar.getProgress();
+        //int timeLeft = seekBar.getMax() - newPos;
+        //long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
+        //long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
+        // textCountdown.setText(String.format("%d:%02d", minutes, seconds));
+
+        //beatPos = newPos / autoScroll.getBeatInterval();
+        //measure = newPos / (autoScroll.getBeatInterval() * autoScroll.getScoreData().getBeats());
     }
 
+
+    @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {
         /*
         * y = (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight + posOffset * actualLineHeight);
-        *
+        * progress = measure
         */
-        measure = groupArray.getStartOfLineMeasures((int)(y/scrollView.getLineHeight()) - posOffset);
-        //scrollActivity.setNewSeek(measure * (BeatInterval * scoreData.getBeats()));
+        //setProgress(groupArray.getStartOfLineMeasures((int)(y/scrollView.getLineHeight()) - posOffset));
+        //setProgress((int)(((y/scrollView.getLineHeight()) - posOffset)/3));
+        //scrollActivity.setNewSeek(groupArray.getStartOfLineMeasures(getProgress()) * scoreData.getBeats() * BeatInterval);
     }
 
-
+    @Override
     public void showBeat () {
         /*long elapsedTime = scrollActivity.getElapsedTime();
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
@@ -130,23 +171,30 @@ public class AutoScrollCalculated extends AutoScroll {
     *   groupArray convenience functions
     *
     */
+    @Override
     public void setPriorWrappedLines () {
         getGroupArray().setPriorWrappedLines();
     }
 
-    public int getLineMeasures (int measure) {
-        return groupArray.getLineMeasures(measure);
+    @Override
+    public int getLineMeasures () {
+        int measures = getProgress();
+        return groupArray.getLineMeasuresFromTotalMeasures(measures);
     }
 
-    public int getScrollLine(int measure) {
-        return groupArray.getScrollLine(measure);
+    @Override
+    public int getScrollLine() {
+        return groupArray.getLine(getProgress()) + posOffset;
     }
 
-    public boolean isChordLine (int position) {
-        return groupArray.isChordLine(position);
+    @Override
+    public boolean isChordLine (int charPosition) {
+        return groupArray.isChordLine(charPosition);
     }
 
+    @Override
     public int getRepeat () {
         return groupArray.getCurrentGroup().getRepeat();
     }
+
 }

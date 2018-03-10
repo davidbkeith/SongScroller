@@ -62,6 +62,10 @@ public class GroupData implements Serializable {
         this.offsetChords = offsetChords;
     }
 
+    public int getBeats () {
+        return scoreData.getBeats();
+    }
+
     public int getMeasuresToEndofLine() {
         return measuresToEndofLine;
     }

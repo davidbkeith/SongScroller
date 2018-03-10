@@ -11,9 +11,12 @@ import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.regex.Pattern;
 
 /**
  * Created by brad on 1/23/18.
@@ -28,14 +31,55 @@ public class Song implements Serializable {
     private String path;
     private String sheetMusicPath;
     private long duration;
-    private int position;
+    private long startTime;
+
+    public long getStartPosition() {
+        return startPosition;
+    }
+
+    private long startPosition;
+
     private int albumId;
     private String track;
 
-    public Song() {}
+    public  long getPosition () {
+        if (startTime != 0) {
+            return System.currentTimeMillis() - startTime + startPosition;
+        }
+        else {
+            return startPosition;
+        }
+    }
+
+    public void setStartPosition(long startPosition) {
+        this.startPosition = startPosition;
+        startTime = 0;
+
+        if (ScrollActivity.mediaPlayer != null) {
+            ScrollActivity.mediaPlayer.seekTo((int) startPosition);
+        }
+    }
+
+    public Song () {}
+
+    public void pause() {
+        //startPosition = System.currentTimeMillis() - startTime;
+
+        if (ScrollActivity.mediaPlayer != null) {
+            ScrollActivity.mediaPlayer.pause();
+        }
+    }
+
+    public void start() {
+        startTime = System.currentTimeMillis();
+
+        if (ScrollActivity.mediaPlayer != null) {
+            ScrollActivity.mediaPlayer.start();
+        }
+    }
 
     public boolean equals(Object object2) {
-        return object2 instanceof Song && path.equals(((Song)object2).path);
+        return object2 instanceof Song && sheetMusicPath != null && sheetMusicPath.equals(((Song)object2).sheetMusicPath);
     }
 
     public String getLyrics() {
@@ -114,14 +158,6 @@ public class Song implements Serializable {
         this.duration = duration;
     }
 
-    public int getPosition() {
-        return position;
-    }
-
-    public void setPosition(int position) {
-        this.position = position;
-    }
-
     public int getAlbumId() {
         return albumId;
     }
@@ -133,6 +169,28 @@ public class Song implements Serializable {
     //public int compareTo (Song music) {
     //    return this.artist.compareToIgnoreCase(music.artist);
     //}
+
+    static public ArrayList<Song> getScores (Context context, Album album, String SortOrder) {
+        File dirmusic = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        File[] files = FindFile.findFilesWithExt(dirmusic, "txt");
+        ArrayList<Song> songs = new ArrayList<>();
+
+        for (int i=0; i<files.length; i++) {
+            Song song = new Song ();
+            String name = files[i].getName();
+            String[] parts = name.split("-");
+            if (parts.length > 1) {
+                song.setArtist (parts[1]);
+                song.setTitle(parts[0]);
+            }
+            else {
+                song.setTitle(parts[0]);
+            }
+            song.setSheetMusicPath(files[i].getAbsolutePath());
+            songs.add(song);
+        }
+        return songs;
+    }
 
     static public ArrayList<Song> getSongs (Context context, Album album, String SortOrder) {
        // MainActivity mainActivity = (MainActivity) context;
@@ -168,7 +226,7 @@ public class Song implements Serializable {
             songCursor = contentResolver.query(uri, projection, selection, null, sortOrder);
             if (songCursor != null) {
                 songCursor.moveToFirst();
-                int position = 1;
+                //int position = 1;
 
                 while (!songCursor.isAfterLast()) {
                     Song song = new Song();
@@ -188,7 +246,7 @@ public class Song implements Serializable {
                     song.setDuration(songCursor.getLong(4));
                     song.setAlbumId(songCursor.getInt(5));
                     song.setTrack(songCursor.getString(6));
-                    song.setPosition(position);
+                    //song.setPosition(position);
 
                     if (album != null && album.getArt() == null) {
                         //// to delete existing artwork!!!!!!!

@@ -28,6 +28,12 @@ public class ScoreAdapter extends SongAdapter {
                     scores.add(song);
                 }
             }
+            ArrayList<Song> textScores = Song.getScores(context, null, sortBy);
+            for (Song textScore: textScores ) {
+                if (!scores.contains(textScore)) {
+                    scores.add(textScore);
+                }
+            }
         }
        // if (getMainActivity().getmSongView() == MainActivity.ARTIST) {
        //     sortSongsBy(MainActivity.ARTIST);

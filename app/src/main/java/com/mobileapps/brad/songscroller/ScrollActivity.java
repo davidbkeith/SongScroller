@@ -15,6 +15,7 @@ import android.support.v7.widget.DialogTitle;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -65,12 +66,23 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private int beatPos;
     private int scrollSegmentPos;
 
+    private int actualNumLines;
+
     public long getElapsedTime() {
         return elapsedTime;
     }
 
-    private long elapsedTime;
-    private int actualNumLines;
+    private long elapsedTime, songStartTime;
+
+    public float getActualLineHeight() {
+        return actualLineHeight;
+    }
+
+    private float actualLineHeight;
+
+    public ImageView getIvPlay() {
+        return ivPlay;
+    }
 
     private ImageView ivPlay;
     private ImageView ivPause;
@@ -105,7 +117,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     GestureDetector gestureDetector;
 
     private android.os.Handler handler = new android.os.Handler();
-    private SeekBar seekBar;
+    //private SeekBar seekBar;
 
     public Song getSong() {
         return song;
@@ -130,38 +142,33 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
+            autoScroll.setSeekBarProgress();
+            textCountdown.setText(String.format("%d",autoScroll.getProgress()));
+
             if (isPlaying() && scrollView.isEnableScrolling()) {
-                int currentPos;
-                if (newSeek != -1) {
+                //int currentPos;
+               /* if (newSeek != -1) {
                     mediaPlayer.seekTo(newSeek);
-                    currentPos = newSeek;
+                    song.seekTo (newSeek);
+                    ///currentPos = newSeek;
                     newSeek = -1;
-                }
-                else {
+                }*/
+                //else {
+                    /// set seekbar position to match song progress
+               // autoScroll.setSongProgress();
+               // }
+              /*  else {
                     currentPos = mediaPlayer.getCurrentPosition();
-                }
-                seekBar.setProgress(currentPos);
-            }
+                }*/
 
-            if (autoScroll.getBeatInterval() > 0) {
+                elapsedTime = 0;
+           }
+            else {
                 elapsedTime +=  100;
-                elapsedTime = 100 * autoScroll.getBeatInterval() == elapsedTime ? 0 : elapsedTime;
-
-                if (isPlaying()) {
-                    scrollView.setBeatpos(measure);
-                    int span = autoScroll.getLineMeasures(measure);
-                    scrollView.setBeatspan(span > autoScroll.getScoreData().getMeasuresPerLine() ? autoScroll.getScoreData().getMeasuresPerLine() : span);
-                    elapsedTime = 0;
-                }
-                else {
-                    scrollView.setBeatpos((int) elapsedTime / autoScroll.getBeatInterval());
-                    scrollView.setBeatspan(autoScroll.getScoreData().getBeats());
-                }
-
-                scrollView.invalidate();
-               // textCountdown.setText(String.format("%d",elapsedTime));
+                //elapsedTime = 100 * autoScroll.getBeatInterval() == elapsedTime ? 0 : elapsedTime;
             }
 
+            scrollView.invalidate ();
             handler.postDelayed(this, 100); //Looping the thread after 0.1 second
         }
     };
@@ -174,7 +181,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
      //   int scrollSegmentPos;
 
      //   int measure = 0;
-        if (autoScroll.isValid()) {
+     /*   if (autoScroll.isValid()) {
             scrollView.setScrollLinePos((int) ((autoScroll.getScrollLine(measure) + posOffset)));
             currentScrollPos = (int) (scrollView.getScrollLinePos() * scrollView.getLineHeight());
             textCountdown.setText(String.format("%d",measure));
@@ -190,7 +197,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
        // textCountdown.setText(String.format("%d", currentScrollPos));
        // if (scrollSegmentPos != partialScrollPos) {
         scrollView.scrollTo(0, currentScrollPos);
-        scrollView.invalidate();
+        scrollView.invalidate();*/
     }
 
     @Override
@@ -211,11 +218,16 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         textView = (TextView) findViewById(R.id.textView);
         ivMute = (ImageView) findViewById(R.id.ivMute);
         ivBackground = (ImageView) findViewById(R.id.ivBackground);
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
-        textCountdown = (TextView) findViewById(R.id.textCountdown);
+        autoScroll = (AutoScrollCalculated) findViewById(R.id.seekBar);
 
+        //autoScroll.setOnSeekBarChangeListener(autoScroll);
+
+        textCountdown = (TextView) findViewById(R.id.textCountdown);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
+
         scrollView.setScrollViewListener(this);
+        autoScroll.setOnSeekBarChangeListener(autoScroll);
+
         scrollView.setOnTouchListener(new OnSwipeTouchListener(ScrollActivity.this) {
             public void onSwipeTop() {
                 //Toast.makeText(ScrollActivity.this, "top", Toast.LENGTH_SHORT).show();
@@ -268,12 +280,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         }*/
 
         File sdcard = Environment.getExternalStorageDirectory();
-        File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
+        //File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
+        File file = new File (song.getSheetMusicPath());
 
         //Read text from file
-        autoScroll = new AutoScrollCalculated(this, file);
+        //autoScroll = new AutoScrollCalculated(this, file);
+        autoScroll.initialize (this, file);
         if (!autoScroll.isValid()) {
-            autoScroll = new AutoScrollGuess(this, autoScroll);
+            AutoScroll autoScrollOld = autoScroll;
+            autoScroll = (AutoScrollGuess) findViewById(R.id.seekBarGuess);
+            //autoScroll = new AutoScrollGuess(context, autoScroll);
+            //autoScroll.setOnSeekBarChangeListener(autoScroll);
+            autoScroll.initialize(autoScrollOld);
         }
         SpannableStringBuilder text = formatText(new SpannableStringBuilder(autoScroll.getText()));
         textView.setText(text);
@@ -282,7 +300,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         textView.post(new Runnable() {
             @Override
             public void run() {
-                actualNumLines = textView.getLineCount();
+               // actualNumLines = textView.getLineCount();
                 autoScroll.setPriorWrappedLines();
             }
         });
@@ -315,89 +333,35 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //// set title
         getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
 
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                //mediaPlayer.seekTo(seekBar.getProgress());
-                //int newPos = seekBar.getProgress();
-                //int timeLeft = seekBar.getMax() - newPos;
-                //long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
-                //long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
-                // textCountdown.setText(String.format("%d:%02d", minutes, seconds));
-
-                //beatPos = newPos / autoScroll.getBeatInterval();
-                //measure = newPos / (autoScroll.getBeatInterval() * autoScroll.getScoreData().getBeats());
-                //autoScroll.setProgress(seekBar.getProgress());
-                scrollView.set
-                scrollView.invalidate ();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                int progress = seekBar.getProgress();
-                if (progress == song.getDuration()) {
-                    mediaPlayer.pause();
-                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
-                }
-                else {
-                    mediaPlayer.seekTo(seekBar.getProgress());
-                }
-                mediaPlayer.seekTo(seekBar.getProgress());
-            }
-        });
-
         ivPlay = findViewById(R.id.ivPlay);
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String songpath = song.getPath();
-                if (mediaPlayer != null) {
-                    if (mediaPlayer.isPlaying()) {
-                        mediaPlayer.pause();
-                        ivPlay.setImageResource(android.R.drawable.ic_media_play);
-                    }
-                    else {
-                        //songStartHeight = textVeiwHeight - posOffset;
-                        mediaPlayer.start();
-                        ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-                    }
-                } else {
-                    if (mediaPlayer == null) {
-                        mediaPlayer = MediaPlayer.create(context, Uri.parse(songpath));
-                        song.setDuration(mediaPlayer.getDuration());
-                      //  estBPM = (mediaPlayer.getDuration()/playLines)/16;
-                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override
-                            public void onCompletion(MediaPlayer mediaPlayer) {
-                                ivPlay.setImageResource(android.R.drawable.ic_media_play);
-                                seekBar.setProgress(0);
-                                //handler.removeCallbacks(moveSeekBarThread);
-
-                                /*imageTapTempo[0].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                                imageTapTempo[1].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                                imageTapTempo[2].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-                                imageTapTempo[3].setBackgroundColor(getResources().getColor(R.color.colorPrimary));*/
-                            }
-                        });
-                        //textVeiwHeight -= posOffset;
-                    }
-
-                    mediaPlayer.start();
+                if (mediaPlayer.isPlaying()) {
+                    song.pause();
+                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
+                }
+                else {
+                    song.start();
                     ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-                    //seekBar.setMax((int)song.getDuration());
-                    seekBar.setMax (autoScroll.getSongDuration());
-                    playingSong = song;
-                   // songStartHeight = textVeiwHeight - posOffset;
                 }
             }
         });
 
-        if (mediaPlayer != null && song != null) {
+        if (mediaPlayer == null && song.getPath() != null) {
+            mediaPlayer = MediaPlayer.create(context, Uri.parse(song.getPath()));
+            song.setDuration(mediaPlayer.getDuration());
+            playingSong = song;
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
+                    autoScroll.setProgress(0);
+                }
+            });
+            //textVeiwHeight -= posOffset;
+        }
+        else if (song != null) {
             if (song.equals(playingSong)) {
                 ivPlay.setImageResource(android.R.drawable.ic_media_pause);
             } else {

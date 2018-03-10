@@ -97,9 +97,9 @@ public class GroupArray extends ArrayList<GroupData> {
         }
     }
 
-    public boolean isChordLine (int position) {
+    public boolean isChordLine (int charPosition) {
         int i=0;
-        while (i < size() && position < get(i++).getLyricsLength());
+        while (i < size() && charPosition < get(i++).getLyricsLength());
         return --i % 2 == 0;
     }
 
@@ -108,7 +108,7 @@ public class GroupArray extends ArrayList<GroupData> {
         int priorWrapped = 0;
 
         String text = textView.getText().toString();
-        int linePos = scrollActivity.getPosOffset();
+        int linePos = scrollActivity.getAutoScroll().getPosOffset();
 
         for(GroupData gd: this) {
             gd.setPriorWrappedLines(priorWrapped);
@@ -126,10 +126,9 @@ public class GroupArray extends ArrayList<GroupData> {
         }
     }
 
-    public int getStartOfLineMeasures (int line) {
-        int group = line/3;
-        if (group > 0 && group < size()) {
-            return get(group-1).getMeasuresToEndofLine() + 1;
+    public int getStartOfLineMeasures (int group) {
+        if (group > 0 && group <= size()) {
+            return get(group-1).getMeasuresToEndofLine();
         }
         return (0);
     }
@@ -146,16 +145,28 @@ public class GroupArray extends ArrayList<GroupData> {
         return get(size()-1).getMeasuresToEndofLine();
     }
 
-    public int getLineMeasures (int measure) {
-        int count = 0;
+    public int getLineMeasuresFromTotalMeasures (int measures) {
+        int groupIndex = 0;
         for (GroupData gd : this) {
-            if (measure <= gd.getMeasuresToEndofLine()) {
-                currentGroup = gd;
-                int prevMeasures = 0;
-                if (count > 0) {
-                    prevMeasures = get(count - 1).getMeasuresToEndofLine();
+            if (measures <= gd.getMeasuresToEndofLine()) {
+                if (groupIndex > 0) {
+                    return (int) (get(groupIndex).getMeasuresToEndofLine() - get(groupIndex - 1).getMeasuresToEndofLine());
                 }
-                return ( gd.getMeasuresToEndofLine() - prevMeasures);
+                else {
+                    break;
+                }
+            }
+            groupIndex++;
+        }
+        return (get(0).getMeasuresToEndofLine());
+    }
+
+    public int getGroupIndexFromMeasure (int measure) {
+        int count = 0;
+        AutoScroll autoScroll = scrollActivity.getAutoScroll();
+        for (GroupData gd : this) {
+            if (measure < gd.getMeasuresToEndofLine()) {
+                return (count);
             }
             count++;
         }
@@ -163,17 +174,25 @@ public class GroupArray extends ArrayList<GroupData> {
         return (0);
     }
 
-    public int getScrollLine(int measure) {
+    public int getMeasuresFromSongPos (int groupIndex, long songPos) {
+        AutoScroll autoScroll = scrollActivity.getAutoScroll();
+        //int groupIndex = getGroupIndexFromSongPos(songPos);
+        int measuresToGroup = getStartOfLineMeasures (groupIndex);
+        long timePerMeasure = autoScroll.getTimePerMeasure();
+        long timeToStartofGroup = measuresToGroup * timePerMeasure;
 
+        int measure = 1;
+        while (timeToStartofGroup + measure * timePerMeasure < songPos) {
+            measure++;
+        }
+        return measure;
+    }
+
+    public int getLine(int measure) {
         int count = 0;
         for (GroupData gd : this) {
             if (measure <= gd.getMeasuresToEndofLine()) {
-                int prevMeasures = 0;
-                if (count > 0) {
-                    prevMeasures = get(count - 1).getMeasuresToEndofLine();
-                }
                 return (int) ((3 * count + gd.getPriorWrappedLines()));
-                //return (int) ((3 * count));
             }
             count++;
         }

@@ -30,6 +30,23 @@ public class FindFile {
         return foundFile;
     }
 
+    static public File[] findFilesWithExt (File parent, String ext) {
+        final String extension = ext;
+        final Pattern p;
+        File[] flist = null;
+
+        if (parent != null) {
+            //// last one has to be file type
+            flist = parent.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File file, String name) {
+                    return name.endsWith(extension);
+                }
+            });
+         }
+        return flist;
+    }
+
     static public File findFileWithExt (File parent, List<String> arrSubfolders, String ext) {
 
         final String folderName;
