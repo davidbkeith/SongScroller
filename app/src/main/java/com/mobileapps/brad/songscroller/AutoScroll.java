@@ -86,7 +86,7 @@ public abstract class AutoScroll extends AppCompatSeekBar implements android.wid
 
   //  public AutoScroll (ScrollActivity scrollActivity, File file) {}*/
     public void initialize (ScrollActivity scrollActivity, File file) {};
-    public void initialize (AutoScroll autoScroll) {};
+    public void initialize (ScrollActivity scrollActivity, AutoScroll autoScroll) {};
 
     public boolean isValid () {return true;}
 

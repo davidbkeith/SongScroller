@@ -20,6 +20,7 @@ import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -28,6 +29,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
+import android.support.constraint.ConstraintSet;
+import android.support.constraint.ConstraintLayout;
 
 public class ScrollActivity extends AppCompatActivity implements ScrollViewListener {
 
@@ -131,6 +134,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     static MediaPlayer mediaPlayer;
     static private Song playingSong;
+    private boolean expand;
 
     boolean isPlaying () {
         return mediaPlayer != null && mediaPlayer.isPlaying();
@@ -237,14 +241,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             }
             public void onSwipeLeft() {
                 //Toast.makeText(ScrollActivity.this, "left", Toast.LENGTH_SHORT).show();
+
+            }
+            public void onSwipeBottom() {
+                //Toast.makeText(ScrollActivity.this, "bottom", Toast.LENGTH_SHORT).show();
                 ScoreData scoreData = autoScroll.getScoreData();
                 Intent intent = new Intent(context, SongSettingsActivity.class);
                 intent.putExtra("songscroller_scoredata", autoScroll.getScoreData());
                 intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
                 startActivityForResult (intent, 1);
-            }
-            public void onSwipeBottom() {
-                //Toast.makeText(ScrollActivity.this, "bottom", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -291,7 +296,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             autoScroll = (AutoScrollGuess) findViewById(R.id.seekBarGuess);
             //autoScroll = new AutoScrollGuess(context, autoScroll);
             //autoScroll.setOnSeekBarChangeListener(autoScroll);
-            autoScroll.initialize(autoScrollOld);
+            autoScroll.initialize(this, autoScrollOld);
         }
         SpannableStringBuilder text = formatText(new SpannableStringBuilder(autoScroll.getText()));
         textView.setText(text);
@@ -337,7 +342,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mediaPlayer.isPlaying()) {
+                if (song.isPlaying()) {
                     song.pause();
                     ivPlay.setImageResource(android.R.drawable.ic_media_play);
                 }
@@ -364,7 +369,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         else if (song != null) {
             if (song.equals(playingSong)) {
                 ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-            } else {
+            } else if (mediaPlayer != null) {
                 mediaPlayer.release();
                 mediaPlayer = null;
             }
@@ -401,19 +406,44 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         autoScroll.onScrollChanged(scrollView, x, y, oldx, oldy);
     }
 
+    void expand () {
+        ivBackground.setVisibility(expand ? View.VISIBLE: View.GONE);
+        ConstraintSet constraintSet = new ConstraintSet();
+        ConstraintLayout constraintLayout = new ConstraintLayout(scrollView.getContext());
+
+        if (expand) {
+            constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.txtTitle, ConstraintSet.BOTTOM,0);
+        }
+        else {
+            constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.ivBackground, ConstraintSet.TOP,0);
+        }
+        constraintSet.applyTo(constraintLayout);
+
+        expand = expand ? false: true;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         int avgTapSpeed = 0;
         switch (ev.getAction()) {
             case MotionEvent.ACTION_UP:
                 int tapSpeed = (int) scrollView.getAvgTapSpeed();
-                if (tapSpeed > 0) {
+                if (tapSpeed == 1000000000) {
                     autoScroll.setBeatInterval(tapSpeed);
                    // String bpmtext = String.format("%d", (60000 / BeatInterval));
                    // textEditBPM.setText(bpmtext);
                 }
                 else {
-
+                    if (ev.getY() < textViewHeight * 0.10) {
+                        Toast.makeText(ScrollActivity.this, "scroll up", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (ev.getY() > textViewWidth * 0.90) {
+                        Toast.makeText(ScrollActivity.this, "scroll down", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        //Toast.makeText(ScrollActivity.this, "expand-contract", Toast.LENGTH_SHORT).show();
+                        expand();
+                    }
                 }
         }
         return super.onTouchEvent(ev);
@@ -421,40 +451,22 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private SpannableStringBuilder formatText(SpannableStringBuilder sb) {
 
-        Matcher matcher = java.util.regex.Pattern.compile("@!.+?\\n").matcher(sb.toString());
-        String next;
-
-        String noMetadata = sb.toString();
+        Matcher matcher = java.util.regex.Pattern.compile("\\[(.*?)\\]").matcher(sb.toString());
         while (matcher.find()) {
-            next = matcher.group(0);
-            String[] data = next.split("bpm");
-            if (data.length == 2) {
-                ScoreData scoreData = new ScoreData();
-                scoreData.setBpm((int) Double.parseDouble(data[1]));
-                autoScroll.setScoreData(scoreData);
-                autoScroll.setBeatInterval((int) (60000 / Double.parseDouble(data[1])));
-            }
-            noMetadata = noMetadata.replace(next, "");
-        }
-
-        sb = new SpannableStringBuilder(noMetadata);
-
-        matcher = java.util.regex.Pattern.compile("\\[(.*?)\\]").matcher(sb.toString());
-        while (matcher.find()) {
-            final ForegroundColorSpan fcs = new ForegroundColorSpan(Color.rgb(120, 169, 255));
+            final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songannotation));
             sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         }
 
         matcher = java.util.regex.Pattern.compile("\\((.*?)\\)").matcher(sb.toString());
         while (matcher.find()) {
-            final ForegroundColorSpan fcs = new ForegroundColorSpan(Color.rgb(192, 192, 192));
+            final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songlinemod));
             sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         }
 
         matcher = java.util.regex.Pattern.compile("(\\(*[CDEFGAB](?:b|bb)*(?:|#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\(]?[\\d\\/-/+]*[\\)]?(?:[CDEFGAB](?:b|bb)*(?:#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\d\\/]*)*\\)*)(?=[\\s|$])(?! [a-z])").matcher(sb.toString());
         while (matcher.find()) {
             if (autoScroll.isChordLine(matcher.start())) {
-                final ForegroundColorSpan fcs = new ForegroundColorSpan(Color.rgb(255, 0, 0));
+                final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
                 sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 //chordPos.add(new Point(matcher.start(), matcher.end()));
             }

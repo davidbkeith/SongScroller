@@ -23,4 +23,11 @@
         <item>@color/orange</item>
         <item>@color/red</item>
     </array>
+
+    <color name="songbackground">#2B2B2B</color>
+    <color name="songannotation">#BBB529</color>
+    <color name="songchords">#FFC66D</color>
+    <color name="songlyrics"></color>
+    <color name="songlinemod">#B389C5</color>
+
 </resources>

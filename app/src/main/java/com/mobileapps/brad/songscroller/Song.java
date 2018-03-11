@@ -32,12 +32,16 @@ public class Song implements Serializable {
     private String sheetMusicPath;
     private long duration;
     private long startTime;
+    private boolean isPlaying;
 
     public long getStartPosition() {
         return startPosition;
     }
-
     private long startPosition;
+
+    public boolean isPlaying() {
+        return isPlaying;
+    }
 
     private int albumId;
     private String track;
@@ -68,6 +72,7 @@ public class Song implements Serializable {
         if (ScrollActivity.mediaPlayer != null) {
             ScrollActivity.mediaPlayer.pause();
         }
+        isPlaying = false;
     }
 
     public void start() {
@@ -76,6 +81,7 @@ public class Song implements Serializable {
         if (ScrollActivity.mediaPlayer != null) {
             ScrollActivity.mediaPlayer.start();
         }
+        isPlaying = true;
     }
 
     public boolean equals(Object object2) {
