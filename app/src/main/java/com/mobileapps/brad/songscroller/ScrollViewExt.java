@@ -174,7 +174,7 @@ public class ScrollViewExt extends ScrollView {
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
         scrollLine = (int) (autoScroll.getScrollLine());
-        int rectBottom = (int) ((scrollLine + 2) * lineHeight);
+       // int rectBottom = (int) ((scrollLine + autoScroll.getScoreData().getScrollStart()*3 + 2) * lineHeight);
 
         //int y = scrollActivity.getElapsedTime() == 0 ? (int) ((scrollLine + 2) * lineHeight) : 0;
 
@@ -188,7 +188,7 @@ public class ScrollViewExt extends ScrollView {
             }
             //beatspan = span > autoScroll.getScoreData().getMeasuresPerLine() ? autoScroll.getScoreData().getMeasuresPerLine() : span;
             beatpos = autoScroll.getProgress();
-            drawBeatIndicator(beatspan, beatpos, scrollLine + 2, canvas);
+            drawBeatIndicator(beatspan, beatpos, scrollLine + autoScroll.getScoreData().getScrollStart()*3 + 2, canvas);
         }
 
         if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {

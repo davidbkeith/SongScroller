@@ -457,18 +457,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                    // textEditBPM.setText(bpmtext);
                 }
                 else {
-                    if (ev.getY() < textViewHeight * 0.10) {
+                    if (ev.getY() < scrollViewHeight * 0.5) {
                         //Toast.makeText(ScrollActivity.this, "scroll up", Toast.LENGTH_SHORT).show();
                         autoScroll.pageUp();
                     }
-                    else if (ev.getY() > textViewWidth * 0.90) {
+                    else if (ev.getY() >= scrollViewHeight * 0.5) {
                         //Toast.makeText(ScrollActivity.this, "scroll down", Toast.LENGTH_SHORT).show();
                         autoScroll.pageDown();
                     }
-                    else {
+                    //else {
                         //Toast.makeText(ScrollActivity.this, "expand-contract", Toast.LENGTH_SHORT).show();
-                        expand();
-                    }
+                        //expand();
+                    //}
                 }
         }
         return super.onTouchEvent(ev);

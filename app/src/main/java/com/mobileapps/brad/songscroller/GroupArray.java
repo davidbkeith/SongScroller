@@ -128,10 +128,13 @@ public class GroupArray extends ArrayList<GroupData> {
 
     public int getStartOfLineMeasures (int line) {
         int group = line/3;
-        if (group > 0 && group <= size()) {
+        if (group > 0 && group < size()) {
             return get(group-1).getMeasuresToEndofLine();
         }
-        return (0);
+        else if (group >= size()) {
+            return (get(size() - 2).getMeasuresToEndofLine());
+        }
+        return 0;
     }
 
     public int getEndOfLineMeasures (int line) {

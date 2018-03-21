@@ -85,7 +85,7 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
     private String getScoreData (String JSON) {
         try {
             JSONObject jsonObject = new JSONObject(JSON);
-            scoreData = new ScoreData(jsonObject.optInt("bpm"), jsonObject.optInt("beats", 4), jsonObject.optInt("measures", 16));
+            scoreData = new ScoreData(jsonObject.optInt("bpm"), jsonObject.optInt("beats", 4), jsonObject.optInt("measures", 16), jsonObject.optInt("start", 1));
             BeatInterval = 60000 / scoreData.getBpm();
             return "";
         }
@@ -139,6 +139,10 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
         //setProgress(groupArray.getStartOfLineMeasures((int)(y/scrollView.getLineHeight()) - posOffset));
         //setProgress((int)(((y/scrollView.getLineHeight()) - posOffset)/3));
         //scrollActivity.setNewSeek(groupArray.getStartOfLineMeasures(getProgress()) * scoreData.getBeats() * BeatInterval);
+        int line = (int) ((float)y/scrollActivity.getScrollView().getLineHeight());
+        //line = line % 3 > 1 ? line + 1 : line;
+        scrollActivity.getSong().setStartPosition(getGroupArray().getStartOfLineMeasures(line)*getTimePerMeasure ());
+
     }
 
     @Override
@@ -185,7 +189,7 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
 
     @Override
     public int getScrollLine() {
-        return groupArray.getLine(getProgress()) + posOffset;
+        return groupArray.getLine(getProgress()) + posOffset - scoreData.getScrollStart()*3;
     }
 
     @Override
@@ -202,11 +206,13 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
     public void pageUp () {
         int retreatToLine = scrollActivity.getScrollView().getScrollLine() - scrollActivity.getLinesPerPage() - 3;
         int measures;
-        if (retreatToLine < 0) {
+        if (retreatToLine <= 0) {
             retreatToLine = 0;
+            measures = getGroupArray().getStartOfLineMeasures(retreatToLine);
         }
-
-        measures = getGroupArray().getStartOfLineMeasures(retreatToLine) + 1;
+        else {
+            measures = getGroupArray().getStartOfLineMeasures(retreatToLine) + 1;
+        }
         scrollActivity.getSong().setStartPosition(measures*getTimePerMeasure ());
     }
 
