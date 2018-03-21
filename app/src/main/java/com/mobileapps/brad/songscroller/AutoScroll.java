@@ -71,6 +71,9 @@ public abstract class AutoScroll extends AppCompatSeekBar implements android.wid
     public void onStopTrackingTouch(SeekBar seekBar) {
         updateProgress = false;
   /*      int progress = getProgress();
+=======
+        int progress = getProgress();
+>>>>>>> Stashed changes
         if (progress == getMax()) {
             ScrollActivity.mediaPlayer.pause();
             scrollActivity.getIvPlay().setImageResource(android.R.drawable.ic_media_play);
@@ -78,6 +81,7 @@ public abstract class AutoScroll extends AppCompatSeekBar implements android.wid
         else {
             ScrollActivity.mediaPlayer.seekTo(seekBar.getProgress());
         }
+<<<<<<< Updated upstream
         ScrollActivity.mediaPlayer.seekTo(seekBar.getProgress());*/
     }
    // public AutoScroll (ScrollActivity scrollActivity) {
@@ -86,6 +90,7 @@ public abstract class AutoScroll extends AppCompatSeekBar implements android.wid
 
   //  public AutoScroll (ScrollActivity scrollActivity, File file) {}*/
     public void initialize (ScrollActivity scrollActivity, File file) {};
+
     public void initialize (ScrollActivity scrollActivity, AutoScroll autoScroll) {};
 
     public boolean isValid () {return true;}
@@ -142,7 +147,13 @@ public abstract class AutoScroll extends AppCompatSeekBar implements android.wid
 
     public long getTimePerMeasure () { return 0; }
 
-    public void setSeekBarProgress() {}
+    public void setSeekBarProgress() {
+        long elpasedTime = scrollActivity.getSong().getPosition();
+        setProgress((int) (getMax()*((float) elpasedTime/scrollActivity.getSong().getDuration())));
+    }
 
+    public void pageUp () {}
+
+    public void pageDown () {}
 
 }

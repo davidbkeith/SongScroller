@@ -53,6 +53,7 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
     //    setProgress(groupIndex);
     //}
 
+
     @Override
     public void initialize (ScrollActivity scrollActivity, File file) {
         this.scrollActivity = scrollActivity;
@@ -99,7 +100,6 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
         return groupArray.getTotalMeasures();
     }
 
-
     @Override
     public void setSeekBarProgress() {
         long elpasedTime = scrollActivity.getSong().getPosition();
@@ -107,6 +107,7 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
         setProgress((int) (elpasedTime/getTimePerMeasure ()));
         //Toast.makeText(scrollActivity, String.format("%d",getProgressMeasures()), Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -197,4 +198,22 @@ public class AutoScrollCalculated extends AutoScroll implements android.widget.S
         return groupArray.getCurrentGroup().getRepeat();
     }
 
+    @Override
+    public void pageUp () {
+        int retreatToLine = scrollActivity.getScrollView().getScrollLine() - scrollActivity.getLinesPerPage() - 3;
+        int measures;
+        if (retreatToLine < 0) {
+            retreatToLine = 0;
+        }
+
+        measures = getGroupArray().getStartOfLineMeasures(retreatToLine) + 1;
+        scrollActivity.getSong().setStartPosition(measures*getTimePerMeasure ());
+    }
+
+    @Override
+    public void pageDown () {
+        int newScrollLine = scrollActivity.getScrollView().getScrollLine() + scrollActivity.getLinesPerPage() - 2;
+        int measures = getGroupArray().getStartOfLineMeasures(newScrollLine) + 1;
+        scrollActivity.getSong().setStartPosition(measures*getTimePerMeasure ());
+    }
 }

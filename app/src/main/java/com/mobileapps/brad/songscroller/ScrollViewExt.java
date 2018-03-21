@@ -22,17 +22,19 @@ public class ScrollViewExt extends ScrollView {
     protected long[] tapIntervals = new long[8];
     protected int tapIntervalIndex;
     private float lineHeight;
-    private long elapsedTime;
+    private int scrollLine;
+
+    public int getScrollLine() {
+        return scrollLine;
+    }
 
     int[] beatcolor = getResources().getIntArray(R.array.beatcolor);
-
-    public float getLineHeight() {
-        return lineHeight;
-    }
 
     public void setLineHeight(float lineHeight) {
         this.lineHeight = lineHeight;
     }
+
+    public float getLineHeight () { return lineHeight; }
 
     public long getAvgTapSpeed () {
 
@@ -145,6 +147,7 @@ public class ScrollViewExt extends ScrollView {
             int position = beatpos % beatspan + 1;
             int rectBottom = (int) (linePos * lineHeight);
 
+
             int width = scrollActivity.getTextViewWidth() / beatspan * position;
 
             // create a rectangle that we'll draw later
@@ -159,7 +162,6 @@ public class ScrollViewExt extends ScrollView {
             paint.setColor(beatcolor[colorIndex]);
             canvas.drawRect(rectangle, paint);
         }
-
     }
 
     @Override
@@ -167,7 +169,6 @@ public class ScrollViewExt extends ScrollView {
         //int sideLength = 200;
         int beatpos = 0;
         int beatspan = 0;
-        int scrollLine = 0;
         //int position = 0;
 
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
@@ -181,8 +182,11 @@ public class ScrollViewExt extends ScrollView {
         if (autoScroll.getBeatInterval() > 0) {
             //f (scrollActivity.isPlaying()) {
            // beatpos = autoScroll.getProgressMeasures();
-            int span = autoScroll.getLineMeasures();
-            beatspan = (span > autoScroll.getScoreData().getMeasuresPerLine() ? autoScroll.getScoreData().getMeasuresPerLine() : span);
+            beatspan = autoScroll.getLineMeasures();
+            if (beatspan > autoScroll.getScoreData().getMeasuresPerLine()) {
+                beatspan = autoScroll.getScoreData().getMeasuresPerLine();
+            }
+            //beatspan = span > autoScroll.getScoreData().getMeasuresPerLine() ? autoScroll.getScoreData().getMeasuresPerLine() : span;
             beatpos = autoScroll.getProgress();
             drawBeatIndicator(beatspan, beatpos, scrollLine + 2, canvas);
         }

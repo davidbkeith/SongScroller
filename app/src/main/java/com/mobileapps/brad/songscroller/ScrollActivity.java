@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DialogTitle;
@@ -21,10 +23,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.ViewTreeObserver;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -39,8 +44,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     public int getTextVeiwHeight() {
         return textViewHeight;
     }
+    public int getScrollVeiwHeight() { return scrollViewHeight; }
 
-    private int textViewHeight;
+    private int textViewHeight; /// total height of text window (NOT scroll window)
+    private int scrollViewHeight;   /// height of scroll window
 
     public int getTextViewWidth() {
         return textViewWidth;
@@ -77,11 +84,13 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private long elapsedTime, songStartTime;
 
-    public float getActualLineHeight() {
-        return actualLineHeight;
-    }
+    //public float getActualLineHeight() {
+    //    return actualLineHeight;
+    //}
 
-    private float actualLineHeight;
+    public int getLinesPerPage () { return (int) (scrollViewHeight / scrollView.getLineHeight()); }
+
+    //private float actualLineHeight;
 
     public ImageView getIvPlay() {
         return ivPlay;
@@ -217,15 +226,13 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         context = this;
         newSeek = -1;
+        expand = true;
         //startTime = System.currentTimeMillis();
 
         textView = (TextView) findViewById(R.id.textView);
         ivMute = (ImageView) findViewById(R.id.ivMute);
         ivBackground = (ImageView) findViewById(R.id.ivBackground);
         autoScroll = (AutoScrollCalculated) findViewById(R.id.seekBar);
-
-        //autoScroll.setOnSeekBarChangeListener(autoScroll);
-
         textCountdown = (TextView) findViewById(R.id.textCountdown);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
 
@@ -238,6 +245,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             }
             public void onSwipeRight() {
                 //Toast.makeText(ScrollActivity.this, "right", Toast.LENGTH_SHORT).show();
+                ScoreData scoreData = autoScroll.getScoreData();
+                Intent intent = new Intent(context, SongSettingsActivity.class);
+                intent.putExtra("songscroller_scoredata", autoScroll.getScoreData());
+                intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
+                startActivityForResult (intent, 1);
             }
             public void onSwipeLeft() {
                 //Toast.makeText(ScrollActivity.this, "left", Toast.LENGTH_SHORT).show();
@@ -245,11 +257,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             }
             public void onSwipeBottom() {
                 //Toast.makeText(ScrollActivity.this, "bottom", Toast.LENGTH_SHORT).show();
-                ScoreData scoreData = autoScroll.getScoreData();
-                Intent intent = new Intent(context, SongSettingsActivity.class);
-                intent.putExtra("songscroller_scoredata", autoScroll.getScoreData());
-                intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
-                startActivityForResult (intent, 1);
+
             }
         });
 
@@ -263,13 +271,21 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             }
         });*/
 
-        /*ViewTreeObserver vto = ivBackground.getViewTreeObserver();
-        vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            public boolean onPreDraw() {
-                ivBackground.getViewTreeObserver().removeOnPreDrawListener(this);
-                return true;
+     //   final LinearLayout layout = (LinearLayout)findViewById(R.id.scrollView);
+        ViewTreeObserver vto = scrollView.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                    scrollView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                } else {
+                    scrollView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+                //int width  = layout.getMeasuredWidth();
+                scrollViewHeight = scrollView.getMeasuredHeight();
+
             }
-        });*/
+        });
 
         song = (Song) getIntent().getSerializableExtra("songscroller_song");
         /*if (song.getArt() == null) {
@@ -298,6 +314,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             //autoScroll.setOnSeekBarChangeListener(autoScroll);
             autoScroll.initialize(this, autoScrollOld);
         }
+
         SpannableStringBuilder text = formatText(new SpannableStringBuilder(autoScroll.getText()));
         textView.setText(text);
 
@@ -314,9 +331,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         totLines = autoScroll.getNumLines();
 
         //float calculatedLineHeight = textVeiwHeight/(float) totLines;
-        textView.measure(0, 0);
-        textViewHeight = textView.getMeasuredHeight();
-        textViewWidth = textView.getMeasuredWidth();
+        findTextViewHeight();
 
       /*  textView.setOnTouchListener(new OnSwipeTouchListener(ScrollActivity.this) {
             @Override
@@ -380,6 +395,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         handler.postDelayed(moveSeekBarThread, 100); //cal the thread after 100 milliseconds
     }
 
+    public void findTextViewHeight () {
+        textView.measure(0, 0);
+        textViewHeight = textView.getMeasuredHeight();
+        textViewWidth = textView.getMeasuredWidth();
+    }
+
    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -407,19 +428,21 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     }
 
     void expand () {
-        ivBackground.setVisibility(expand ? View.VISIBLE: View.GONE);
+        ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
         ConstraintSet constraintSet = new ConstraintSet();
         ConstraintLayout constraintLayout = new ConstraintLayout(scrollView.getContext());
+        ActionBar actionBar = getSupportActionBar();
 
         if (expand) {
-            constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.txtTitle, ConstraintSet.BOTTOM,0);
+            constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
+            actionBar.hide();
         }
         else {
             constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.ivBackground, ConstraintSet.TOP,0);
+            actionBar.show();
         }
         constraintSet.applyTo(constraintLayout);
-
-        expand = expand ? false: true;
+        expand = !expand;
     }
 
     @Override
@@ -435,10 +458,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 }
                 else {
                     if (ev.getY() < textViewHeight * 0.10) {
-                        Toast.makeText(ScrollActivity.this, "scroll up", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(ScrollActivity.this, "scroll up", Toast.LENGTH_SHORT).show();
+                        autoScroll.pageUp();
                     }
                     else if (ev.getY() > textViewWidth * 0.90) {
-                        Toast.makeText(ScrollActivity.this, "scroll down", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(ScrollActivity.this, "scroll down", Toast.LENGTH_SHORT).show();
+                        autoScroll.pageDown();
                     }
                     else {
                         //Toast.makeText(ScrollActivity.this, "expand-contract", Toast.LENGTH_SHORT).show();

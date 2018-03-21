@@ -16,6 +16,7 @@ public class SongSettingsActivity extends AppCompatActivity {
     EditText editBPM;
     EditText editBPMeasure;
     EditText editMPLine;
+    EditText editDuration;
     RadioButton radioLine;
     RadioButton radioConstant;
     ScoreData scoreData;
@@ -36,6 +37,7 @@ public class SongSettingsActivity extends AppCompatActivity {
         editBPM = (EditText) findViewById(R.id.editBPM);
         editBPMeasure = (EditText) findViewById(R.id.editBPMeasure);
         editMPLine = (EditText) findViewById(R.id.editMeasuresPerLine);
+        editDuration = (EditText) findViewById(R.id.editDuration);
         radioLine = (RadioButton) findViewById(R.id.radioLine);
         radioConstant = (RadioButton) findViewById(R.id.radioConstant);
 
