@@ -157,61 +157,17 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         public void run() {
             autoScroll.setSeekBarProgress();
             textCountdown.setText(String.format("%d",autoScroll.getProgress()));
-
             if (isPlaying() && scrollView.isEnableScrolling()) {
-                //int currentPos;
-               /* if (newSeek != -1) {
-                    mediaPlayer.seekTo(newSeek);
-                    song.seekTo (newSeek);
-                    ///currentPos = newSeek;
-                    newSeek = -1;
-                }*/
-                //else {
-                    /// set seekbar position to match song progress
-               // autoScroll.setSongProgress();
-               // }
-              /*  else {
-                    currentPos = mediaPlayer.getCurrentPosition();
-                }*/
-
                 elapsedTime = 0;
-           }
+            }
             else {
                 elapsedTime +=  100;
-                //elapsedTime = 100 * autoScroll.getBeatInterval() == elapsedTime ? 0 : elapsedTime;
             }
 
             scrollView.invalidate ();
             handler.postDelayed(this, 100); //Looping the thread after 0.1 second
         }
     };
-
-    private void updateView() {
-      //  int timeLeft = (int) (song.getDuration() - currentSongPos);
-      //  long minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeft) % TimeUnit.HOURS.toMinutes(1);
-      //  long seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % TimeUnit.MINUTES.toSeconds(1);
-
-     //   int scrollSegmentPos;
-
-     //   int measure = 0;
-     /*   if (autoScroll.isValid()) {
-            scrollView.setScrollLinePos((int) ((autoScroll.getScrollLine(measure) + posOffset)));
-            currentScrollPos = (int) (scrollView.getScrollLinePos() * scrollView.getLineHeight());
-            textCountdown.setText(String.format("%d",measure));
-
-            //scrollSegmentPos = getActualScrollPos(measure);
-            //currentScrollPos = currentScrollPos + (scrollView.getScrollLinePos() - currentScrollPos)/5;  //// allows smooth transition
-        }
-        else {
-            currentScrollPos = ((int) (((currentSongPos-pause) /(double) song.getDuration()) * textViewHeight  + posOffset));
-        }
-        ///Log.d("Scrollpos", Integer.toString(scrollSegmentPos));
-
-       // textCountdown.setText(String.format("%d", currentScrollPos));
-       // if (scrollSegmentPos != partialScrollPos) {
-        scrollView.scrollTo(0, currentScrollPos);
-        scrollView.invalidate();*/
-    }
 
     @Override
     protected void onResume () {
@@ -323,7 +279,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             @Override
             public void run() {
                // actualNumLines = textView.getLineCount();
-                autoScroll.setPriorWrappedLines();
+                autoScroll.setWrappedLines();
             }
         });
 
@@ -424,7 +380,56 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {
-        autoScroll.onScrollChanged(scrollView, x, y, oldx, oldy);
+  //      autoScroll.onScrollChanged(scrollView, x, y, oldx, oldy);
+       // if (y != oldy) {
+       //     scrollView.setEnableScrolling(false);
+        /*
+        * y = (int) (autoScroll.getGroupArray().getScrollLine(measure) * actualLineHeight + posOffset * actualLineHeight);
+        * progress = measure
+        */
+            //setProgress(groupArray.getStartOfLineMeasures((int)(y/scrollView.getLineHeight()) - posOffset));
+            //setProgress((int)(((y/scrollView.getLineHeight()) - posOffset)/3));
+            //scrollActivity.setNewSeek(groupArray.getStartOfLineMeasures(getProgress()) * scoreData.getBeats() * BeatInterval);
+            //int line = (int) ((float)y/scrollActivity.getScrollView().getLineHeight());
+            //float scrollLinePos = y - (posOffset + scoreData.getScrollStart() * 3) * scrollActivity.getScrollView().getLineHeight();
+
+        /*  scrollline = progressline + lineoffset - startline;
+        *   y = progressline + lineoffset - startline;
+        *   progressline = y - lineoffset + startline;
+        *
+        * */
+
+            //float progressline = y - (posOffset + scoreData.getScrollStart()*3) * scrollView.getLineHeight();
+         //   long curprog = getProgress();
+         //   int max = scrollView.getMaxScrollAmount();
+         //   int scrH = scrollView.getMeasuredHeight();
+         //   int sh2 = scrollActivity.getTextVeiwHeight();
+
+
+       /*     float startPos = (autoScroll.getPosOffset() - autoScroll.getScoreData().getScrollStart() * 3) * scrollView.getLineHeight();
+            float adjustedHeight = getTextVeiwHeight() - startPos;
+
+            float adjustedY = y - startPos;
+            //adjustedY/adjustedHeight = progress/getMax();
+            int progress = (int) (adjustedY / adjustedHeight * autoScroll.getMax());
+            song.setStartPosition(progress * autoScroll.getTimePerMeasure());
+            //autoScroll.setProgress(progress);
+            //textCountdown.setText(String.format("%d", progress));
+           // scrollView.invalidate ();
+            //int newLine = autoScroll.getGroupArray().getLine(progress);
+            // if (newLine != scrollView.)
+
+
+            //long progress = groupArray.getStartOfLineMeasures(line - posOffset + scoreData.getScrollStart()*3) * getTimePerMeasure();
+
+            //y/scrollView.getMaxScrollAmount() = progress/getMax()
+            //int progressY =  y - posOffset + scoreData.getScrollStart()*3;
+            //long progress = (long) (((float) progressY/scrollView.getMaxScrollAmount()) * getMax());
+
+            //line = line % 3 > 1 ? line + 1 : line;
+            getSong().setStartPosition(progress * autoScroll.getTimePerMeasure());
+            //scrollView.onScrollChanged (x, 0, oldx, oldy);
+        }*/
     }
 
     void expand () {
@@ -449,27 +454,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     public boolean onTouchEvent(MotionEvent ev) {
         int avgTapSpeed = 0;
         switch (ev.getAction()) {
-            case MotionEvent.ACTION_UP:
-                int tapSpeed = (int) scrollView.getAvgTapSpeed();
-                if (tapSpeed == 1000000000) {
-                    autoScroll.setBeatInterval(tapSpeed);
-                   // String bpmtext = String.format("%d", (60000 / BeatInterval));
-                   // textEditBPM.setText(bpmtext);
-                }
-                else {
-                    if (ev.getY() < scrollViewHeight * 0.5) {
-                        //Toast.makeText(ScrollActivity.this, "scroll up", Toast.LENGTH_SHORT).show();
-                        autoScroll.pageUp();
-                    }
-                    else if (ev.getY() >= scrollViewHeight * 0.5) {
-                        //Toast.makeText(ScrollActivity.this, "scroll down", Toast.LENGTH_SHORT).show();
-                        autoScroll.pageDown();
-                    }
-                    //else {
-                        //Toast.makeText(ScrollActivity.this, "expand-contract", Toast.LENGTH_SHORT).show();
-                        //expand();
-                    //}
-                }
+            case MotionEvent.ACTION_DOWN:
+                //Toast.makeText(ScrollActivity.this, "down", Toast.LENGTH_SHORT).show();
+                break;
+
         }
         return super.onTouchEvent(ev);
     }
