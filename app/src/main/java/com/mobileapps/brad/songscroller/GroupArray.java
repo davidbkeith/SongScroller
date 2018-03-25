@@ -126,11 +126,15 @@ public class GroupArray extends ArrayList<GroupData> {
         }
     }
 
-    public int getStartOfLineMeasures (int group) {
-        if (group > 0 && group <= size()) {
+    public int getStartOfLineMeasures (int line) {
+        int group = line/3;
+        if (group > 0 && group < size()) {
             return get(group-1).getMeasuresToEndofLine();
         }
-        return (0);
+        else if (group >= size()) {
+            return (get(size() - 2).getMeasuresToEndofLine());
+        }
+        return 0;
     }
 
     public int getEndOfLineMeasures (int line) {
@@ -200,8 +204,8 @@ public class GroupArray extends ArrayList<GroupData> {
         return (int) (3 * count);
     }
 
-    public int getScrollLineFromPos (int pos, float lineHeight){
-        int LinePos = (int) (pos/lineHeight);
+    public int getScrollLineFromPos (int pos){
+        int LinePos = (int) (pos/scrollActivity.getScrollView().getLineHeight());
         if (LinePos < size()) {
             return get(LinePos).getOffsetChords();
         }

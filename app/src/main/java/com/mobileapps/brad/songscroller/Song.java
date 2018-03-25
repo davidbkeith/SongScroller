@@ -47,7 +47,7 @@ public class Song implements Serializable {
     private String track;
 
     public  long getPosition () {
-        if (startTime != 0) {
+        if (isPlaying) {
             return System.currentTimeMillis() - startTime + startPosition;
         }
         else {
@@ -57,7 +57,7 @@ public class Song implements Serializable {
 
     public void setStartPosition(long startPosition) {
         this.startPosition = startPosition;
-        startTime = 0;
+        startTime = System.currentTimeMillis();
 
         if (ScrollActivity.mediaPlayer != null) {
             ScrollActivity.mediaPlayer.seekTo((int) startPosition);
@@ -68,7 +68,6 @@ public class Song implements Serializable {
 
     public void pause() {
         //startPosition = System.currentTimeMillis() - startTime;
-
         if (ScrollActivity.mediaPlayer != null) {
             ScrollActivity.mediaPlayer.pause();
         }

@@ -121,7 +121,7 @@ public class AutoScrollGuess extends AutoScroll implements android.widget.SeekBa
     @Override
     public int getSongDuration () {
         if (ScrollActivity.mediaPlayer != null) {
-            return ScrollActivity.mediaPlayer.getDuration();
+            return (int) (ScrollActivity.mediaPlayer.getDuration());
         }
         return (int) scrollActivity.getSong().getDuration();
     }
