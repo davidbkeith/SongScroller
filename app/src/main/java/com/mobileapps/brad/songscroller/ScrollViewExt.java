@@ -11,6 +11,7 @@ import android.util.Log;
 import android.util.TimeUtils;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 /**
  * Created by brad on 2/2/18.
@@ -18,11 +19,22 @@ import android.widget.ScrollView;
 
 public class ScrollViewExt extends ScrollView {
     private Boolean enableScrolling = true;
+    private boolean isScrolling;
     protected long lastTapTime;
     protected long[] tapIntervals = new long[8];
     protected int tapIntervalIndex;
     private float lineHeight;
+    final private double scrollSensitivity = 2.0;  /// how much is scrolled per finger movement
+    private double scrollFactor = 3.0;   /// how fast to scroll - higher is slower, 1 no delay
+
+    public void setScrollLine(int scrollLine) {
+        //enableScrolling = true;
+        isScrolling = true;
+        this.scrollLine = scrollLine;
+    }
+
     private int scrollLine;
+    private double touchY, offset;
 
     public int getScrollLine() {
         return scrollLine;
@@ -87,7 +99,8 @@ public class ScrollViewExt extends ScrollView {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 //Log.e("Media", "intercept Action down: set autoscroll to false........");
-                setEnableScrolling(false);
+                //touchY = ev.getY() - offset;
+                ///setEnableScrolling(false);
                 currTap = System.currentTimeMillis();
                 tapIntervals[tapIntervalIndex] = currTap - lastTapTime;
                 lastTapTime = currTap;
@@ -97,40 +110,143 @@ public class ScrollViewExt extends ScrollView {
           //  case MotionEvent.ACTION_MOVE:
           //      Log.e("Media", "intercept Action move: set autoscroll to false........");
           //      setEnableScrolling(false);
-          //  case MotionEvent.ACTION_UP:
-          //      Log.e("Media", "intercept Action up: set autoscroll to true........");
+            case MotionEvent.ACTION_UP:
+                isScrolling = false;
+                //      Log.e("Media", "intercept Action up: set autoscroll to true........");
           //      setEnableScrolling(true);
          }
         return super.onTouchEvent(ev);
     }
 
-   @Override
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        switch (ev.getAction()) {
-         //   case MotionEvent.ACTION_DOWN:
-         //       Log.e("Media", "onTouchEvent Action down: set autoscroll to false........");
+       ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+       switch (ev.getAction()) {
+            case MotionEvent.ACTION_UP:
+                //Toast.makeText(ScrollActivity.this, "up", Toast.LENGTH_SHORT).show();
+                if (!isScrolling) {
+                    int tapSpeed = (int) getAvgTapSpeed();
+                    if (tapSpeed == 1000000000) {
+                        scrollActivity.getAutoScroll().setBeatInterval(tapSpeed);
+                        // String bpmtext = String.format("%d", (60000 / BeatInterval));
+                        // textEditBPM.setText(bpmtext);
+                    } else {
+                       // scrollFactor = 1.8;
+                        int currentline = getScrollLine();
+                     /*   offset = ev.getY();// - touchY;
+                        scrollLine = scrollActivity.getScrollLine(offset);
+                        if (scrollLine != currentline) {
+                            //isScrolling = true;
+                            ///// this check prevents spurious data from causing jittery screen
+                            //if ((offset > 0 && scrollLine - currentline == 1) || (offset < 0 && scrollLine - currentline == -1) )
+                                return super.onTouchEvent(ev);
+                        }*/
+
+
+                            int newPos;
+                        //int numLines = scrollActivity.getLinesPerPage();
+                        if (ev.getY() < scrollActivity.getScrollVeiwHeight() * 0.5) {
+                            //Toast.makeText(scrollActivity, "scroll up", Toast.LENGTH_SHORT).show();
+                            scrollActivity.getAutoScroll().pageUp();
+                            //offset = (newPos + scrollLine + scrollActivity.getAutoScroll().getScoreData().getScrollStart()*3 - 2) * getLineHeight();
+                            //offset = newPos * getLineHeight();
+                        } else if (ev.getY() >= scrollActivity.getScrollVeiwHeight() * 0.5) {
+                            //Toast.makeText(scrollActivity, "scroll down", Toast.LENGTH_SHORT).show();
+                            //int beforeScroll = getTop();
+                            scrollActivity.getAutoScroll().pageDown();
+                            //int newScrollLine = scrollActivity.getAutoScroll().getScrollLine();
+                            //offset = 4 * getLineHeight();
+                            //scrollActivity.getAutoScroll().setSeekBarProgress();
+                            //setScrollLine ((int) (scrollActivity.getAutoScroll().getScrollLine()));
+                            //scrollTo(0, (int) (scrollLine * lineHeight));
+
+                            //offset = (newPos + scrollLine) * getLineHeight();
+                            //offset = (newPos + scrollLine + scrollActivity.getAutoScroll().getScoreData().getScrollStart()*3 - 2) * getLineHeight();
+                            //offset = scrollLine * lineHeight - beforeScroll;
+                            //offset = scrollActivity.getAutoScroll().getScrollLine() * lineHeight;
+                        }
+                        //else {
+                        //Toast.makeText(ScrollActivity.this, "expand-contract", Toast.LENGTH_SHORT).show();
+                        //expand();
+                        //}*/
+                    }
+                }
+                isScrolling = false;
+                break;
+            case MotionEvent.ACTION_DOWN:
+                // if we can scroll pass the event to the superclass
+          //      if (enableScrolling) return super.onTouchEvent(ev);
+                // only continue to handle the touch event if scrolling enabled
+         //       return false; // mScrollable is always false at this point        //       Log.e("Media", "onTouchEvent Action down: set autoscroll to false........");
          //       setEnableScrolling(false);
          //   case MotionEvent.ACTION_MOVE:
          //       Log.e("Media", "onTouchEvent Action move: set autoscroll to false........");
          //       setEnableScrolling(false);
-            case MotionEvent.ACTION_UP:
-         //       Log.e("Media", "onTouchEvent Action up: set autoscroll to ture........");
-                setEnableScrolling(true);
-         }
-       if (scrollViewListener != null) {
-           scrollViewListener.onTouchEvent(ev);
-       }
-       return super.onTouchEvent(ev);
+                break;
+            case MotionEvent.ACTION_MOVE:
+
+                int currentline = getScrollLine();
+            //    int pointerCount = ev.getPointerCount();
+                int size = ev.getHistorySize();
+                if (size > 1) {
+                    scrollFactor = 6;
+                    offset = (ev.getHistoricalY(size-1) - ev.getHistoricalY(size-2))*scrollSensitivity;
+
+                    int newMeasure = scrollActivity.getAutoScroll().getProgress() + (int) (offset/scrollActivity.getAutoScroll().getScrollYmin());
+                    //Toast.makeText(scrollActivity, Double.toString(offset), Toast.LENGTH_SHORT).show();
+
+                    scrollActivity.getSong().setStartPosition(newMeasure * scrollActivity.getAutoScroll().getTimePerMeasure());
+                    int newscrollLine = scrollActivity.getAutoScroll().getScrollLine(newMeasure);
+
+                    if (newscrollLine != currentline) {
+                        //setScrollLine(newscrollLine);
+                        //isScrolling = true;
+                        ///// this check prevents spurious data from causing jittery screen
+                        if ((offset > 0 && scrollLine - currentline == 1) || (offset < 0 && scrollLine - currentline == -1)) {
+                            setScrollLine(newscrollLine);
+                            return super.onTouchEvent(ev);
+                        }
+                    }
+                }
+                return false;
+
+        }
+     //  if (scrollViewListener != null) {
+     //      scrollViewListener.onTouchEvent(ev);
+      // }
+     //  return super.onTouchEvent(ev);
+       return false;
     }
 
     /////// turn off scroll event handler when app calls scrollTo
+    @Override
     public void scrollTo (int x, int y) {
-        //if (isEnableScrolling()) {
+        if (isEnableScrolling() && isScrolling ) {
             ScrollViewListener scrollViewListener = getScrollViewListener();
             setScrollViewListener(null);
-            super.scrollTo(x, y);
+            if (y > getScrollY()) {
+                int scrollto = getScrollY() + (int)((y - getScrollY())/scrollFactor);
+                if (scrollto > y) {
+                    super.scrollTo(x, y);
+                }
+                else {
+                    super.scrollTo(x, scrollto);
+                }
+            }
+            else {
+                int scrollto = getScrollY() + (int)((y - getScrollY())/scrollFactor);
+                if (scrollto < y) {
+                    super.scrollTo(x, y);
+                }
+                else {
+                    super.scrollTo(x, scrollto);
+                }
+            }
+            //super.scrollTo(x, y);
             setScrollViewListener(scrollViewListener);
-        //}
+            //enableScrolling = false;
+            //isScrolling = false;
+        }
     }
 
     @Override
@@ -173,7 +289,7 @@ public class ScrollViewExt extends ScrollView {
 
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
-        scrollLine = (int) (autoScroll.getScrollLine());
+        setScrollLine ((int) (autoScroll.getScrollLine()));
        // int rectBottom = (int) ((scrollLine + autoScroll.getScoreData().getScrollStart()*3 + 2) * lineHeight);
 
         //int y = scrollActivity.getElapsedTime() == 0 ? (int) ((scrollLine + 2) * lineHeight) : 0;
@@ -203,7 +319,11 @@ public class ScrollViewExt extends ScrollView {
         }
 
         //if (scrollActivity.getSong().getStartPosition () > 0) {
-        scrollTo(0, (int) (scrollLine * lineHeight));
+        //if (enableScrolling) {
+            scrollTo(0, (int) (scrollLine * lineHeight));
         //}
+        //}
+        //isScrolling = false;
+
     }
 }
