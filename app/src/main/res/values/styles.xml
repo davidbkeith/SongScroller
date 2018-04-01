@@ -2,11 +2,14 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    </style>
+
+    <style name="CustomToolbarStyle" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="actionBarSize">40dp</item>
-        <item name="colorPrimary">@color/colorTitleBar</item>
+        <item name="actionBarSize">10dp</item>
+        <item name="colorAccent">@color/colorTitleBar</item>
         <item name="colorPrimaryDark">@color/colorPrimary</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent2">@color/colorAccent</item>
         <item name="actionBarStyle">@style/MyActionBar</item>
     </style>
 

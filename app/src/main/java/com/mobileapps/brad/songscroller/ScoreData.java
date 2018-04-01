@@ -10,7 +10,6 @@ public class ScoreData implements Serializable {
     int bpm;
     int beats;
     int measuresPerLine;
-
     int scrollStart;
 
     ScoreData () {}
@@ -46,11 +45,9 @@ public class ScoreData implements Serializable {
         this.measuresPerLine = measuresPerLine;
     }
 
-    public int getScrollStart() {
-        return scrollStart;
-    }
+    public int getScrollStart() { return scrollStart; }
 
-    public void setScrollStart(int scrollStartLine) {
+    public void setScrollStart(int scrollStart) {
         this.scrollStart = scrollStart;
     }
 }

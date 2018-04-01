@@ -57,7 +57,13 @@ public class Song implements Serializable {
 
     public void setStartPosition(long startPosition) {
         this.startPosition = startPosition;
-        startTime = System.currentTimeMillis();
+//        startTime = System.currentTimeMillis();
+        if (startPosition < 0) {
+            startPosition = 0;
+        }
+        else if (startPosition > getDuration()){
+            startPosition = duration;
+        }
 
         if (ScrollActivity.mediaPlayer != null) {
             ScrollActivity.mediaPlayer.seekTo((int) startPosition);
@@ -66,22 +72,38 @@ public class Song implements Serializable {
 
     public Song () {}
 
-    public void pause() {
-        //startPosition = System.currentTimeMillis() - startTime;
-        if (ScrollActivity.mediaPlayer != null) {
-            ScrollActivity.mediaPlayer.pause();
+    public boolean pause() {
+        boolean currentPlaying = isPlaying;
+        if (isPlaying) {
+            startPosition = System.currentTimeMillis() - startTime + startPosition;
+            if (ScrollActivity.mediaPlayer != null) {
+                ScrollActivity.mediaPlayer.pause();
+            }
+            isPlaying = false;
         }
-        isPlaying = false;
+        return currentPlaying;
     }
 
     public void start() {
-        startTime = System.currentTimeMillis();
+        if (!isPlaying) {
+            startTime = System.currentTimeMillis();
 
-        if (ScrollActivity.mediaPlayer != null) {
-            ScrollActivity.mediaPlayer.start();
+            if (ScrollActivity.mediaPlayer != null) {
+                ScrollActivity.mediaPlayer.start();
+            }
+            isPlaying = true;
         }
-        isPlaying = true;
     }
+
+    public void togglePlay() {
+        if (!isPlaying) {
+            start();
+        }
+        else {
+            pause();
+        }
+    }
+
 
     public boolean equals(Object object2) {
         return object2 instanceof Song && sheetMusicPath != null && sheetMusicPath.equals(((Song)object2).sheetMusicPath);

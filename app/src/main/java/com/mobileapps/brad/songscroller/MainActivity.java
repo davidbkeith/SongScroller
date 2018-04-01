@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.support.v7.widget.Toolbar;
 
 import java.io.File;
 
@@ -99,7 +100,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = this;
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+
+        Toolbar toolbar = (Toolbar)  findViewById(R.id.app_bar);
+        setSupportActionBar(toolbar);
+      //  getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
         albumList = (ListView) findViewById(R.id.albumList); //activity_main.xml - list view
         songsButton = (Button) findViewById(R.id.buttonSongs);

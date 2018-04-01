@@ -23,6 +23,7 @@
         <item>@color/orange</item>
         <item>@color/red</item>
     </array>
+    <color name="beatcolorgray">#717171</color>
 
     <color name="songbackground">#2B2B2B</color>
     <color name="songannotation">#BBB529</color>

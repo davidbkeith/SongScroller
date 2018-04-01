@@ -37,7 +37,7 @@ public class AlbumSongsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         setContentView(R.layout.activity_album_songs); //activity_album_songs - list view
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    //    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         album = album == null ? (Album) getIntent().getSerializableExtra("songscroller_album") : album;
 
