@@ -191,6 +191,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
        // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         context = this;
         newSeek = -1;
@@ -351,7 +352,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         scrollView.setLineHeight(actualLineHeight);
 
         //// set title
-        getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
+        //getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
 
         ivPlay = findViewById(R.id.ivPlay);
         ivPlay.setOnClickListener(new View.OnClickListener() {
