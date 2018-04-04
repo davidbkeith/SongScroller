@@ -27,7 +27,7 @@ import java.util.regex.Matcher;
 
 public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekBar.OnSeekBarChangeListener {
     protected ScoreData scoreData;
-    protected int BeatInterval;
+   // protected int BeatInterval;
     protected int startLine;
     protected String text;
     protected ScrollActivity scrollActivity;
@@ -43,12 +43,12 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     public void setText(String text) { this.text = text; }
 
     public int getBeatInterval() {
-        return BeatInterval;
+        return scoreData.getBeatInterval();
     }
 
-    public void setBeatInterval(int beatInterval) {
-        BeatInterval = beatInterval;
-    }
+   // public void setBeatInterval(int beatInterval) {
+   //     BeatInterval = beatInterval;
+   // }
 
     public ScoreData getScoreData() {
         return scoreData;
@@ -165,7 +165,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         try {
             JSONObject jsonObject = new JSONObject(JSON);
             scoreData = new ScoreData(jsonObject.optInt("bpm"), jsonObject.optInt("beats", 4), jsonObject.optInt("measures", 16), jsonObject.optInt("start", 3));
-            BeatInterval = 60000 / scoreData.getBpm();
+            //BeatInterval = 60000 / scoreData.getBpm();
 
             //// tempo = beats (per measure) * (number of measures/song duration in seconds) * 60
           //  int bpm = (int) (scoreData.getBeats() * groupArray.getTotalMeasures() * 60 / (scrollActivity.getSong().getDuration()/1000));

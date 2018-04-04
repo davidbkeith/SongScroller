@@ -138,7 +138,7 @@ public class ScrollViewExt extends ScrollView {
                 if (!isScrolling) {
                     int tapSpeed = (int) getAvgTapSpeed();
                     if (tapSpeed == 1000000000) {
-                        scrollActivity.getAutoScroll().setBeatInterval(tapSpeed);
+                        //scrollActivity.getAutoScroll().setBeatInterval(tapSpeed);
                     } else {
                         scrollActivity.getSong().pause();
 

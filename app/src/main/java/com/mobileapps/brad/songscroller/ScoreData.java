@@ -50,4 +50,8 @@ public class ScoreData implements Serializable {
     public void setScrollStart(int scrollStart) {
         this.scrollStart = scrollStart;
     }
+
+    public int getBeatInterval () {
+        return 60000 / bpm;
+    }
 }

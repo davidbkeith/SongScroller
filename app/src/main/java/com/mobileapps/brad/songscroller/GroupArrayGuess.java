@@ -169,7 +169,7 @@ public class GroupArrayGuess extends GroupArray {
         ///////////// bpm
         if (map.get("bpm") != null) {
             scoreData.setBpm(Integer.parseInt(((String)map.get("bpm"))));
-            autoScroll.setBeatInterval((int) (60000 / scoreData.getBpm()));
+           // autoScroll.setBeatInterval((int) (60000 / scoreData.getBpm()));
         }
         else {
             //// tempo = beats (per measure) * (number of measures/song duration in seconds) * 60
@@ -178,7 +178,7 @@ public class GroupArrayGuess extends GroupArray {
         }
 
         autoScroll.setScoreData(scoreData);
-        autoScroll.setBeatInterval(60000 / scoreData.getBpm());
+     //   autoScroll.setBeatInterval(60000 / scoreData.getBpm());
         //setMax (getSongDuration());
         //return scoreData;
     }
