@@ -202,21 +202,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     public boolean onOptionsItemSelected (MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent intent = new Intent(context, SongSettings.class);
-                intent.putExtra("songscroller_scoredata", autoScroll.getScoreData());
-                intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
-                startActivityForResult(intent, 1);
+                expand (2);
                 return true;
             case R.id.menu_line_options:
-              /*  intent = new Intent(context, SongLineSettingsActivity.class);
-                intent.putExtra("songscroller_groupdata", autoScroll.getGroupArray().getCurrentGroup());
-                intent.putExtra("songscroller_measures", autoScroll.getGroupArray().getLineMeasuresFromTotalMeasures(autoScroll.getProgress()));
-                intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
-                intent.putExtra("songscroller_text", autoScroll.getText());
-
-                startActivityForResult(intent, 1);*/
+                expand(1);
                 return true;
-            case android.R.id.home:
+            case R.id.menu_back:
                 // click on 'up' button in the action bar, handle it here
                 onBackPressed();
                 return true;
@@ -405,14 +396,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (song.isPlaying()) {
-                    song.pause();
-                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
-                }
-                else {
-                    song.start();
-                    ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-                }
+            if (song.isPlaying()) {
+                song.pause();
+                ivPlay.setImageResource(android.R.drawable.ic_media_play);
+            }
+            else {
+                song.start();
+                ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+            }
             }
         });
         ivNext.setOnClickListener(new View.OnClickListener() {

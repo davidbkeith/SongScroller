@@ -10,4 +10,10 @@
         android:enabled="true"
         android:title="@string/menu_line_options"
         android:visible="true" />
+
+    <item
+        android:id="@+id/menu_back"
+        android:enabled="true"
+        android:title="@string/menu_back"
+        android:visible="true" />
 </menu>
