@@ -23,7 +23,7 @@ import java.util.List;
 public class SongLineSettings  {
 
     EditText editMeasures;
-    EditText editRepeat;
+   // EditText editRepeat;
     EditText editChords;
     EditText editLyrics;
     Button buttonSave, buttonCancel;
@@ -39,7 +39,6 @@ public class SongLineSettings  {
         this.scrollActivity = scrollActivity;
 
         editMeasures = (EditText) scrollActivity.findViewById(R.id.editMeasures);
-        editRepeat = (EditText) scrollActivity.findViewById(R.id.editRepeat);
         editChords = (EditText) scrollActivity.findViewById(R.id.editChords);
         editLyrics = (EditText) scrollActivity.findViewById(R.id.editLyrics);
 
@@ -68,30 +67,6 @@ public class SongLineSettings  {
             }
         });
 
-        editRepeat.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if (enableUpdates) {
-                    try {
-                        groupData.setRepeat(Integer.parseInt(editable.toString().trim()) + 1);
-                    }
-                    catch (Exception e) {
-                        Log.d("afterTextChanged-Repeat", "Parse integer error");
-                    }
-                }
-            }
-        });
-
         editChords.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -107,41 +82,15 @@ public class SongLineSettings  {
             public void afterTextChanged(Editable editable) {
                 if (enableUpdates) {
                     enableUpdates = false;
-                    //List chords = Arrays.asList(groupData.getChords());
 
                     String[] arrchords = editable.toString().split(",");
-
-                 /*   List newchords;
-
-                    for (int i=0; i<arrchords.length; i++) {
-                        try {
-                            newchords[i] = Integer.parseInt(arrchords[i]);
-                            newchords[i+1] = 1; // default value
-                            for (int j=0; j<chords.length; j++) {
-                                //// if same start position, assume same width
-                                if (newchords[i] == chords[j]) {
-                                    newchords[i+1] = chords[j+1];
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception e) {
-                            Log.d("afterTextChanged", "Parse integer error");
-                        }
-                    }*/
                     groupData.setChords(arrchords, groupDataOriginal.getChords());
                     autoScroll.getGroupArray().setLineMeasuresCount(groupData, (groupData.getChords().length/2)*autoScroll.getGroupArray().getMeasuresPerChord());
-                //    autoScroll.getGroupArray().setLineMeasuresCount(groupData, (groupData.getChords().length));
-                    //update();
+
                     int measures = autoScroll.getGroupArray().getLineMeasuresFromTotalMeasures(autoScroll.getProgress());
                     editMeasures.setText(String.format("%d", measures));
 
-                    //SpannableStringBuilder sb = scrollActivity.getSb();
                     scrollActivity.setSpans();
-
-                    //ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan ()
-                    //sb.removeSpan(foregroundColorSpan);
-                    //scrollActivity.getAutoScroll().
                     enableUpdates = true;
                 }
             }
@@ -160,7 +109,7 @@ public class SongLineSettings  {
         text = autoScroll.getText();
 
         editMeasures.setText(String.format("%d", measures));
-        editRepeat.setText(String.format("%d", groupData.getRepeat()-1));
+       // editRepeat.setText(String.format("%d", groupData.getRepeat()-1));
         editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]","")));
 
         String lineLyrics = groupData.getLyrics(text);

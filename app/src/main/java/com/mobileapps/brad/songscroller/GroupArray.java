@@ -131,6 +131,38 @@ public class GroupArray extends ArrayList<GroupData> {
         return scoreText;
     }
 
+    public void setChordData (List<ChordData> chordPos) {
+        measuresPerChord = 2;
+
+        if (size() > 0) {
+            //// this array has all lines at this point, chords lines and non-chord lines, etc
+            //// find real chord lines, eliminate others and save relevant data
+            int chordStart = 0;
+            for (GroupData gd: this) {
+                //GroupData gd = get(i);
+                //for (ChordData chordData : chordPos) {
+                int chordIndex;
+                List chords = new ArrayList();
+                for (chordIndex = chordStart; chordIndex < chordPos.size(); chordIndex++) {
+                    ChordData chordData = chordPos.get(chordIndex);
+                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getChordsLength()) {
+                        /// has chords on this line
+                        chords.add(chordData.getStartPos() - gd.getOffsetChords());
+                        chords.add(chordData.getChord().length());
+                    } else {
+                        //// no chords on line, go to next line
+                        break;
+                    }
+                }
+                /// no chords on this line, go to next
+                if (chords.size() > 0) {
+                    gd.setChords(chords);
+                    chordStart = chordIndex;
+                }
+            }
+        }
+    }
+
    /* public void sortGroups (int sortOrder) {
         if (sortOrder == 0) {
             Collections.sort(this, new GroupData.PositionCompare());

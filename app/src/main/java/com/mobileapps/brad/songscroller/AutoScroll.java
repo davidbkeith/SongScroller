@@ -133,6 +133,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
                 groupArray = new GroupArray(scrollActivity);
                 text = groupArray.create(br, text, scoreData);
                 sb = formatText();
+                groupArray.setChordData(chordPos);
          //       setMax (getSongDuration());
             }
             else {
@@ -147,6 +148,9 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
                 //groupArray.setScoreData(this);
             }
 
+          //  long duration = (long) ((double) groupArray.getTotalMeasures() / ( (double) scoreData.getBpm()/scoreData.getBeats()) * 60000);
+          //  scrollActivity.getSong().setDuration(duration);
+            scrollActivity.getScrollView().setMaxMeasuresPerLine (scoreData.getBeats() == 3 ? 9 : 8);
             setMax (getSongDuration());
             br.close();
         }
@@ -162,6 +166,15 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
             JSONObject jsonObject = new JSONObject(JSON);
             scoreData = new ScoreData(jsonObject.optInt("bpm"), jsonObject.optInt("beats", 4), jsonObject.optInt("measures", 16), jsonObject.optInt("start", 3));
             BeatInterval = 60000 / scoreData.getBpm();
+
+            //// tempo = beats (per measure) * (number of measures/song duration in seconds) * 60
+          //  int bpm = (int) (scoreData.getBeats() * groupArray.getTotalMeasures() * 60 / (scrollActivity.getSong().getDuration()/1000));
+          //  scoreData.setBpm(bpm);
+
+            /* (bpm/60) =  beats (per measure) * (number of measures/song duration in seconds) */
+            /* (bpm/60) / beats (per measure) = (number of measures/song duration in seconds) */
+            /* number of measures / ((bpm/60) / beats (per measure)) = song duration in seconds */
+
             return "";
         }
         catch (Exception e){

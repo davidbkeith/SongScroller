@@ -22,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -52,6 +53,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private int textViewWidth;
     private int textViewHeight; /// total height of text window (NOT scroll window)
     private int scrollViewHeight;   /// height of scroll window
+    private int swipeCount;
 
     private ImageView ivPlay;
     private ImageView ivNext;
@@ -63,6 +65,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private ImageView[] imageTapTempo;
 
     private View controls;
+    private ViewGroup songSettingsContainer;
+    private ViewGroup lineSettingsContainer;
 
     private TextView textView;
     private TextView textCountdown;
@@ -87,12 +91,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private SpannableStringBuilder sb;
 
     private Toolbar toolbar;
+    private Toolbar lineSettings;
+    //private Toolbar songSettings;
 
     public SongLineSettings getSongLineSettings() {
         return songLineSettings;
     }
 
     private SongLineSettings songLineSettings;
+    private SongSettings songSettings;
 
     public int getTextVeiwHeight() {
         return textViewHeight;
@@ -165,7 +172,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
             autoScroll.setSeekBarProgress();
-            textCountdown.setText(String.format("%d",autoScroll.getProgress()));
+            textCountdown.setText(String.format("%d",autoScroll.getProgress()+1));
             if (isPlaying() && scrollView.isEnableScrolling()) {
                 elapsedTime = 0;
             }
@@ -195,7 +202,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     public boolean onOptionsItemSelected (MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent intent = new Intent(context, SongSettingsActivity.class);
+                Intent intent = new Intent(context, SongSettings.class);
                 intent.putExtra("songscroller_scoredata", autoScroll.getScoreData());
                 intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
                 startActivityForResult(intent, 1);
@@ -224,10 +231,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scroll);
        // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar = (Toolbar) findViewById(R.id.app_bar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+       // toolbar = (Toolbar) findViewById(R.id.app_bar);
+        lineSettings = (Toolbar) findViewById(R.id.editSongLine);
+        //songSettings = (Toolbar) findViewById(R.id.editSong);
+
+        setSupportActionBar(lineSettings);
+       // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         songLineSettings = new SongLineSettings(this);
+        songSettings = new SongSettings(this);
 
         isEditing = true;
         context = this;
@@ -237,25 +249,32 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         textView = (TextView) findViewById(R.id.textView);
         ivMute = (ImageView) findViewById(R.id.ivMute);
+        ivPlay = (ImageView) findViewById(R.id.ivPlay);
+        ivNext = (ImageView) findViewById(R.id.ivNext);
+        ivPrevious = (ImageView) findViewById(R.id.ivPrevious);
         ivBackground = (ImageView) findViewById(R.id.ivBackground);
         autoScroll = (AutoScroll) findViewById(R.id.seekBar);
         textCountdown = (TextView) findViewById(R.id.textCountdown);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
+
+        lineSettingsContainer = (ViewGroup) findViewById(R.id.lineSettingsContainer);
+        songSettingsContainer = (ViewGroup) findViewById(R.id.songSettingsContainer);
+
        // controls = findViewById(R.id.controls);
 
         scrollView.setScrollViewListener(this);
         autoScroll.setOnSeekBarChangeListener(autoScroll);
-        expand();
+        expand(0);
 
         scrollView.setOnTouchListener(new OnSwipeTouchListener(ScrollActivity.this) {
             public void onSwipeTop() {
                 //Toast.makeText(ScrollActivity.this, "top", Toast.LENGTH_SHORT).show();
             }
             public void onSwipeRight() {
-                expand ();
+                expand(Math.abs(++swipeCount % 3));
             }
             public void onSwipeLeft() {
-                expand ();
+                expand(Math.abs(--swipeCount % 3));
                 //Toast.makeText(ScrollActivity.this, "left", Toast.LENGTH_SHORT).show();
 
             }
@@ -346,6 +365,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //textView.setText(sb);
         setSpans();
         songLineSettings.update();
+        songSettings.update();
 
         //final int actualNumLines;
         textView.post(new Runnable() {
@@ -382,7 +402,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //// set title
         //getSupportActionBar().setTitle(String.format("%s-%s", song.getArtist(), song.getTitle()));
 
-        ivPlay = findViewById(R.id.ivPlay);
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -396,20 +415,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 }
             }
         });
-       /* ivNext = findViewById(R.id.ivNext);
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 song.setStartPosition(song.getPosition()+getAutoScroll().getTimePerMeasure());
             }
         });
-        ivPrevious = findViewById(R.id.ivPrevious);
         ivPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 song.setStartPosition(song.getPosition()-getAutoScroll().getTimePerMeasure());
             }
-        });*/
+        });
 
         handler.removeCallbacks(moveSeekBarThread);
         handler.postDelayed(moveSeekBarThread, 100); //cal the thread after 100 milliseconds
@@ -432,13 +449,40 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {}
 
-   void expand () {
+   void expand (int id) {
         ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
        // ConstraintSet constraintSet = new ConstraintSet();
        // ConstraintLayout constraintLayout = new ConstraintLayout(scrollView.getContext());
         ActionBar actionBar = getSupportActionBar();
 
-        if (expand) {
+   /*    if (id==0 || actionBar.isShowing()) {
+           actionBar.hide();
+           ivBackground.setVisibility(View.GONE);
+         //  lineSettingsContainer.setVisibility(View.GONE);
+         //  songSettingsContainer.setVisibility(View.GONE);
+       }
+       else {*/
+           if (id==0) {
+               actionBar.hide();
+               ivBackground.setVisibility(View.GONE);
+           }
+           else {
+               if (id == 1) {
+                   songSettingsContainer.setVisibility(View.GONE);
+                   lineSettingsContainer.setVisibility(View.VISIBLE);
+                   //   setSupportActionBar(lineSettings);
+               }
+               else {
+                   lineSettingsContainer.setVisibility(View.GONE);
+                   songSettingsContainer.setVisibility(View.VISIBLE);
+                   //     setSupportActionBar(songSettings);
+               }
+
+               actionBar.show ();
+               ivBackground.setVisibility(View.VISIBLE);
+            }
+
+     /*   if (expand) {
          //   constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
             actionBar.hide();
         }
@@ -447,7 +491,16 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             actionBar.show();
         }
        // constraintSet.applyTo(constraintLayout);
-        expand = !expand;
+        expand = !expand;*/
+    }
+
+
+    void showEditLine () {
+        if (isEditing) {
+            ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
+        }
+
+        isEditing = !isEditing;
     }
 
    /* void expand () {

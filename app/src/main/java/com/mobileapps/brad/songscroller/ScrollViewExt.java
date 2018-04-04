@@ -22,6 +22,16 @@ public class ScrollViewExt extends ScrollView {
     final private double scrollSensitivity = 2.0;  /// how much is scrolled per finger movement
     private double scrollFactor = 2.0;   /// how fast to scroll - higher is slower, 1 no delay
     private int scrollLine;
+
+    public int getMaxMeasuresPerLine() {
+        return maxMeasuresPerLine;
+    }
+
+    public void setMaxMeasuresPerLine(int maxMeasuresPerLine) {
+        this.maxMeasuresPerLine = maxMeasuresPerLine;
+    }
+
+    private int maxMeasuresPerLine = 8;
     boolean startPlayerAfterMove;
 
     public void setScrollLine(int scrollLine) {
@@ -226,6 +236,29 @@ public class ScrollViewExt extends ScrollView {
             canvas.drawRect(rectangle, paint);
         }
     }
+    /*
+    void drawBeatIndicator (int beatspan, int beatpos, int linePos, Canvas canvas) {
+        if (beatspan > 0) {
+            ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+            //int position = beatpos % beatspan + 1;
+            int rectBottom = (int) (linePos * lineHeight);
+
+
+            int width = scrollActivity.getScrollView().getWidth() / beatspan * beatpos;
+
+            // create a rectangle that we'll draw later
+            Rect rectangle = new Rect(0, rectBottom+8, width, rectBottom + 12);
+
+            // shrink beat positions to fit into color array available colors
+            float shrinkFactor = beatcolor.length/(float) beatspan;
+            int colorIndex = (int) ((beatpos-1) * shrinkFactor);
+
+            // create the Paint and set its color
+            Paint paint = new Paint();
+            paint.setColor(getResources().getColor(R.color.beatcolorgray));
+            canvas.drawRect(rectangle, paint);
+        }
+    }*/
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -244,6 +277,26 @@ public class ScrollViewExt extends ScrollView {
             }
 
             beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasure() + 1;
+            beatpos = beatpos % maxMeasuresPerLine == 0 ? maxMeasuresPerLine : beatpos % maxMeasuresPerLine;
+            drawBeatIndicator(beatspan, beatpos, scrollLine + autoScroll.getScoreData().getScrollStart() + 2, canvas);
+        }
+
+        if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
+            beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
+            beatpos = beatpos % autoScroll.getScoreData().getBeats() == 0 ? autoScroll.getScoreData().getBeats() : beatpos % autoScroll.getScoreData().getBeats();
+            beatspan = autoScroll.getScoreData().getBeats();
+            drawBeatIndicator(beatspan, beatpos, 0, canvas);
+        }
+
+
+       /* ////// tempo animation
+        if (autoScroll.getBeatInterval() > 0) {
+            beatspan = autoScroll.getLineMeasures();
+            if (beatspan > autoScroll.getScoreData().getMeasuresPerLine()) {
+                beatspan = autoScroll.getScoreData().getMeasuresPerLine();
+            }
+
+            beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasure() + 1;
             beatpos = beatpos % beatspan+1;
             drawBeatIndicator(beatspan, beatpos, scrollLine + autoScroll.getScoreData().getScrollStart() + 2, canvas);
         }
@@ -253,7 +306,7 @@ public class ScrollViewExt extends ScrollView {
             beatpos = beatpos % autoScroll.getScoreData().getBeats() + 1;
             beatspan = autoScroll.getScoreData().getBeats();
             drawBeatIndicator(beatspan, beatpos, 0, canvas);
-        }
+        }*/
 
         int scrollTo = scrollLine;
         if (scrollActivity.getSong().getPosition() == 0) {

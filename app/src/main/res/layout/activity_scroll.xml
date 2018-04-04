@@ -8,16 +8,18 @@
     tools:context="com.mobileapps.brad.songscroller.MainActivity">
 
     <!-- title bar with menu -->
-    <include layout="@layout/app_bar" android:id="@+id/app_bar"
+    <!--<include layout="@layout/app_bar" android:id="@+id/app_bar"
                app:layout_constraintEnd_toEndOf="parent"
                app:layout_constraintStart_toStartOf="parent"
-               app:layout_constraintTop_toTopOf="parent"/>
+               app:layout_constraintTop_toTopOf="parent"/>-->
 
     <!-- edit line in edit mode -->
     <include layout="@layout/song_line" android:id="@+id/editSongLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"      />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"/>
 
     <com.mobileapps.brad.songscroller.ScrollViewExt
         android:id="@+id/scrollView"

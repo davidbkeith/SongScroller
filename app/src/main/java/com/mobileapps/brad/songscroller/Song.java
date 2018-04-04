@@ -30,7 +30,7 @@ public class Song implements Serializable {
     private String lyrics;
     private String path;
     private String sheetMusicPath;
-    private long duration;
+    private long duration;/// SHOULD NOT NORMALLY BE USED IN CALCULATIONS.  USE MEASURES AND BPM FROM ONLINE SOURCE
     private long startTime;
     private boolean isPlaying;
 

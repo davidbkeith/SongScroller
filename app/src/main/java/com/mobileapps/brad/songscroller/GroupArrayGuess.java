@@ -22,85 +22,13 @@ public class GroupArrayGuess extends GroupArray {
     }
 
     public void create (List<ChordData> chordPos) {
-        measuresPerChord = 2;
+        //measuresPerChord = 2;
         ScoreData scoreData = new ScoreData(120, 4, 8, 1);
 
         if (size() > 0) {
             int chordline = 0;
             int chordlineOffset = 0;
             int linesRemoved = 0;
-
-            /*for (ChordData chordData : chordPos) {
-                 for (int i = chordline; i < size(); i++) {
-                    GroupData gd = get(i);
-                    List chords = new ArrayList();
-                     if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getChordsLength()) {
-
-                         for (int j = chordline; j < i; j++) {
-                            /// remove non-chord lines (all from last chord line to current chord line
-                            remove(chordline);
-                        }
-
-                        linesRemoved = (i - chordline);
-
-                        /// set number of lines in a chord group (lines removed earlier)
-                        if (chordline > 0) {
-                            get(chordline-1).setGroupLineCount(linesRemoved+1);
-                        }
-                        else {
-                            chordlineOffset = linesRemoved;
-                            scrollActivity.getAutoScroll().setPosOffset(linesRemoved);
-                            scoreData.setScrollStart(linesRemoved);
-                        }
-
-                        /// set chords line numbers so first chord line is 1
-                        gd.setChordsLineNumber(gd.getChordsLineNumber() - chordlineOffset);
-
-                        chordline++;
-                        break;
-                    }
-                }
-            }*/
-
-           /* List chords = new ArrayList();
-            for (ChordData chordData : chordPos) {
-                for (int i = chordline; i < size(); i++) {
-                    GroupData gd = get(i);
-                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getChordsLength()) {
-
-                        chords.add (chordData.chord);
-                        if (chords.size() == 1) {
-                            for (int j = chordline; j < i; j++) {
-                                /// remove non-chord lines (all from last chord line to current chord line
-                                remove(chordline);
-                            }
-
-                            linesRemoved = (i - chordline);
-
-                            /// set number of lines in a chord group (lines removed earlier)
-                            if (chordline > 0) {
-                                get(chordline - 1).setGroupLineCount(linesRemoved + 1);
-                            } else {
-                                chordlineOffset = linesRemoved;
-                                scrollActivity.getAutoScroll().setPosOffset(linesRemoved);
-                                scoreData.setScrollStart(linesRemoved);
-                            }
-
-                            /// set chords line numbers so first chord line is 1
-                            gd.setChordsLineNumber(gd.getChordsLineNumber() - chordlineOffset);
-
-                            chordline++;
-                            //break;
-                        }
-                    }
-                    else {
-                        if (chords.size () > 0) {
-                            gd.setChords((String[]) chords.toArray());
-                            chords.clear();
-                        }
-                    }
-                }
-            }*/
 
             //// this array has all lines at this point, chords lines and non-chord lines, etc
             //// find real chord lines, eliminate others and save relevant data
@@ -184,7 +112,7 @@ public class GroupArrayGuess extends GroupArray {
             /// set guess measures
             int count = 0;
             for (GroupData gd : this) {
-                count += gd.chords.length/2 * measuresPerChord;
+                count += ((gd.chords.length/2) / 2) * scoreData.getBeats();
                 gd.setMeasuresToEndofLine(count);
             }
         }
@@ -227,7 +155,7 @@ public class GroupArrayGuess extends GroupArray {
         }
 
         ///////////// duration (from mp3 if available)
-        if (map.get("duration") != null) {
+        /*if (map.get("duration") != null) {
             String[] timeParts = ((String)map.get("duration")).split(":");
             if (timeParts.length > 1) {
                 int seconds = 60 * Integer.parseInt(timeParts[0].trim()) + Integer.parseInt(timeParts[1]);
@@ -236,7 +164,7 @@ public class GroupArrayGuess extends GroupArray {
             else {
                 scrollActivity.getSong().setDuration(Long.parseLong(((String)map.get("duration"))));
             }
-        }
+        }*/
 
         ///////////// bpm
         if (map.get("bpm") != null) {
