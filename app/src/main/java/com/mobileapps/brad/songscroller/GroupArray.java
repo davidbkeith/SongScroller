@@ -16,11 +16,19 @@ public class GroupArray extends ArrayList<GroupData> {
 
     protected ScrollActivity scrollActivity;
 
-    public GroupData getCurrentGroup() {
-        return currentGroup;
+    public int getMeasuresPerChord() {
+        return measuresPerChord;
     }
 
-    protected GroupData currentGroup;
+    public void setMeasuresPerChord(int measuresPerChord) {
+        this.measuresPerChord = measuresPerChord;
+    }
+
+    int measuresPerChord;
+
+    public GroupData getCurrentGroup() {
+        return getGroupFromMeasure(scrollActivity.getAutoScroll().getProgress());
+    }
 
     public ScrollActivity getScrollActivity() {
         return scrollActivity;
@@ -33,6 +41,35 @@ public class GroupArray extends ArrayList<GroupData> {
     }
 
     public void create (List<ChordData> chordPos) {}
+
+    public int get (GroupData groupData) {
+        int count = 0;
+        for (GroupData gd: this) {
+            if (gd.equals(groupData)) {
+                return count;
+            }
+            count++;
+        }
+        return -1;
+    }
+
+    public void setLineMeasuresCount (GroupData gd, int lineMeasureCount) {
+        int index = get(gd);
+        if (index != -1) {
+            int delta, lineMeasures;
+            if (index > 0) {
+                lineMeasures = get(index).getMeasuresToEndofLine() - get(index-1).getMeasuresToEndofLine();
+            }
+            else {
+                lineMeasures = get(index).getMeasuresToEndofLine();
+            }
+
+            delta = lineMeasures - lineMeasureCount;
+            for (int i=index; i<size(); i++) {
+                get(i).setMeasuresToEndofLine(get(i).getMeasuresToEndofLine()-delta);
+            }
+        }
+    }
 
     public void setScoreData (AutoScroll autoScroll) {};
 
@@ -219,17 +256,15 @@ public class GroupArray extends ArrayList<GroupData> {
         return (get(0).getMeasuresToEndofLine());
     }
 
-    public int getGroupIndexFromMeasure (int measure) {
-        int count = 0;
+    public GroupData getGroupFromMeasure (int measure) {
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
         for (GroupData gd : this) {
             if (measure < gd.getMeasuresToEndofLine()) {
-                return (count);
+                return gd;
             }
-            count++;
         }
         //// never here hopefully
-        return (0);
+        return (get(size()-1));
     }
 
     public int getMeasuresFromSongPos (int groupIndex, long songPos) {

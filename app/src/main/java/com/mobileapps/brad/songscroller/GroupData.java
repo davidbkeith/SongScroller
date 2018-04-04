@@ -8,8 +8,10 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 
 /**
@@ -24,7 +26,7 @@ public class GroupData implements Serializable {
     int chordsLineNumber;
     int groupLineCount;
     int wrappedLines;
-    String[] chords;
+    int[] chords;
     ScoreData scoreData;
 
     public GroupData () {
@@ -38,20 +40,92 @@ public class GroupData implements Serializable {
         this.scoreData = scoreData;
     }
 
-    public String[] getChords() {
+    public boolean equals(Object object2) {
+        return object2 instanceof GroupData && getOffsetChords() == ((GroupData) object2).getOffsetChords();
+    }
+
+    public int[] getChords() {
         return chords;
     }
 
-    public void setChords(String[] chords) {
-        this.chords = chords;
+    public int[] getChordsStartPositions() {
+        int[] starts = new int[chords.length/2];
+        for (int i=0; i<chords.length; i+=2) {
+            starts[i/2] = chords[i]+1;  /// add 1 so user not confused with zero index
+        }
+        return starts;
+    }
+
+    public String[] getChords(String text) {
+        String[] chordArray = new String[chords.length/2];
+        for (int i=0; i<chords.length; i+=2) {
+            int start = chords[i] + getOffsetChords();
+            chordArray[i/2] = text.substring(start, start + chords[i+1]);
+        }
+        return chordArray;
+    }
+
+    public void setChords(String[] chordsPositions, int[] originalChords) {
+        //this.chords = chords;
+        //chords = new int[chordsPositions.length];
+        //int count = 0;
+        //for (int i=0; i<chordsPositions)
+       // List origChords = Arrays.asList(getChords());
+        List newChords = new ArrayList();
+
+        for (int i=0; i<chordsPositions.length; i++){
+            try {
+                int chordPos = Integer.parseInt(chordsPositions[i].trim()) - 1;
+                newChords.add(chordPos);
+
+                if (i*2+1 < originalChords.length) {
+                    newChords.add(originalChords[i*2 + 1]);
+                }
+                else {
+                    newChords.add(1);
+                }
+            } catch (Exception e) {
+                Log.d("ParseInt", "Error in setChords converting chord position to integer");
+            }
+        }
+
+        setChords(newChords);
+
+       /* for (int i=0; i<chords.length; i+=2) {
+            if (i < chordsPositions.length) {
+                if (chordsPositions[i].length() > 0) {
+                    try {
+                        chords[i] = Integer.parseInt(chordsPositions[i]);
+                        //count++;
+                    } catch (Exception e) {
+                        Log.d("ParseInt", "Error in setChords converting chord position to integer");
+                    }
+                } else {
+                    chords[i] = -1;
+                }
+            }
+            else {
+                chords[i] = -1;
+            }
+        }*/
+    }
+
+    public void setChords(List chordsPositions) {
+        chords = new int[chordsPositions.size()];
+        for (int i=0; i<chordsPositions.size(); i++) {
+            chords[i] = (int) chordsPositions.get(i);
+        }
     }
 
     public String getLyrics (String score) {
-        int indexOf = score.indexOf ("\n", offsetChords);
-        if (indexOf != -1) {
-            return (score.substring(offsetChords, indexOf));
+        if (score != null) {
+            int indexOf = score.indexOf("\n", offsetChords + ChordsLength + 1);
+            if (indexOf != -1) {
+                return (score.substring(offsetChords, indexOf));
+            }
+            return score.substring(offsetChords);
         }
-        return score.substring(offsetChords);
+        return "";
     }
 
     public String setLyrics (String newLine, String score) {

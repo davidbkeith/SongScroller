@@ -34,7 +34,7 @@
             <ImageView
                 android:id="@+id/imageView2"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="40dp"
                 android:alpha=".6"
                 android:background="@color/colorAccentLight"
                 app:layout_constraintTop_toTopOf="@+id/ivBackground"
@@ -54,7 +54,7 @@
             <Button
                 android:id="@+id/buttonSongs"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:layout_marginEnd="8dp"
                 android:text="Songs"
                 app:layout_constraintEnd_toEndOf="parent"

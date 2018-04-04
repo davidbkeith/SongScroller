@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="90dp">
+
+    <TextView
+        android:id="@+id/textMeasures"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Measures:"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/editMeasures"
+        android:layout_width="22dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        android:text="12"
+        android:textSize="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textMeasures"
+        app:layout_constraintStart_toEndOf="@+id/textMeasures"
+        app:layout_constraintTop_toTopOf="@+id/textMeasures" />
+
+
+    <TextView
+        android:id="@+id/textRepeat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:text="Repeat:"
+        app:layout_constraintBottom_toBottomOf="@+id/editMeasures"
+        app:layout_constraintStart_toEndOf="@+id/editMeasures"
+        app:layout_constraintTop_toTopOf="@+id/editMeasures" />
+
+    <EditText
+        android:id="@+id/editRepeat"
+        android:layout_width="16dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="6dp"
+        android:ems="10"
+        android:inputType="number"
+        android:text="0"
+        android:textSize="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textRepeat"
+        app:layout_constraintStart_toEndOf="@+id/textRepeat"
+        app:layout_constraintTop_toTopOf="@+id/textRepeat" />
+
+    <TextView
+        android:id="@+id/textChords"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="7dp"
+        android:text="Chords:"
+        app:layout_constraintBottom_toBottomOf="@+id/editRepeat"
+        app:layout_constraintStart_toEndOf="@+id/editRepeat"
+        app:layout_constraintTop_toTopOf="@+id/editRepeat" />
+
+        <EditText
+            android:id="@+id/editChords"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textMultiLine"
+            android:text="[A,B#,D,G,A,G,C#,F]"
+            android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="@+id/textChords"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/textChords"
+            app:layout_constraintTop_toTopOf="@+id/textChords" />
+
+
+        <EditText
+            android:id="@+id/editLyrics"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textMultiLine"
+            android:singleLine="false"
+            android:textSize="14dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editRepeat" />
+
+</android.support.constraint.ConstraintLayout>

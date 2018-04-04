@@ -15,7 +15,6 @@ import java.util.regex.Matcher;
  */
 
 public class GroupArrayGuess extends GroupArray {
-    int measuresPerChord;
 
     public GroupArrayGuess (ScrollActivity scrollActivity, GroupArray groupArray) {
         super(scrollActivity);
@@ -110,13 +109,27 @@ public class GroupArrayGuess extends GroupArray {
                 GroupData gd = get(i);
                 //for (ChordData chordData : chordPos) {
                 int chordIndex;
-                List<String> chords = new ArrayList();
+                List chords = new ArrayList();
                 for (chordIndex = chordStart; chordIndex < chordPos.size(); chordIndex++) {
                     ChordData chordData = chordPos.get(chordIndex);
                     if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getChordsLength()) {
                         /// has chords on this line
-                        chords.add(chordData.chord);
-                        if (chords.size() == 1) {
+                      /*  int lastChord = -2;
+                        int nextChord = 0;
+                        if (chordIndex > 0) {
+                            lastChord = chordPos.get(chordIndex - 1).getStartPos();
+                        }
+                        if (chordIndex < chordPos.size() - 1) {
+                            nextChord = chordPos.get(chordIndex + 1).getStartPos();
+                        }*/
+
+                        //// only add chords that are separated by 1 or more characters
+                        //if (chordData.getStartPos() != lastChord + 1 && chordData.getStartPos() != nextChord - 1) {
+                            chords.add(chordData.getStartPos() - gd.getOffsetChords());
+                            chords.add(chordData.getChord().length());
+                       // }
+
+                        if (chords.size() == 2) {
 
                             //// clean up - remove non-chord lines (all from last chord line to current chord line
                             for (int j = chordline; j < i; j++) {
@@ -153,7 +166,7 @@ public class GroupArrayGuess extends GroupArray {
                 }
                 /// no chords on this line, go to next
                 if (chords.size() > 0) {
-                    gd.setChords(chords.toArray(new String[0]));
+                    gd.setChords(chords);
                     chordStart = chordIndex;
                 }
             }
@@ -171,7 +184,7 @@ public class GroupArrayGuess extends GroupArray {
             /// set guess measures
             int count = 0;
             for (GroupData gd : this) {
-                count += gd.chords.length * measuresPerChord;
+                count += gd.chords.length/2 * measuresPerChord;
                 gd.setMeasuresToEndofLine(count);
             }
         }

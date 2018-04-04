@@ -34,6 +34,9 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     protected boolean updateProgress;
     protected double scrollSensitivity;  /// how much is scrolled per finger movement
     protected List<ChordData> chordPos;
+    protected int posOffset;
+    protected GroupArray groupArray;
+    protected GroupArray groupArrayEdited;
 
     public String getText() { return text; }
 
@@ -72,10 +75,12 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         updateProgress = false;
     }
 
-    protected int posOffset;   protected GroupArray groupArray;
+    public GroupArray getGroupArrayOriginal() {
+        return groupArray;
+    }
 
     public GroupArray getGroupArray() {
-        return groupArray;
+        return groupArrayEdited == null ? groupArray: groupArrayEdited;
     }
 
     public AutoScroll(Context context, AttributeSet attrs) {
@@ -134,6 +139,10 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
                 groupArray = new GroupArrayGuess(scrollActivity, groupArray);
                 sb = formatText();
                 groupArray.create(chordPos);
+
+                if (scrollActivity.isEditing()) {
+                    groupArrayEdited = (GroupArray) groupArray.clone();
+                }
                 //posOffset = groupArray.get(0).getChordsLineNumber();
                 //groupArray.setScoreData(this);
             }
@@ -203,8 +212,8 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
             lineCount += gdCurrent.getGroupLineCount() + gdCurrent.getWrappedLines() - gdLast.getWrappedLines();
 
-            if (lineCount > offset) {
-                groupIndex--;
+            if (lineCount >= offset) {
+                groupIndex = i;
                 break;
             }
         }
@@ -231,6 +240,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
     public int getScrollLine() {
         return getScrollLine(getProgress());
+        //return scrollActivity.getScrollView().getScrollLine();
     }
 
     public boolean isChordLine (int charPosition) {
@@ -281,15 +291,17 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
             sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         }
 
-        chordPos = new ArrayList<>();
+        chordPos = new ArrayList<ChordData>();
         matcher = java.util.regex.Pattern.compile("(\\(*[CDEFGAB](?:b|bb)*(?:|#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\(]?[\\d\\/-/+]*[\\)]?(?:[CDEFGAB](?:b|bb)*(?:#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\d\\/]*)*\\)*)(?=[\\s|$])(?! [a-z])").matcher(sb.toString());
+       // final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
         while (matcher.find()) {
             if (isChordLine(matcher.start())) {
-                final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
-                sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+               // sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 chordPos.add(new ChordData(matcher.start(), text.substring(matcher.start(), matcher.end())));
             }
         }
+        //final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
+        //ChordData.setChords(chordPos, sb, fcs);
         return sb;
     }
 }

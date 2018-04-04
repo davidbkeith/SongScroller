@@ -26,7 +26,12 @@ public class ScrollViewExt extends ScrollView {
 
     public void setScrollLine(int scrollLine) {
         isScrolling = true;
-        this.scrollLine = scrollLine;
+        if (scrollLine != this.scrollLine) {
+            ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+
+            this.scrollLine = scrollLine;
+            scrollActivity.getSongLineSettings ().update();
+        }
     }
 
     public int getScrollLine() {
@@ -239,21 +244,25 @@ public class ScrollViewExt extends ScrollView {
             }
 
             beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasure() + 1;
+            beatpos = beatpos % beatspan+1;
             drawBeatIndicator(beatspan, beatpos, scrollLine + autoScroll.getScoreData().getScrollStart() + 2, canvas);
         }
 
         if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
             beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
+            beatpos = beatpos % autoScroll.getScoreData().getBeats() + 1;
             beatspan = autoScroll.getScoreData().getBeats();
             drawBeatIndicator(beatspan, beatpos, 0, canvas);
         }
 
+        int scrollTo = scrollLine;
         if (scrollActivity.getSong().getPosition() == 0) {
-            scrollLine = 0;     /// show stuff above starting line of song
+            scrollTo = 0;     /// show stuff above starting line of song
         }
 
+
         //if (enableScrolling) {
-            scrollTo(0, (int) (scrollLine * lineHeight));
+            scrollTo(0, (int) (scrollTo * lineHeight));
         //}
     }
 }

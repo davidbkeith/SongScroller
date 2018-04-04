@@ -13,7 +13,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,6 +34,8 @@ import android.support.constraint.ConstraintLayout;
 public class ScrollActivity extends AppCompatActivity implements ScrollViewListener {
 
     private Context context;
+
+    private boolean isEditing;
 
     private int pause;
     private int currentScrollPos;
@@ -58,8 +62,37 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private ImageView ivBackground;
     private ImageView[] imageTapTempo;
 
+    private View controls;
+
     private TextView textView;
     private TextView textCountdown;
+
+
+    public boolean isEditing() {
+        return isEditing;
+    }
+
+    public void setEditing(boolean editing) {
+        isEditing = editing;
+    }
+
+    public SpannableStringBuilder getSb() {
+        return sb;
+    }
+
+    public void setSb(SpannableStringBuilder sb) {
+        this.sb = sb;
+    }
+
+    private SpannableStringBuilder sb;
+
+    private Toolbar toolbar;
+
+    public SongLineSettings getSongLineSettings() {
+        return songLineSettings;
+    }
+
+    private SongLineSettings songLineSettings;
 
     public int getTextVeiwHeight() {
         return textViewHeight;
@@ -79,7 +112,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return elapsedTime;
     }
 
-    public int getLinesPerPage () { return (int) (scrollViewHeight / scrollView.getLineHeight()); }
+    public int getLinesPerPage () { return (int) (scrollView.getHeight() / scrollView.getLineHeight()); }
 
     public ImageView getIvPlay() {
         return ivPlay;
@@ -168,11 +201,13 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 startActivityForResult(intent, 1);
                 return true;
             case R.id.menu_line_options:
-                intent = new Intent(context, SongLineSettingsActivity.class);
+              /*  intent = new Intent(context, SongLineSettingsActivity.class);
                 intent.putExtra("songscroller_groupdata", autoScroll.getGroupArray().getCurrentGroup());
                 intent.putExtra("songscroller_measures", autoScroll.getGroupArray().getLineMeasuresFromTotalMeasures(autoScroll.getProgress()));
                 intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
-                startActivityForResult(intent, 1);
+                intent.putExtra("songscroller_text", autoScroll.getText());
+
+                startActivityForResult(intent, 1);*/
                 return true;
             case android.R.id.home:
                 // click on 'up' button in the action bar, handle it here
@@ -189,10 +224,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scroll);
        // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
+        toolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        songLineSettings = new SongLineSettings(this);
 
+        isEditing = true;
         context = this;
         newSeek = -1;
         expand = true;
@@ -204,32 +241,21 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         autoScroll = (AutoScroll) findViewById(R.id.seekBar);
         textCountdown = (TextView) findViewById(R.id.textCountdown);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
+       // controls = findViewById(R.id.controls);
 
         scrollView.setScrollViewListener(this);
         autoScroll.setOnSeekBarChangeListener(autoScroll);
+        expand();
 
         scrollView.setOnTouchListener(new OnSwipeTouchListener(ScrollActivity.this) {
             public void onSwipeTop() {
                 //Toast.makeText(ScrollActivity.this, "top", Toast.LENGTH_SHORT).show();
             }
             public void onSwipeRight() {
-                //Toast.makeText(ScrollActivity.this, "right", Toast.LENGTH_SHORT).show();
-                if (getAutoScroll().getProgress() == 0) {
-                    //ScoreData scoreData = autoScroll.getScoreData();
-                    Intent intent = new Intent(context, SongSettingsActivity.class);
-                    intent.putExtra("songscroller_scoredata", autoScroll.getScoreData());
-                    intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
-                    startActivityForResult(intent, 1);
-                }
-                else {
-                    Intent intent = new Intent(context, SongLineSettingsActivity.class);
-                  //  intent.putExtra("songscroller_groupdata", autoScroll.getGroupArray().getCurrentGroup());
-                  //  intent.putExtra("songscroller_measures", autoScroll.getGroupArray().getCurrentGroup());
-                    intent.putExtra("songscroller_title", String.format("Edit-%s", song.getTitle()));
-                    startActivityForResult(intent, 1);
-                }
+                expand ();
             }
             public void onSwipeLeft() {
+                expand ();
                 //Toast.makeText(ScrollActivity.this, "left", Toast.LENGTH_SHORT).show();
 
             }
@@ -307,7 +333,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         //Read text from file
         //autoScroll = new AutoScrollCalculated(this, file);
-        SpannableStringBuilder sb = autoScroll.initialize (this, file);
+        sb = autoScroll.initialize (this, file);
         /*if (!autoScroll.isValid()) {
             AutoScroll autoScrollOld = autoScroll;
             autoScroll = (AutoScrollGuess) findViewById(R.id.seekBarGuess);
@@ -317,7 +343,9 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         }*/
 
         //SpannableStringBuilder text = autoScroll.formatText();
-        textView.setText(sb);
+        //textView.setText(sb);
+        setSpans();
+        songLineSettings.update();
 
         //final int actualNumLines;
         textView.post(new Runnable() {
@@ -368,7 +396,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 }
             }
         });
-        ivNext = findViewById(R.id.ivNext);
+       /* ivNext = findViewById(R.id.ivNext);
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -381,7 +409,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             public void onClick(View v) {
                 song.setStartPosition(song.getPosition()-getAutoScroll().getTimePerMeasure());
             }
-        });
+        });*/
 
         handler.removeCallbacks(moveSeekBarThread);
         handler.postDelayed(moveSeekBarThread, 100); //cal the thread after 100 milliseconds
@@ -404,24 +432,54 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {}
 
-    void expand () {
+   void expand () {
         ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
-        ConstraintSet constraintSet = new ConstraintSet();
-        ConstraintLayout constraintLayout = new ConstraintLayout(scrollView.getContext());
+       // ConstraintSet constraintSet = new ConstraintSet();
+       // ConstraintLayout constraintLayout = new ConstraintLayout(scrollView.getContext());
         ActionBar actionBar = getSupportActionBar();
 
         if (expand) {
-            constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
+         //   constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
             actionBar.hide();
         }
         else {
-            constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.ivBackground, ConstraintSet.TOP,0);
+         //   constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.ivBackground, ConstraintSet.TOP,0);
             actionBar.show();
+        }
+       // constraintSet.applyTo(constraintLayout);
+        expand = !expand;
+    }
+
+   /* void expand () {
+        controls.setVisibility(expand ? View.GONE: View.VISIBLE);
+        ConstraintSet constraintSet = new ConstraintSet();
+        ConstraintLayout constraintLayout = new ConstraintLayout(scrollView.getContext());
+     //   constraintSet.clone(constraintLayout);
+        ActionBar actionBar = getSupportActionBar();
+
+        if (expand) {
+            constraintSet.connect(R.id.textView,ConstraintSet.BOTTOM,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
+            // constraintSet.connect(R.id.scrollView,ConstraintSet.TOP,  R.id.app_bar, ConstraintSet.TOP,0);
+          //  constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.ivBackground, ConstraintSet.BOTTOM,0);
+           // constraintSet.connect(R.id.textView,ConstraintSet.BOTTOM,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
+           // constraintSet.connect(R.id.controls,ConstraintSet.TOP,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
+           // constraintSet.connect(R.id.ivBackground,ConstraintSet.TOP,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
+            actionBar.hide();
+            //controls.setVisibility(View.INVISIBLE);
+           // controls.setAlpha((float) 0.1);
+          //  ivBackground.setVisibility(View.INVISIBLE);
+        }
+        else {
+          //  constraintSet.connect(R.id.scrollView,ConstraintSet.TOP,  R.id.app_bar, ConstraintSet.BOTTOM,0);
+          //  constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.ivBackground, ConstraintSet.TOP,0);
+            actionBar.show();
+          //  controls.setVisibility(View.VISIBLE);
+            ivBackground.setVisibility(View.VISIBLE);
         }
         constraintSet.applyTo(constraintLayout);
         expand = !expand;
     }
-
+*/
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         int avgTapSpeed = 0;
@@ -432,5 +490,21 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         }
         return super.onTouchEvent(ev);
+    }
+
+    public void setSpans () {
+        sb = new SpannableStringBuilder(sb.toString());
+
+        for (GroupData gd: autoScroll.getGroupArray()) {
+            int[] chords = gd.getChords();
+            for (int i=0; i < chords.length - 1; i+=2) {
+                if (chords[i] >= 0) {
+                    final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
+                    int start = chords[i] + gd.getOffsetChords();
+                    sb.setSpan(fcs, start, start + chords[i + 1], Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                }
+            }
+        }
+        textView.setText(sb);
     }
 }

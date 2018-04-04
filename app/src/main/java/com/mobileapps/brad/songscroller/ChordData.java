@@ -1,5 +1,12 @@
 package com.mobileapps.brad.songscroller;
 
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by brad on 3/27/18.
  */
@@ -33,4 +40,9 @@ public class ChordData {
         this.chord = chord;
     }
 
+    static public void setChords (List<ChordData> chords, SpannableStringBuilder sb, ForegroundColorSpan fcs) {
+         for (ChordData chordData: chords) {
+             sb.setSpan(fcs, chordData.getStartPos(), chordData.getStartPos() + chordData.getChord().length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+         }
+    }
 }

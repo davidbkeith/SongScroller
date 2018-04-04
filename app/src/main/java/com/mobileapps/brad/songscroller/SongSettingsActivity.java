@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.v7.widget.Toolbar;
 
 public class SongSettingsActivity extends AppCompatActivity {
     EditText editBPM;
@@ -29,8 +30,10 @@ public class SongSettingsActivity extends AppCompatActivity {
         scoreData = (ScoreData) getIntent().getSerializableExtra("songscroller_scoredata");
         String title = (String) getIntent().getSerializableExtra("songscroller_title");
 
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
+        setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
         //// set title
         getSupportActionBar().setTitle(String.format(title));
 
