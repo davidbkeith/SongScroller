@@ -53,20 +53,22 @@ public class GroupArray extends ArrayList<GroupData> {
         return -1;
     }
 
+    public void resetLineMeasures (int newLineMeasureLength) {
+        int currentLineMeasures = scrollActivity.getAutoScroll().getScoreData().getMeasuresPerLine();
+        int delta = currentLineMeasures - newLineMeasureLength;
+        for (int i=0; i<size(); i++) {
+            get(i).setMeasures(get(i).getMeasures()-delta);
+        }
+    }
+
     public void setLineMeasuresCount (GroupData gd, int lineMeasureCount) {
         int index = get(gd);
         if (index != -1) {
-            int delta, lineMeasures;
-            if (index > 0) {
-                lineMeasures = get(index).getMeasuresToEndofLine() - get(index-1).getMeasuresToEndofLine();
-            }
-            else {
-                lineMeasures = get(index).getMeasuresToEndofLine();
-            }
+            int lineMeasures = get(index).getMeasures();
+            int delta = lineMeasures - lineMeasureCount;
 
-            delta = lineMeasures - lineMeasureCount;
             for (int i=index; i<size(); i++) {
-                get(i).setMeasuresToEndofLine(get(i).getMeasuresToEndofLine()-delta);
+                get(i).setMeasures(get(i).getMeasures()-delta);
             }
         }
     }
@@ -101,15 +103,16 @@ public class GroupArray extends ArrayList<GroupData> {
                     try {
                         if (line.trim().length() > 0) {
                             groupData.getLineMetaData(line);
-                            if (groupData.getMeasuresToEndofLine() == -1) {
-                                groupData.setMeasuresToEndofLine(scoreData.getMeasuresPerLine());
+                            if (groupData.getMeasures() == -1) {
+                                groupData.setMeasures(groupData.getRepeat() * scoreData.getMeasuresPerLine());
                             }
-                            measuresToEndofLine += groupData.getRepeat() * groupData.getMeasuresToEndofLine();
+                            //measuresToEndofLine += groupData.getRepeat() * groupData.getMeasuresToEndofLine();
                         } else {
-                            measuresToEndofLine += groupData.getRepeat() * scoreData.getMeasuresPerLine();
+                            //measuresToEndofLine += groupData.getRepeat() * scoreData.getMeasuresPerLine();
+                            groupData.setMeasures(scoreData.getMeasuresPerLine());
                         }
 
-                        groupData.setMeasuresToEndofLine(measuresToEndofLine);
+                       // groupData.setMeasuresToEndofLine(measuresToEndofLine);
                         groupData.setGroupLineCount(3);
                         add(groupData);
                         line = "";
@@ -233,7 +236,7 @@ public class GroupArray extends ArrayList<GroupData> {
         }
     }
 
-    public int getStartOfLineMeasures (int line) {
+  /*  public int getStartOfLineMeasures (int line) {
         int group = line/3;
         if (group > 0 && group < size()) {
             return get(group-1).getMeasuresToEndofLine();
@@ -250,48 +253,64 @@ public class GroupArray extends ArrayList<GroupData> {
             return get(group).getMeasuresToEndofLine();
         }
         return (0);
-    }
+    }*/
 
     public int getTotalMeasures () {
-        return get(size()-1).getMeasuresToEndofLine();
+        int count = 0;
+        for (GroupData gd :this) {
+            count += gd.getMeasures();
+        }
+        return count;
     }
 
     public int getStartLineMeasuresFromTotalMeasures (int measures) {
         int groupIndex = 0;
-        for (GroupData gd : this) {
-            if (measures < gd.getMeasuresToEndofLine()) {
-                if (groupIndex > 0) {
-                    return (int) (get(groupIndex - 1).getMeasuresToEndofLine());
+        int count = 0;
+        if (size() > 1) {
+            for (GroupData gd : this) {
+                count += gd.getMeasures();
+                if (measures < count) {
+                    if (groupIndex > 0) {
+                        return (int) (count - get(groupIndex - 1).getMeasures());
+                    } else {
+                        return 0;
+                    }
                 }
-                else {
-                    break;
-                }
+                groupIndex++;
             }
-            groupIndex++;
+            return (count - get(size() - 1).getMeasures());
         }
-        return (0);
+        return 0;
+    }
+
+    public int getMeasuresToEndOfLine (int index) {
+        index = index <= size() -1 ? index : size() - 1;
+        int count = 0;
+        for (int i = 0; i<=index; i++) {
+            count += get(i).getMeasures();
+        }
+        return (count);
     }
 
     public int getLineMeasuresFromTotalMeasures (int measures) {
         int groupIndex = 0;
+        int count = 0;
         for (GroupData gd : this) {
-            if (measures < gd.getMeasuresToEndofLine()) {
-                if (groupIndex > 0) {
-                    return (int) (get(groupIndex).getMeasuresToEndofLine() - get(groupIndex - 1).getMeasuresToEndofLine());
-                }
-                else {
-                    break;
-                }
+            count += gd.getMeasures();
+            if (measures < count) {
+                return (int) (get(groupIndex).getMeasures());
             }
             groupIndex++;
         }
-        return (get(0).getMeasuresToEndofLine());
+        return (get(size()-1).getMeasures());
     }
 
     public GroupData getGroupFromMeasure (int measure) {
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
+        int count = 0;
         for (GroupData gd : this) {
-            if (measure < gd.getMeasuresToEndofLine()) {
+            count += gd.getMeasures();
+            if (measure < count) {
                 return gd;
             }
         }
@@ -299,7 +318,7 @@ public class GroupArray extends ArrayList<GroupData> {
         return (get(size()-1));
     }
 
-    public int getMeasuresFromSongPos (int groupIndex, long songPos) {
+  /*  public int getMeasuresFromSongPos (int groupIndex, long songPos) {
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
         //int groupIndex = getGroupIndexFromSongPos(songPos);
         int measuresToGroup = getStartOfLineMeasures (groupIndex);
@@ -311,7 +330,7 @@ public class GroupArray extends ArrayList<GroupData> {
             measure++;
         }
         return measure;
-    }
+    }*/
 
     public int getLastPageGroupIndex () {
         int totalLines = scrollActivity.getLinesPerPage();
@@ -331,7 +350,7 @@ public class GroupArray extends ArrayList<GroupData> {
         return 0;
     }
 
-    public int getLastVisibleLineMeasure (int groupIndex) {
+  /*  public int getLastVisibleLineMeasure (int groupIndex) {
         //int count = scrollActivity.getAutoScroll().getCurrentGroupIndex();
         int totalLines = scrollActivity.getLinesPerPage();
         int lineCount = 0;
@@ -366,12 +385,14 @@ public class GroupArray extends ArrayList<GroupData> {
             index = lastPageGroupIndex;
         }
         return index > 0 ? get(index - 1).getMeasuresToEndofLine() + 1: 1;
-    }
+    }*/
 
     public int getGroupIndex(int measure) {
         int count = 0;
+        int totMeasures = 0;
         for (GroupData gd : this) {
-            if (measure < gd.getMeasuresToEndofLine()) {
+            totMeasures += gd.getMeasures();
+            if (measure < totMeasures) {
                 return count;
             }
             count++;
@@ -381,9 +402,11 @@ public class GroupArray extends ArrayList<GroupData> {
 
     public int getGroupIndex() {
         int count = 0;
+        int totMeasures = 0;
         int measure = scrollActivity.getAutoScroll().getProgress();
         for (GroupData gd : this) {
-            if (measure < gd.getMeasuresToEndofLine()) {
+            totMeasures += gd.getMeasures();
+            if (measure < totMeasures) {
                 return count;
             }
             count++;
@@ -393,8 +416,10 @@ public class GroupArray extends ArrayList<GroupData> {
 
     public int getLine(int measure) {
         int count = 0;
+        int totMeasures = 0;
         for (GroupData gd : this) {
-            if (measure < gd.getMeasuresToEndofLine()) {
+            totMeasures += gd.getMeasures();
+            if (measure < totMeasures) {
                 if (count > 0) {
                     //return (int) ((3 * count + get(count - 1).getWrappedLines()));
                     return (gd.getChordsLineNumber() + get(count - 1).getWrappedLines());

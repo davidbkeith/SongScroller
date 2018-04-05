@@ -275,7 +275,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         newScrollLine = newScrollLine < 0 ? 0 : newScrollLine;
 
         int groupIndex = getGroupIndex(newScrollLine);
-        int measures = groupIndex == 0 ? 0 : groupArray.get(groupIndex).getMeasuresToEndofLine() + 1;
+        int measures = groupIndex == 0 ? 0 : groupArray.getMeasuresToEndOfLine(groupIndex) + 1;
         scrollActivity.getSong().setStartPosition(measures*getTimePerMeasure ());
     }
 
@@ -285,7 +285,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         int lastGroupIndex = groupArray.getLastPageGroupIndex();
 
         groupIndex = groupIndex > lastGroupIndex ? lastGroupIndex : groupIndex;
-        int measures = groupIndex > 0 ? groupArray.get(groupIndex -1).getMeasuresToEndofLine() + 1 : 1;
+        int measures = groupIndex > 0 ? groupArray.getMeasuresToEndOfLine(groupIndex -1) + 1 : 1;
         scrollActivity.getSong().setStartPosition(measures*getTimePerMeasure ());
     }
 

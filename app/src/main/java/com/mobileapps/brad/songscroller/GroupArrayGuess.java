@@ -110,10 +110,10 @@ public class GroupArrayGuess extends GroupArray {
             get(size()-1).setGroupLineCount(size-chordline+1);
 
             /// set guess measures
-            int count = 0;
+            //int count = 0;
             for (GroupData gd : this) {
-                count += ((gd.chords.length/2) / 2) * scoreData.getBeats();
-                gd.setMeasuresToEndofLine(count);
+                int count = ((gd.chords.length/2) / 2) * scoreData.getBeats();
+                gd.setMeasures(count);
             }
         }
 

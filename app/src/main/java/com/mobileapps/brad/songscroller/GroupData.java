@@ -21,7 +21,16 @@ import java.util.regex.Matcher;
 public class GroupData implements Serializable {
     int offsetChords;
     int ChordsLength;
-    int measuresToEndofLine;
+
+    public int getMeasures() {
+        return measures;
+    }
+
+    public void setMeasures(int measures) {
+        this.measures = measures;
+    }
+
+    int measures;
     int repeat;
     int chordsLineNumber;
     int groupLineCount;
@@ -30,12 +39,12 @@ public class GroupData implements Serializable {
     ScoreData scoreData;
 
     public GroupData () {
-        measuresToEndofLine = -1;
+        measures = -1;
         repeat = 1;
     }
 
     public GroupData (ScoreData scoreData) {
-        measuresToEndofLine = -1;
+        measures = -1;
         repeat = 1;
         this.scoreData = scoreData;
     }
@@ -177,11 +186,11 @@ public class GroupData implements Serializable {
         return scoreData.getBeats();
     }
 
-    public int getMeasuresToEndofLine() {
-        return measuresToEndofLine;
-    }
+    //public int getMeasuresToEndofLine() {
+    //    return measuresToEndofLine;
+    //}
 
-    public void setMeasuresToEndofLine(int measuresToEndofLine) { this.measuresToEndofLine = measuresToEndofLine; }
+    //public void setMeasuresToEndofLine(int measuresToEndofLine) { this.measuresToEndofLine = measuresToEndofLine; }
 
     public int getRepeat() {
         return repeat;
@@ -222,8 +231,8 @@ public class GroupData implements Serializable {
 
     public void getLineMetaData (String JSON) throws Exception {
         JSONObject jsonObject = new JSONObject(JSON);
-        setMeasuresToEndofLine(jsonObject.optInt("measures", -1));
-        setRepeat(jsonObject.optInt("repeat", 1));
+        setMeasures(jsonObject.optInt("measures", -1) * (int) (jsonObject.optInt("repeat", 1)));
+      //  setRepeat(jsonObject.optInt("repeat", 1));
     }
 }
 

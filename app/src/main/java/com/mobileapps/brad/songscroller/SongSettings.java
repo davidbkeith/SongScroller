@@ -89,8 +89,7 @@ public class SongSettings {
             @Override
             public void afterTextChanged(Editable editable) {
                 try {
-                    GroupData gd = scrollActivity.getAutoScroll().getGroupArray().get(0);
-                    scrollActivity.getAutoScroll().getGroupArray().setLineMeasuresCount(gd, Integer.parseInt(editable.toString().trim()));
+                    scrollActivity.getAutoScroll().getGroupArray().resetLineMeasures(Integer.parseInt(editable.toString().trim()));
                 }
                 catch (Exception e)
                 {
