@@ -1,8 +1,8 @@
 package com.mobileapps.brad.songscroller;
 
-import android.graphics.Point;
 import android.util.Log;
-import android.widget.TextView;
+
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
@@ -16,19 +16,35 @@ public class GroupArray extends ArrayList<GroupData> {
 
     protected ScrollActivity scrollActivity;
 
-    public int getMeasuresPerChord() {
-        return measuresPerChord;
-    }
+   // public int getMeasuresPerChord() {
+    //    return measuresPerChord;
+   // }
 
-    public void setMeasuresPerChord(int measuresPerChord) {
+    /*public void setMeasuresPerChord(int measuresPerChord) {
         this.measuresPerChord = measuresPerChord;
     }
 
-    int measuresPerChord;
+    int measuresPerChord;*/
 
-    public GroupData getCurrentGroup() {
-        return getGroupFromMeasure(scrollActivity.getAutoScroll().getProgress());
+   /* public int getSongStartLine() {
+        int count = 0;
+        for (GroupData gd: this) {
+            if (gd.getBeats() > 0) {
+                return count;
+            }
+            count++;
+        }
+        return 0;
     }
+
+    public void setSongStartLine(int startline) {
+        this.startline = startline;
+        //updateProgress = false;
+    }
+*/
+   // public GroupData getCurrentGroup() {
+    //    return getGroupFromBeats(scrollActivity.getAutoScroll().getProgress());
+  //  }
 
     public ScrollActivity getScrollActivity() {
         return scrollActivity;
@@ -37,6 +53,7 @@ public class GroupArray extends ArrayList<GroupData> {
     public void GroupArray () {}
 
     public GroupArray (ScrollActivity scrollActivity) {
+        //measuresPerChord = 2;
         this.scrollActivity = scrollActivity;
     }
 
@@ -53,25 +70,31 @@ public class GroupArray extends ArrayList<GroupData> {
         return -1;
     }
 
-    public void resetLineMeasures (int newLineMeasureLength) {
-        int currentLineMeasures = scrollActivity.getAutoScroll().getScoreData().getMeasuresPerLine();
-        int delta = currentLineMeasures - newLineMeasureLength;
-        for (int i=0; i<size(); i++) {
-            get(i).setMeasures(get(i).getMeasures()-delta);
+    public void reset () {
+        for (GroupData gd: this) {
+            gd.setMeasures();
         }
     }
 
-    public void setLineMeasuresCount (GroupData gd, int lineMeasureCount) {
+    /*public void setLineMeasuresCount (GroupData gd, int lineMeasureCount) {
         int index = get(gd);
         if (index != -1) {
-            int lineMeasures = get(index).getMeasures();
+            int lineMeasures = get(index).getBeats();
             int delta = lineMeasures - lineMeasureCount;
 
-            for (int i=index; i<size(); i++) {
-                get(i).setMeasures(get(i).getMeasures()-delta);
+            if (delta != 0) {
+                int totMeasrues = 0;
+
+                for (int i = index; i < size(); i++) {
+                    totMeasrues += get(i).getBeats() - delta;
+                    get(i).setBeats(get(i).getBeats() - delta);
+                }
+
+                /// since total beats has changed, must reset scroll max
+                scrollActivity.getAutoScroll().setMax(totMeasrues);
             }
         }
-    }
+    }*/
 
     public void setScoreData (AutoScroll autoScroll) {};
 
@@ -89,31 +112,31 @@ public class GroupArray extends ArrayList<GroupData> {
                 //lineCount++;
 
                 if (groupLineCount == 1) {
-                    groupData = new GroupData(scoreData);
+                    groupData = new GroupData();
                     groupData.setOffsetChords(scoreText.length());
-                    groupData.setChordsLength(line.length());
-                    groupData.setChordsLineNumber(lineCount);
+                    groupData.setLengthChords(line.length());
+                    //groupData.setChordsLineNumber(lineCount);
                 }
                 //// line 2 is lyrics, annotations, etc
                 else if (groupLineCount == 2) {
                     //groupData.setLyricsLength(line.length());
                 }
-                //// line 3 is line metadata (number of measures, time signature, etc)
+                //// line 3 is line metadata (number of beats, time signature, etc)
                 else {
                     try {
                         if (line.trim().length() > 0) {
                             groupData.getLineMetaData(line);
-                            if (groupData.getMeasures() == -1) {
-                                groupData.setMeasures(groupData.getRepeat() * scoreData.getMeasuresPerLine());
-                            }
+                           // if (groupData.getMeasures() == -1) {
+                           //     groupData.setMeasures(groupData.getRepeat() * scoreData.getBeatsPerLine());
+                           // }
                             //measuresToEndofLine += groupData.getRepeat() * groupData.getMeasuresToEndofLine();
-                        } else {
+                       // } else {
                             //measuresToEndofLine += groupData.getRepeat() * scoreData.getMeasuresPerLine();
-                            groupData.setMeasures(scoreData.getMeasuresPerLine());
+                            //groupData.setBeats(scoreData.getBeatsPerLine());
                         }
 
                        // groupData.setMeasuresToEndofLine(measuresToEndofLine);
-                        groupData.setGroupLineCount(3);
+                       // groupData.setGroupLineCount(3);
                         add(groupData);
                         line = "";
                     } catch (Exception e) {
@@ -134,8 +157,8 @@ public class GroupArray extends ArrayList<GroupData> {
         return scoreText;
     }
 
+
     public void setChordData (List<ChordData> chordPos) {
-        measuresPerChord = 2;
 
         if (size() > 0) {
             //// this array has all lines at this point, chords lines and non-chord lines, etc
@@ -148,7 +171,7 @@ public class GroupArray extends ArrayList<GroupData> {
                 List chords = new ArrayList();
                 for (chordIndex = chordStart; chordIndex < chordPos.size(); chordIndex++) {
                     ChordData chordData = chordPos.get(chordIndex);
-                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getChordsLength()) {
+                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getLengthChords()) {
                         /// has chords on this line
                         chords.add(chordData.getStartPos() - gd.getOffsetChords());
                         chords.add(chordData.getChord().length());
@@ -182,17 +205,25 @@ public class GroupArray extends ArrayList<GroupData> {
         }
 
         i--;
-        return charPosition >= get(i).getOffsetChords() && charPosition < get(i).getOffsetChords() + get(i).getChordsLength();
+        return charPosition >= get(i).getOffsetChords() && charPosition < get(i).getOffsetChords() + get(i).getLengthChords();
     }
 
-    public void setWrappedLines () {
+  /*  public int getPriorWrapped (int groupIndex) {
+        int wrappedLines = 0;
+        for (int i=0; i<groupIndex; i++) {
+            wrappedLines += get(i).getWrappedLines();
+        }
+        return wrappedLines;
+    }*/
+
+   /* public void setWrappedLines () {
         TextView textView = scrollActivity.getTextView();
         int wrapped = 0;
 
         String text = textView.getText().toString();
-        int linePos = scrollActivity.getAutoScroll().getPosOffset();
+        int linePos = scrollActivity.getAutoScroll().getScoreData().getSongStartLine();
 
-        /*for(GroupData gd: this) {
+        *//*for(GroupData gd: this) {
             int groupwrapped = 0;
             for (int groupLine = 0; groupLine < 2; groupLine++) {
                 int lineEnd = textView.getLayout().getLineEnd(linePos + groupLine);
@@ -206,7 +237,7 @@ public class GroupArray extends ArrayList<GroupData> {
             wrapped += groupwrapped;
             gd.setWrappedLines(wrapped);
         }
-*/
+*//*
         //// preamble lines wrapped
         for (int i=0; i<linePos; i++) {
             int lineEnd = textView.getLayout().getLineEnd(i);
@@ -231,11 +262,10 @@ public class GroupArray extends ArrayList<GroupData> {
                 }
             }
             linePos += (numLines + groupwrapped);
-            wrapped += groupwrapped;
-            get(i).setWrappedLines(wrapped);
+            get(i).setWrappedLines(groupwrapped);
         }
     }
-
+*/
   /*  public int getStartOfLineMeasures (int line) {
         int group = line/3;
         if (group > 0 && group < size()) {
@@ -255,62 +285,62 @@ public class GroupArray extends ArrayList<GroupData> {
         return (0);
     }*/
 
-    public int getTotalMeasures () {
+    public int getTotalBeats() {
         int count = 0;
         for (GroupData gd :this) {
-            count += gd.getMeasures();
+            count += gd.getBeats();
         }
         return count;
     }
 
-    public int getStartLineMeasuresFromTotalMeasures (int measures) {
+    public int getStartLineBeatsFromTotalBeats(int beats) {
         int groupIndex = 0;
         int count = 0;
         if (size() > 1) {
             for (GroupData gd : this) {
-                count += gd.getMeasures();
-                if (measures < count) {
+                count += gd.getBeats();
+                if (beats < count) {
                     if (groupIndex > 0) {
-                        return (int) (count - get(groupIndex - 1).getMeasures());
+                        return (int) (count - get(groupIndex).getBeats());
                     } else {
                         return 0;
                     }
                 }
                 groupIndex++;
             }
-            return (count - get(size() - 1).getMeasures());
+            return (count - get(size() - 1).getBeats());
         }
         return 0;
     }
 
-    public int getMeasuresToEndOfLine (int index) {
+    public int getBeatsToEndOfLine(int index) {
         index = index <= size() -1 ? index : size() - 1;
         int count = 0;
         for (int i = 0; i<=index; i++) {
-            count += get(i).getMeasures();
+            count += get(i).getBeats();
         }
         return (count);
     }
 
-    public int getLineMeasuresFromTotalMeasures (int measures) {
+    public int getLineBeatsFromTotalBeats(int beats) {
         int groupIndex = 0;
         int count = 0;
         for (GroupData gd : this) {
-            count += gd.getMeasures();
-            if (measures < count) {
-                return (int) (get(groupIndex).getMeasures());
+            count += gd.getBeats();
+            if (beats < count) {
+                return (int) (get(groupIndex).getBeats());
             }
             groupIndex++;
         }
-        return (get(size()-1).getMeasures());
+        return (get(size()-1).getBeats());
     }
 
-    public GroupData getGroupFromMeasure (int measure) {
+    public GroupData getGroupFromBeats(int beats) {
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
         int count = 0;
         for (GroupData gd : this) {
-            count += gd.getMeasures();
-            if (measure < count) {
+            count += gd.getBeats();
+            if (beats < count) {
                 return gd;
             }
         }
@@ -322,7 +352,7 @@ public class GroupArray extends ArrayList<GroupData> {
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
         //int groupIndex = getGroupIndexFromSongPos(songPos);
         int measuresToGroup = getStartOfLineMeasures (groupIndex);
-        long timePerMeasure = autoScroll.getTimePerMeasure();
+        long timePerMeasure = autoScroll.getTimePerBeat();
         long timeToStartofGroup = measuresToGroup * timePerMeasure;
 
         int measure = 1;
@@ -331,10 +361,94 @@ public class GroupArray extends ArrayList<GroupData> {
         }
         return measure;
     }*/
+    public int getCurrentGroup () {
+        if (scrollActivity.getTextView().getLayout() != null) {
+         //   int currentScrollLine = scrollActivity.getScrollView().getScrollLine();
+         //   int currentScrollPos = scrollActivity.getTextView().getLayout().getLineStart(currentScrollLine);
+          //  currentScrollPos += get(0).getOffsetChords();  /// add position of first chord line
+            int currentScrollPos = scrollActivity.getScrollView().getChordsPos();
+            if (currentScrollPos != -1) {
+                int group = 0;
+                for (GroupData gd : this) {
+                    if (group < size() - 1) {
+                        if (currentScrollPos >= gd.getOffsetChords() && currentScrollPos < get(group + 1).getOffsetChords()) {
+                            return group;
+                        }
+                    } else {
+                        if (currentScrollPos >= gd.getOffsetChords()) {
+                            return group;
+                        }
+                    }
+                    group++;
+                }
+            }
+        }
+         //   int lineStartPos;//scrollActivity.getAutoScroll().getScoreData().getSongStartLine();
+
+           /* if (scrollActivity.isEditing()) {
+                currentGroupLine = currentScrollLine - scrollActivity.getAutoScroll().scoreData.getSongStartLine() - 3 + scrollActivity.getAutoScroll().scoreData.getScrollOffset();
+                lineStartPos = scrollActivity.getTextView().getLayout().getLineStart(currentGroupLine);
+                int group = 0;
+                for (GroupData gd : this) {
+                    if (group > 0) {
+                        //int startLine = gd.getChordsLineNumber() + get(group - 1).getWrappedLines();
+                        if (currentGroupLine >= startLine && currentGroupLine < startLine + gd.getGroupLineCount() + gd.getWrappedLines() - 1) {
+                            return group;
+                        }
+                    } else if (currentGroupLine >= startLine && currentGroupLine < startLine + gd.getGroupLineCount()) {
+                        return group;
+                    }
+
+                    int offsetNext;
+                    if (group < size() - 1) {
+                        offsetNext = get(group + 1).offsetChords;
+                    } else {
+                        offsetNext = get(size() - 1).offsetChords;
+                    }
+                    lineStartPos += scrollActivity.getTextView().getLayout().getLineStart(offsetNext);
+                    group++;
+                }
+            } else {
+                //currentGroupLine = currentScrollLine - scrollActivity.getAutoScroll().scoreData.getSongStartLine() + scrollActivity.getAutoScroll().scoreData.getScrollOffset();
+                currentScrollLine = scrollActivity.getScrollView().getScrollLine() - scrollActivity.getAutoScroll().scoreData.getSongStartLine() + scrollActivity.getAutoScroll().scoreData.getScrollOffset();
+                int group = 0;
+                for (GroupData gd : this) {
+               *//* if (group > 0) {
+                    if (currentScrollLine == startLine + get(group - 1).getWrappedLines() ) {
+                        return group;
+                    }
+                }*//*
+                    if (currentScrollLine == startLine) {
+                        return group;
+                    }
+
+                    startLine += get(group).getGroupLineCount() + get(group).getWrappedLines();
+                    group++;
+                }
+            }
+        }*/
+        //GroupData groupData = new GroupData();
+        return -1;
+    }
 
     public int getLastPageGroupIndex () {
-        int totalLines = scrollActivity.getLinesPerPage();
-        int lineCount = 0;
+        if (scrollActivity.getTextView().getLayout() != null) {
+            int totalLines = scrollActivity.getTotalLines();
+            int linesPerPage = scrollActivity.getLinesPerPage();
+
+            int lineStartLastPage = totalLines - linesPerPage >= 0 ? totalLines - linesPerPage : 0;
+            int lineStartPos = scrollActivity.getTextView().getLayout().getLineStart(lineStartLastPage);
+
+            int group = 0;
+            for (GroupData gd: this) {
+                if (gd.getOffsetChords() > lineStartPos) {
+                    return group > 0 ? group - 1 : 0;
+                }
+            }
+        }
+
+
+    /*    int lineCount = 0;
         AutoScroll autoScroll = scrollActivity.getAutoScroll();
         for (int i=size()-1; i>=0; i--) {
             if (i==0) {
@@ -346,7 +460,7 @@ public class GroupArray extends ArrayList<GroupData> {
             if (lineCount >= totalLines) {
                 return i+1;
             }
-        }
+        }*/
         return 0;
     }
 
@@ -389,10 +503,10 @@ public class GroupArray extends ArrayList<GroupData> {
 
     public int getGroupIndex(int measure) {
         int count = 0;
-        int totMeasures = 0;
+        int beats = 0;
         for (GroupData gd : this) {
-            totMeasures += gd.getMeasures();
-            if (measure < totMeasures) {
+            beats += gd.getBeats();
+            if (measure < beats) {
                 return count;
             }
             count++;
@@ -402,11 +516,11 @@ public class GroupArray extends ArrayList<GroupData> {
 
     public int getGroupIndex() {
         int count = 0;
-        int totMeasures = 0;
+        int beats = 0;
         int measure = scrollActivity.getAutoScroll().getProgress();
         for (GroupData gd : this) {
-            totMeasures += gd.getMeasures();
-            if (measure < totMeasures) {
+            beats += gd.getBeats();
+            if (measure < beats) {
                 return count;
             }
             count++;
@@ -414,25 +528,15 @@ public class GroupArray extends ArrayList<GroupData> {
         return (int) (size()-1);
     }
 
-    public int getLine(int measure) {
-        int count = 0;
-        int totMeasures = 0;
+    public int getLine(int beats) {
+        int beatCount = 0;
         for (GroupData gd : this) {
-            totMeasures += gd.getMeasures();
-            if (measure < totMeasures) {
-                if (count > 0) {
-                    //return (int) ((3 * count + get(count - 1).getWrappedLines()));
-                    return (gd.getChordsLineNumber() + get(count - 1).getWrappedLines());
-                }
-                else {
-                    //return (int) ((3 * count));
-                    return (gd.getChordsLineNumber());
-                }
+            beatCount += gd.getBeats();
+            if (beats < beatCount) {
+                return scrollActivity.getTextView().getLayout().getLineForOffset(gd.getOffsetChords());
             }
-            count++;
         }
-        //// never here hopefully
-        return (int) (3 * count);
+        return -1;  /// not found
     }
 
     public int getScrollLineFromPos (int pos){
@@ -441,5 +545,30 @@ public class GroupArray extends ArrayList<GroupData> {
             return get(LinePos).getOffsetChords();
         }
         return -1;
+    }
+
+    public void updatePositions (int offsetChords, int offsetCharPos) {
+        //int group = groupI
+        int count=0;
+        while (get(count++).getOffsetChords() < offsetChords);
+        count = count - 1 == -1 ? 0 : count - 1;
+
+        for (int i=count; i<size(); i++) {
+            get(i).setOffsetChords(get(i).getOffsetChords() + offsetCharPos);
+            //get(i).setChordsLineNumber(get(i).getChordsLineNumber() + offsetLineCount);
+        }
+    }
+
+    public int insertNewGroup (GroupData groupData) {
+        int count = 0;
+        for (GroupData gd: this) {
+            if (groupData.offsetChords <= gd.offsetChords) {
+                add(count, groupData);
+                return count;
+            }
+            count++;
+        }
+        add(groupData);
+        return count;
     }
 }

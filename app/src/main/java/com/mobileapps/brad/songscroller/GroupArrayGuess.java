@@ -1,9 +1,5 @@
 package com.mobileapps.brad.songscroller;
 
-import android.graphics.Point;
-import android.util.Log;
-
-import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,14 +12,17 @@ import java.util.regex.Matcher;
 
 public class GroupArrayGuess extends GroupArray {
 
+
     public GroupArrayGuess (ScrollActivity scrollActivity, GroupArray groupArray) {
         super(scrollActivity);
         this.addAll(groupArray);
     }
 
+    @Override
     public void create (List<ChordData> chordPos) {
-        //measuresPerChord = 2;
-        ScoreData scoreData = new ScoreData(120, 4, 8, 1);
+       // measuresPerChord = 1;
+      //  ScoreData scoreData = new ScoreData(1, 120, 1, 3);
+        ScoreData scoreData = scrollActivity.getAutoScroll().getScoreData();
 
         if (size() > 0) {
             int chordline = 0;
@@ -40,16 +39,8 @@ public class GroupArrayGuess extends GroupArray {
                 List chords = new ArrayList();
                 for (chordIndex = chordStart; chordIndex < chordPos.size(); chordIndex++) {
                     ChordData chordData = chordPos.get(chordIndex);
-                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getChordsLength()) {
+                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getLengthChords()) {
                         /// has chords on this line
-                      /*  int lastChord = -2;
-                        int nextChord = 0;
-                        if (chordIndex > 0) {
-                            lastChord = chordPos.get(chordIndex - 1).getStartPos();
-                        }
-                        if (chordIndex < chordPos.size() - 1) {
-                            nextChord = chordPos.get(chordIndex + 1).getStartPos();
-                        }*/
 
                         //// only add chords that are separated by 1 or more characters
                         //if (chordData.getStartPos() != lastChord + 1 && chordData.getStartPos() != nextChord - 1) {
@@ -68,15 +59,16 @@ public class GroupArrayGuess extends GroupArray {
 
                             /// set number of lines in a chord group (lines removed earlier)
                             if (chordline > 0) {
-                                get(chordline - 1).setGroupLineCount(linesRemoved + 1);
+                                //get(chordline - 1).setGroupLineCount(linesRemoved + 1);
                             } else {
+                                //// this is first chord line so happens once only
                                 chordlineOffset = linesRemoved;
-                                scrollActivity.getAutoScroll().setPosOffset(linesRemoved);
-                                scoreData.setScrollStart(linesRemoved);
+                                scoreData.setSongStartLine(linesRemoved);
+                                //scoreData.setScrollStart(linesRemoved);
                             }
 
                             /// set chords line numbers so first chord line is 1
-                            gd.setChordsLineNumber(gd.getChordsLineNumber() - chordlineOffset);
+                            //gd.setChordsLineNumber(gd.getChordsLineNumber() - chordlineOffset);
 
                             if (chordIndex == chordStart) {
                                 //// increment chord lines counter
@@ -107,20 +99,21 @@ public class GroupArrayGuess extends GroupArray {
             }
 
             /// set number of lines in a chord group (lines removed earlier)
-            get(size()-1).setGroupLineCount(size-chordline+1);
-
-            /// set guess measures
-            //int count = 0;
-            for (GroupData gd : this) {
-                int count = ((gd.chords.length/2) / 2) * scoreData.getBeats();
-                gd.setMeasures(count);
-            }
+            //get(size()-1).setGroupLineCount(size-chordline+1);
         }
 
-        setScoreData(scoreData, scrollActivity.getAutoScroll());
+        /// set guess beats
+        //int count = 0;
+       /* int index = 0;
+        for ( int i=0; i<size(); i++) {
+            GroupData gd = get(i);
+            int count = (gd.chords.length/2) * measuresPerChord;
+            gd.setBeats(count);
+        }*/
+        createScoreData(scoreData, scrollActivity.getAutoScroll());
     }
 
-    public void setScoreData (ScoreData scoreData, AutoScroll autoScroll) {
+    public void createScoreData (ScoreData scoreData, AutoScroll autoScroll) {
 
         //this.scrollActivity = scrollActivity;
         String text = autoScroll.getText();
@@ -151,7 +144,7 @@ public class GroupArrayGuess extends GroupArray {
 
         ///////////// beats per measure (default 4/4 time)
         if (map.get("beats") != null) {
-            scoreData.setBeats(Integer.parseInt(((String)map.get("beats"))));
+            scoreData.setBeatsPerMeasure(Integer.parseInt(((String)map.get("beats"))));
         }
 
         ///////////// duration (from mp3 if available)
@@ -171,13 +164,14 @@ public class GroupArrayGuess extends GroupArray {
             scoreData.setBpm(Integer.parseInt(((String)map.get("bpm"))));
            // autoScroll.setBeatInterval((int) (60000 / scoreData.getBpm()));
         }
-        else {
-            //// tempo = beats (per measure) * (number of measures/song duration in seconds) * 60
-            int bpm = (int) (scoreData.getBeats() * getTotalMeasures() * 60 / (scrollActivity.getSong().getDuration()/1000));
-            scoreData.setBpm(bpm);
-        }
+       // else {
+            //// tempo = beats (per measure) * (number of beats/song duration in seconds) * 60
+       //     int bpm = (int) (scoreData.getBeatsPerMeasure() * getTotalBeats() * 60 / (scrollActivity.getSong().getDuration()/1000));
+       //     scoreData.setBpm(bpm);
+       // }
 
-        autoScroll.setScoreData(scoreData);
+    //    scoreData.setScrollOffset(3);
+    //    autoScroll.setScoreData(scoreData);
      //   autoScroll.setBeatInterval(60000 / scoreData.getBpm());
         //setMax (getSongDuration());
         //return scoreData;

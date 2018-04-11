@@ -1,18 +1,13 @@
 package com.mobileapps.brad.songscroller;
 
-import android.content.Context;
+import android.text.SpannableStringBuilder;
 import android.util.Log;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.regex.Matcher;
 
 /**
  * Created by brad on 2/26/18.
@@ -20,58 +15,75 @@ import java.util.regex.Matcher;
 
 public class GroupData implements Serializable {
     int offsetChords;
-    int ChordsLength;
-
-    public int getMeasures() {
-        return measures;
-    }
-
-    public void setMeasures(int measures) {
-        this.measures = measures;
-    }
-
-    int measures;
-    int repeat;
-    int chordsLineNumber;
-    int groupLineCount;
-    int wrappedLines;
+    int lengthChords; /// length of chords line, not number of chords
+    float measures;
     int[] chords;
-    ScoreData scoreData;
 
     public GroupData () {
         measures = -1;
-        repeat = 1;
+     //   repeat = 1;
     }
 
-    public GroupData (ScoreData scoreData) {
-        measures = -1;
-        repeat = 1;
-        this.scoreData = scoreData;
+    public void setBeats (int beats) {
+        double measures = beats / (double) AutoScroll.scoreData.getBeatsPerMeasure();
+        setMeasures (measures);
+    }
+
+    public int getBeats() {
+        return AutoScroll.scoreData.getBeatsPerLine(measures);
+    }
+
+    public float getMeasures() {
+        if (measures == -1) {
+            return AutoScroll.scoreData.getMeasuresPerLine();
+        }
+        return measures;
+    }
+
+    public void setMeasures () {
+        double guessMeasures = (chords.length/2.0) / AutoScroll.scoreData.getBeatsPerMeasure();
+        setMeasures(guessMeasures);
+    }
+
+    public void setMeasures(double lineMeasures) {
+        if (lineMeasures != getMeasures()) {
+            this.measures = (float) lineMeasures;
+        }
     }
 
     public boolean equals(Object object2) {
         return object2 instanceof GroupData && getOffsetChords() == ((GroupData) object2).getOffsetChords();
     }
 
+   /* public int getMeasuresPerChord () {
+        return beats/(chords.length/2);
+    }*/
+
     public int[] getChords() {
         return chords;
     }
 
     public int[] getChordsStartPositions() {
-        int[] starts = new int[chords.length/2];
-        for (int i=0; i<chords.length; i+=2) {
-            starts[i/2] = chords[i]+1;  /// add 1 so user not confused with zero index
+        if (chords != null) {
+            int[] starts = new int[chords.length / 2];
+            for (int i = 0; i < chords.length; i += 2) {
+                starts[i / 2] = chords[i] + 1;  /// add 1 so user not confused with zero index
+            }
+            return starts;
         }
-        return starts;
+        return new int[]{};
     }
 
     public String[] getChords(String text) {
-        String[] chordArray = new String[chords.length/2];
-        for (int i=0; i<chords.length; i+=2) {
-            int start = chords[i] + getOffsetChords();
-            chordArray[i/2] = text.substring(start, start + chords[i+1]);
+        if (chords != null) {
+            String[] chordArray = new String[chords.length / 2];
+            for (int i = 0; i < chords.length; i += 2) {
+                int start = chords[i] + getOffsetChords();
+                chordArray[i / 2] = text.substring(start, start + chords[i + 1]);
+            }
+            return chordArray;
         }
-        return chordArray;
+        return new String[]{};
     }
 
     public void setChords(String[] chordsPositions, int[] originalChords) {
@@ -81,7 +93,6 @@ public class GroupData implements Serializable {
         //for (int i=0; i<chordsPositions)
        // List origChords = Arrays.asList(getChords());
         List newChords = new ArrayList();
-
         for (int i=0; i<chordsPositions.length; i++){
             try {
                 int chordPos = Integer.parseInt(chordsPositions[i].trim()) - 1;
@@ -118,17 +129,26 @@ public class GroupData implements Serializable {
             }
         }*/
     }
+ /*   public void setChords(List chordsPositions) {
+        chords = new int[chordsPositions.size()];
+        for (int i=0; i<chordsPositions.size(); i++) {
+            chords[i] = (int) chordsPositions.get(i);
+        }
+    }*/
+
 
     public void setChords(List chordsPositions) {
         chords = new int[chordsPositions.size()];
         for (int i=0; i<chordsPositions.size(); i++) {
             chords[i] = (int) chordsPositions.get(i);
         }
+
+        //setMeasures();
     }
 
     public String getLyrics (String score) {
         if (score != null) {
-            int indexOf = score.indexOf("\n", offsetChords + ChordsLength + 1);
+            int indexOf = score.indexOf("\n", offsetChords + lengthChords + 1);
             if (indexOf != -1) {
                 return (score.substring(offsetChords, indexOf));
             }
@@ -137,41 +157,50 @@ public class GroupData implements Serializable {
         return "";
     }
 
-    public String setLyrics (String newLine, String score) {
-        String newScore;
-        int indexOf = score.indexOf("\n", offsetChords);
+    public void setLyrics (String newLine, int lineStart, ScrollActivity scrollActivity) {
+        SpannableStringBuilder newScore = scrollActivity.getSb();
+        String text = newScore.toString();
+        int indexOf = text.indexOf("\n", lineStart);
+        int offsetCharPos = 0;
+        //int offsetLineCount = newLine.split("\n").length - 1;
+
         if (indexOf != -1) {
-            newScore = score.substring(0, offsetChords).concat(newLine).concat(score.substring(indexOf));
+            newScore = newScore.replace(lineStart, indexOf, newLine);
+            offsetCharPos = newLine.length() - (indexOf - lineStart);
+           // newScore = text.substring(0, offsetChords).concat(newLine).concat(text.substring(indexOf));
         } else {
-            newScore = score.substring(offsetChords).concat(newLine);
+            newScore = newScore.replace(lineStart,text.length(), newLine);
+            //offsetCharPos = text.length() - offsetChords;
         }
-        return newScore;
+
+        scrollActivity.getAutoScroll().getGroupArray().updatePositions (offsetChords, offsetCharPos);
+        scrollActivity.setSb(newScore);
     }
 
-    public int getGroupLineCount() {
+  /*  public int getGroupLineCount() {
         return groupLineCount;
     }
 
     public void setGroupLineCount(int groupLineCount) {
         this.groupLineCount = groupLineCount;
     }
+*/
+   /* public int getChordsLineNumber() { return chordsLineNumber; }
 
-    public int getChordsLineNumber() { return chordsLineNumber; }
+    public void setChordsLineNumber(int chordsLineNumber) { this.chordsLineNumber = chordsLineNumber; }*/
 
-    public void setChordsLineNumber(int chordsLineNumber) { this.chordsLineNumber = chordsLineNumber; }
-
-    public int getWrappedLines() { return wrappedLines; }
+   /* public int getWrappedLines() { return wrappedLines; }
 
     public void setWrappedLines(int wrappedLines) {
         this.wrappedLines = wrappedLines;
     }
-
-    public int getChordsLength() {
-        return ChordsLength;
+*/
+    public int getLengthChords() {
+        return lengthChords;
     }
 
-    public void setChordsLength(int chordsLength) {
-        ChordsLength = chordsLength;
+    public void setLengthChords(int lengthChords) {
+        this.lengthChords = lengthChords;
     }
 
     public int getOffsetChords() {
@@ -182,9 +211,6 @@ public class GroupData implements Serializable {
         this.offsetChords = offsetChords;
     }
 
-    public int getBeats () {
-        return scoreData.getBeats();
-    }
 
     //public int getMeasuresToEndofLine() {
     //    return measuresToEndofLine;
@@ -192,13 +218,13 @@ public class GroupData implements Serializable {
 
     //public void setMeasuresToEndofLine(int measuresToEndofLine) { this.measuresToEndofLine = measuresToEndofLine; }
 
-    public int getRepeat() {
+   /* public int getRepeat() {
         return repeat;
     }
 
     public void setRepeat(int repeat) {
         this.repeat = repeat;
-    }
+    }*/
 
     /*public static class PositionCompare implements Comparator<GroupData> {
         @Override
@@ -210,20 +236,20 @@ public class GroupData implements Serializable {
     /*public static class LengthCompare implements Comparator<GroupData> {
         @Override
         public int compare(GroupData gd1, GroupData gd2) {
-            if (gd2.getLyricsLength() > gd2.getChordsLength()) {
-                if (gd1.getLyricsLength() > gd1.getChordsLength()) {
+            if (gd2.getLyricsLength() > gd2.getLengthChords()) {
+                if (gd1.getLyricsLength() > gd1.getLengthChords()) {
                     return gd2.getLyricsLength() - gd1.getLyricsLength();
                 }
                 else {
-                    return gd2.getLyricsLength() - gd1.getChordsLength();
+                    return gd2.getLyricsLength() - gd1.getLengthChords();
                 }
             }
             else {
-                if (gd1.getLyricsLength() > gd1.getChordsLength()) {
-                    return gd2.getChordsLength() - gd1.getLyricsLength();
+                if (gd1.getLyricsLength() > gd1.getLengthChords()) {
+                    return gd2.getLengthChords() - gd1.getLyricsLength();
                 }
                 else {
-                    return gd2.getChordsLength() - gd1.getChordsLength();
+                    return gd2.getLengthChords() - gd1.getLengthChords();
                 }
             }
         }
@@ -231,8 +257,12 @@ public class GroupData implements Serializable {
 
     public void getLineMetaData (String JSON) throws Exception {
         JSONObject jsonObject = new JSONObject(JSON);
-        setMeasures(jsonObject.optInt("measures", -1) * (int) (jsonObject.optInt("repeat", 1)));
-      //  setRepeat(jsonObject.optInt("repeat", 1));
+        int beats = jsonObject.optInt("beats", -1);
+        int repeat = jsonObject.optInt("repeat", 1);
+
+        beats = beats == -1 ? AutoScroll.scoreData.getBeatsPerLine() : beats;
+        beats = repeat * beats;
+        setBeats(repeat * beats);
     }
 }
 

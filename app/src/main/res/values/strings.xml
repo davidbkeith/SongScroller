@@ -150,7 +150,7 @@ Please correct me if I'm wrong....
 
     <string name="pref_title_vibrate">Vibrate</string>
 
-    <string name="menu_song">Song Options</string>
+    <string name="menu_edit">Edit Mode</string>
     <string name="menu_back">Back</string>
     <string name="menu_line_options">Line Options</string>
 </resources>

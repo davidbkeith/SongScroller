@@ -1,48 +1,37 @@
 package com.mobileapps.brad.songscroller;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
-import android.text.SpannableStringBuilder;
+import android.text.Layout;
 import android.text.TextWatcher;
-import android.text.style.ForegroundColorSpan;
-import android.util.Log;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.TextView;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class SongLineSettings  {
 
-    EditText editMeasures;
+    private int lineStart;
+    private EditText editBeats;
    // EditText editRepeat;
-    EditText editChords;
-    EditText editLyrics;
-    Button buttonSave, buttonCancel;
-    GroupData groupData, groupDataOriginal;
-    int groupIndex;
+    private EditText editChords;
+    private EditText editLyrics;
+    private Button buttonSave, buttonCancel;
+    private GroupData groupDataOriginal, groupData;
+    private int groupIndex;
 
-    ScrollActivity scrollActivity;
-    AutoScroll autoScroll;
-    String text;
-    boolean enableUpdates;
+    private ScrollActivity scrollActivity;
+    private AutoScroll autoScroll;
+    //private String text;
+    private boolean enableUpdates;
 
     public SongLineSettings(final ScrollActivity scrollActivity) {
         this.scrollActivity = scrollActivity;
 
-        editMeasures = (EditText) scrollActivity.findViewById(R.id.editMeasures);
+        editBeats = (EditText) scrollActivity.findViewById(R.id.editBeats);
         editChords = (EditText) scrollActivity.findViewById(R.id.editChords);
         editLyrics = (EditText) scrollActivity.findViewById(R.id.editLyrics);
 
-        editMeasures.addTextChangedListener(new TextWatcher() {
+        editBeats.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -57,8 +46,9 @@ public class SongLineSettings  {
             public void afterTextChanged(Editable editable) {
                 if (enableUpdates) {
                     try {
-                        //groupData.g
-                        autoScroll.getGroupArray().setLineMeasuresCount(groupData, Integer.parseInt(editable.toString().trim()));
+                        GroupData groupData = autoScroll.getGroupArray().get(groupIndex);
+                        groupData.setBeats(Integer.parseInt(editable.toString().trim()));
+                        //autoScroll.getGroupArray().setLineMeasuresCount(groupData, Integer.parseInt(editable.toString().trim()));
                     }
                     catch (Exception e) {
 
@@ -81,17 +71,36 @@ public class SongLineSettings  {
             @Override
             public void afterTextChanged(Editable editable) {
                 if (enableUpdates) {
+                    GroupData groupData = autoScroll.getGroupArray().get(groupIndex);
                     enableUpdates = false;
 
                     String[] arrchords = editable.toString().split(",");
                     groupData.setChords(arrchords, groupDataOriginal.getChords());
-                    autoScroll.getGroupArray().setLineMeasuresCount(groupData, (groupData.getChords().length/2)*autoScroll.getGroupArray().getMeasuresPerChord());
 
-                    int measures = autoScroll.getGroupArray().getLineMeasuresFromTotalMeasures(autoScroll.getProgress());
-                    editMeasures.setText(String.format("%d", measures));
+                    editBeats.setText(String.format("%d", groupData.getBeats()));
 
                     scrollActivity.setSpans();
                     enableUpdates = true;
+                }
+            }
+        });
+
+        editLyrics.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (enableUpdates) {
+                    groupData.setLyrics(editable.toString(), lineStart, scrollActivity);
+                    //line += editable.toString().split ("\n").length - 1;
                 }
             }
         });
@@ -101,19 +110,21 @@ public class SongLineSettings  {
         enableUpdates = false;
         autoScroll = scrollActivity.getAutoScroll();
         int progress = autoScroll.getProgress();
+        groupIndex = autoScroll.getGroupArray().getCurrentGroup();
 
-        groupData = autoScroll.getGroupArray().getGroupFromMeasure(progress);
-        groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromMeasure(progress);
+        if (groupIndex == -1) {
+            groupData = new GroupData();
+            groupData.setOffsetChords(scrollActivity.getScrollView().getLyricsPos());
+        }
+        else {
+            groupData = autoScroll.getGroupArray().get(groupIndex);
+        }
 
-        int measures = autoScroll.getGroupArray().getLineMeasuresFromTotalMeasures(progress);;
-        text = autoScroll.getText();
+        groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromBeats(progress);
 
-        editMeasures.setText(String.format("%d", measures));
-       // editRepeat.setText(String.format("%d", groupData.getRepeat()-1));
-        editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]","")));
-
-        String lineLyrics = groupData.getLyrics(text);
-        editLyrics.setText(lineLyrics);
+        editBeats.setText(String.format("%d", groupData.getBeats()));
+        editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]", "")));
+        editLyrics.setText(scrollActivity.getLyrics());
         enableUpdates = true;
     }
 }

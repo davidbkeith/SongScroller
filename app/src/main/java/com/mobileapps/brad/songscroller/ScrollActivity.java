@@ -13,10 +13,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,14 +29,11 @@ import android.widget.TextView;
 
 import java.io.File;
 
-import android.support.constraint.ConstraintSet;
-import android.support.constraint.ConstraintLayout;
-
 public class ScrollActivity extends AppCompatActivity implements ScrollViewListener {
 
     private Context context;
 
-    private boolean isEditing;
+    static public boolean isEditing;
 
     private int pause;
     private int currentScrollPos;
@@ -71,13 +68,21 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private TextView textView;
     private TextView textCountdown;
 
+    private MenuItem editMode;
 
-    public boolean isEditing() {
+
+    static public boolean isEditing() {
         return isEditing;
     }
 
     public void setEditing(boolean editing) {
         isEditing = editing;
+        if (editing == true) {
+            autoScroll.setMax(getTotalLines());
+        }
+        else {
+            autoScroll.setMax (autoScroll.getGroupArray().getTotalBeats());
+        }
     }
 
     public SpannableStringBuilder getSb() {
@@ -86,6 +91,21 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     public void setSb(SpannableStringBuilder sb) {
         this.sb = sb;
+        textView.post(new Runnable() {
+            @Override
+            public void run() {
+                // actualNumLines = textView.getLineCount();
+                //autoScroll.setWrappedLines();
+                songLineSettings.update();
+                songSettings.update();
+            }
+        });
+        textView.setText(sb);
+    }
+
+    public int getTotalLines () {
+        return sb.toString().split("\n").length;
+        //    return get(size()-1).getChordsLineNumber() + get(size()-1).getGroupLineCount() + get(size()-1).getWrappedLines();
     }
 
     private SpannableStringBuilder sb;
@@ -97,7 +117,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     public SongLineSettings getSongLineSettings() {
         return songLineSettings;
     }
-
     private SongLineSettings songLineSettings;
     private SongSettings songSettings;
 
@@ -119,7 +138,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return elapsedTime;
     }
 
-    public int getLinesPerPage () { return (int) (scrollView.getHeight() / scrollView.getLineHeight()); }
+    public int getLinesPerPage () {
+        Layout layout = getTextView().getLayout();
+        if (layout != null) {
+            return layout.getLineCount();
+            //return (int) (scrollView.getHeight() / scrollView.getLineHeight());
+        }
+        return 0;
+    }
 
     public ImageView getIvPlay() {
         return ivPlay;
@@ -171,7 +197,9 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
-            autoScroll.setSeekBarProgress();
+            if (!isEditing) {
+                autoScroll.setSeekBarProgress();
+            }
             textCountdown.setText(String.format("%d",autoScroll.getProgress()+1));
             if (isPlaying() && scrollView.isEnableScrolling()) {
                 elapsedTime = 0;
@@ -179,7 +207,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             else {
                 elapsedTime +=  100;
             }
-
             scrollView.invalidate ();
             handler.postDelayed(this, 100); //Looping the thread after 0.1 second
         }
@@ -201,11 +228,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     @Override
     public boolean onOptionsItemSelected (MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_settings:
-                expand (2);
-                return true;
-            case R.id.menu_line_options:
-                expand(1);
+            case R.id.menu_edit:
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                    setEditing(false);
+                }
+                else {
+                    item.setChecked(true);
+                    setEditing(true);
+                }
                 return true;
             case R.id.menu_back:
                 // click on 'up' button in the action bar, handle it here
@@ -232,7 +263,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         songLineSettings = new SongLineSettings(this);
         songSettings = new SongSettings(this);
 
-        isEditing = true;
+        //isEditing = true;
         context = this;
         newSeek = -1;
         expand = true;
@@ -247,6 +278,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         autoScroll = (AutoScroll) findViewById(R.id.seekBar);
         textCountdown = (TextView) findViewById(R.id.textCountdown);
         scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
+        editMode = (MenuItem) findViewById(R.id.menu_edit);
 
         lineSettingsContainer = (ViewGroup) findViewById(R.id.lineSettingsContainer);
         songSettingsContainer = (ViewGroup) findViewById(R.id.songSettingsContainer);
@@ -355,17 +387,15 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //SpannableStringBuilder text = autoScroll.formatText();
         //textView.setText(sb);
         setSpans();
-        songLineSettings.update();
-        songSettings.update();
 
         //final int actualNumLines;
-        textView.post(new Runnable() {
+    /*    textView.post(new Runnable() {
             @Override
             public void run() {
                // actualNumLines = textView.getLineCount();
                 autoScroll.setWrappedLines();
             }
-        });
+        });*/
 
         //int textLength = text.length();
         totLines = autoScroll.getNumLines();
@@ -406,16 +436,27 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             }
             }
         });
+
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                song.setStartPosition(song.getPosition()+getAutoScroll().getTimePerMeasure());
+                if (isEditing) {
+                    autoScroll.setProgress(autoScroll.getProgress()+1);
+                }
+                else {
+                    song.setStartPosition(song.getPosition() + getAutoScroll().getTimePerBeat());
+                }
             }
         });
         ivPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                song.setStartPosition(song.getPosition()-getAutoScroll().getTimePerMeasure());
+                if (isEditing) {
+                    autoScroll.setProgress(autoScroll.getProgress() - 1);
+                }
+                else {
+                    song.setStartPosition(song.getPosition() - getAutoScroll().getTimePerBeat());
+                }
             }
         });
 
@@ -461,6 +502,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                if (id == 1) {
                    songSettingsContainer.setVisibility(View.GONE);
                    lineSettingsContainer.setVisibility(View.VISIBLE);
+
                    //   setSupportActionBar(lineSettings);
                }
                else {
@@ -490,7 +532,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         if (isEditing) {
             ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
         }
-
         isEditing = !isEditing;
     }
 
@@ -537,7 +578,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     }
 
     public void setSpans () {
-        sb = new SpannableStringBuilder(sb.toString());
+        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(sb.toString());
 
         for (GroupData gd: autoScroll.getGroupArray()) {
             int[] chords = gd.getChords();
@@ -545,10 +586,34 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 if (chords[i] >= 0) {
                     final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
                     int start = chords[i] + gd.getOffsetChords();
-                    sb.setSpan(fcs, start, start + chords[i + 1], Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    spannableStringBuilder.setSpan(fcs, start, start + chords[i + 1], Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
             }
         }
-        textView.setText(sb);
+        //textView.setText(sb);
+        setSb(spannableStringBuilder);
+    }
+
+    public String getLyrics () {
+        String text = sb.toString();
+        if (!isEditing) {
+            int group = getAutoScroll().getGroupArray().getCurrentGroup();
+            if (group != -1) {
+                return getAutoScroll().getGroupArray().get(group).getLyrics(text);
+            }
+            return "";
+        }
+        else {
+            int lineSartPos = getScrollView().getChordsPos();
+            if (lineSartPos != -1) {
+                int endpos = text.indexOf("\n", lineSartPos);
+                if (endpos != -1) {
+                    return text.substring(lineSartPos, endpos);
+                } else {
+                    return text.substring(lineSartPos);
+                }
+            }
+            return "";
+        }
     }
 }

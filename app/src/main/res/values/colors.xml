@@ -10,6 +10,7 @@
     <color name="colorScreenDark">#000000</color>
     <color name="colorTitleBar">#081115</color>
     <color name="colorMenuBar">#395563</color>
+    <color name="colorMenuBarDark">#2a3e48</color>
     <color name="colorMenuBarLight">#466778</color>
 
     <color name="white">#fff</color>

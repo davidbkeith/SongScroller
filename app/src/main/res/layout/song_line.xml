@@ -20,24 +20,24 @@
         android:id="@+id/lineSettingsContainer">
 
         <TextView
-            android:id="@+id/textMeasures"
+            android:id="@+id/textBeats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Measures:"
+            android:text="Beats:"
             android:textSize="12dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
-            android:id="@+id/editMeasures"
+            android:id="@+id/editBeats"
             android:layout_width="22dp"
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="number"
             android:textSize="12dp"
-            app:layout_constraintBottom_toBottomOf="@+id/textMeasures"
-            app:layout_constraintStart_toEndOf="@+id/textMeasures"
-            app:layout_constraintTop_toTopOf="@+id/textMeasures" />
+            app:layout_constraintBottom_toBottomOf="@+id/textBeats"
+            app:layout_constraintStart_toEndOf="@+id/textBeats"
+            app:layout_constraintTop_toTopOf="@+id/textBeats" />
 
 
         <TextView
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:text="Chords:"
             android:textSize="12dp"
-            app:layout_constraintStart_toEndOf="@+id/editMeasures"
+            app:layout_constraintStart_toEndOf="@+id/editBeats"
             app:layout_constraintTop_toTopOf="parent" />
 
         <EditText

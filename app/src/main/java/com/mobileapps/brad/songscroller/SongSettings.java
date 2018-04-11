@@ -15,19 +15,46 @@ import android.support.v7.widget.Toolbar;
 public class SongSettings {
     EditText editBPM;
     EditText editBPMeasure;
-    EditText editMPLine;
+    EditText editBeatsPerLine;
+    EditText editStartLine;
     EditText editDuration;
     RadioButton radioLine;
     RadioButton radioConstant;
     ScoreData scoreData;
     ScrollActivity scrollActivity;
+    boolean editing;
 
     public SongSettings(final ScrollActivity scrollActivity) {
         this.scrollActivity = scrollActivity;
 
         editBPM = (EditText) scrollActivity.findViewById(R.id.editBPM);
+        editBeatsPerLine = (EditText) scrollActivity.findViewById(R.id.editBeatsPerLine);
         editBPMeasure = (EditText) scrollActivity.findViewById(R.id.editBPMeasure);
-        editMPLine = (EditText) scrollActivity.findViewById(R.id.editMeasuresPerLine);
+        editStartLine = (EditText) scrollActivity.findViewById(R.id.editStartLine);
+
+        editStartLine.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                try {
+                    scrollActivity.getAutoScroll().getScoreData().setScrollOffset(Integer.parseInt(editable.toString().trim()));
+                }
+                catch (Exception e)
+                {
+                    Log.d("Edit BMP", "Invalid integer value");
+                }
+
+            }
+        });
 
         editBPM.addTextChangedListener(new TextWatcher() {
             @Override
@@ -43,7 +70,7 @@ public class SongSettings {
             @Override
             public void afterTextChanged(Editable editable) {
                 try {
-                    scrollActivity.getAutoScroll().getScoreData().setBpm(Integer.parseInt(editable.toString().trim()));
+                    scrollActivity.getAutoScroll().scoreData.setBpm(Integer.parseInt(editable.toString().trim()));
                 }
                 catch (Exception e)
                 {
@@ -52,6 +79,7 @@ public class SongSettings {
             }
         });
 
+        ///// change time signature
         editBPMeasure.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -66,7 +94,8 @@ public class SongSettings {
             @Override
             public void afterTextChanged(Editable editable) {
                 try {
-                    scrollActivity.getAutoScroll().getScoreData().setBeats(Integer.parseInt(editable.toString().trim()));
+                    scrollActivity.getAutoScroll().scoreData.setBeatsPerMeasure(Integer.parseInt(editable.toString().trim()));
+                   // scrollActivity.getAutoScroll().getGroupArray().reset();
                 }
                 catch (Exception e)
                 {
@@ -75,7 +104,7 @@ public class SongSettings {
             }
         });
 
-        editMPLine.addTextChangedListener(new TextWatcher() {
+        editBeatsPerLine.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -89,22 +118,26 @@ public class SongSettings {
             @Override
             public void afterTextChanged(Editable editable) {
                 try {
-                    scrollActivity.getAutoScroll().getGroupArray().resetLineMeasures(Integer.parseInt(editable.toString().trim()));
+                    scrollActivity.getAutoScroll().scoreData.setBeatsPerLine(Integer.parseInt(editable.toString().trim()));
+                    //scrollActivity.getAutoScroll().getGroupArray().reset();
                 }
                 catch (Exception e)
                 {
                     Log.d("Edit BMP", "Invalid integer value");
+                    editing = false;
                 }
             }
         });
+
     }
 
     protected void update() {
         scoreData = scrollActivity.getAutoScroll().getScoreData();
-        if (scoreData != null) {
+        if (scoreData != null && !editing) {
             editBPM.setText(String.format("%d", scoreData.getBpm()));
-            editBPMeasure.setText(String.format("%d", scoreData.getBeats()));
-            editMPLine.setText(String.format("%d", scoreData.getMeasuresPerLine()));
+            editBPMeasure.setText(String.format("%d", scoreData.getBeatsPerMeasure()));
+            editBeatsPerLine.setText(String.format("%d", scoreData.getBeatsPerLine()));
+            editStartLine.setText(String.format("%d", scoreData.getScrollOffset()));
         }
     }
 }

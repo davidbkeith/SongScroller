@@ -15,60 +15,51 @@
         <include layout="@layout/app_bar" android:id="@+id/app_bar"/>
 
         <android.support.constraint.ConstraintLayout
+            android:id="@+id/controlsGroup"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <ImageView
                 android:id="@+id/ivBackground"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@color/colorMenuBar"
+                android:layout_height="40dp"
+                android:background="@color/colorMenuBarDark"
                 android:scaleType="centerCrop"
-                app:layout_constraintHorizontal_bias="0.9"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/album_art"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@android:drawable/menuitem_background" />
 
-            <ImageView
-                android:id="@+id/imageView2"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:alpha=".6"
-                android:background="@color/colorAccentLight"
-                app:layout_constraintTop_toTopOf="@+id/ivBackground"
-                app:srcCompat="@android:drawable/menuitem_background"
-                tools:layout_editor_absoluteX="206dp" />
-
-            <ListView
-                android:id="@+id/albumList"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:background="@color/colorScreen"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/ivBackground"
-                tools:layout_editor_absoluteX="0dp" />
-
-
             <Button
                 android:id="@+id/buttonSongs"
+                style="@style/Widget.AppCompat.Button.Colored"
                 android:layout_width="wrap_content"
-                android:layout_height="35dp"
-                android:layout_marginEnd="8dp"
+                android:layout_height="40dp"
                 android:text="Songs"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <Spinner
                 android:id="@+id/view_spinner"
+                style="@style/mySpinnerItemStyle"
+                android:textColor="@color/white"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                app:layout_constraintStart_toStartOf="@+id/imageView2"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_height="40dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.6" />
+
         </android.support.constraint.ConstraintLayout>
+
+        <ListView
+            android:id="@+id/albumList"
+            style="@style/Widget.AppCompat.Light.ListView.DropDown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorScreen"
+            android:textColor="@color/colorScreenLight"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/controlsGroup"
+            tools:layout_editor_absoluteX="0dp" />
 
     </LinearLayout>
 
