@@ -93,7 +93,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         return scoreData != null;
     }
 
-    public SpannableStringBuilder initialize (ScrollActivity scrollActivity, File file) {
+    public SpannableStringBuilder create(ScrollActivity scrollActivity, File file) {
         this.scrollActivity = scrollActivity;
         scrollSensitivity = 2.0;
         text = "";
@@ -110,7 +110,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
                 //// used for autoscrollguess only ///
                 GroupData gd = new GroupData();
                 gd.setOffsetChords(text.length());
-                gd.setLengthChords(line.length());
+                //gd.setLengthChords(line.length());
                 //gd.setChordsLineNumber(posOffset);
                 groupArray.add(gd);
                 //////////////////////////////////////
@@ -121,18 +121,18 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
             }
 
             if (scoreData != null) {
-                scoreData.setSongStartLine(posOffset);
+                //scoreData.setSongStartLine(posOffset);
                 groupArray = new GroupArray(scrollActivity);
                 text = groupArray.create(br, text, scoreData);
                 sb = formatText();
-                groupArray.setChordData(chordPos);
+         //       groupArray.setChordData(chordPos);
          //       setMax (getSongDuration());
             }
             else {
                 scoreData = new ScoreData(1, 120, 4 , 3);
                 groupArray = new GroupArrayGuess(scrollActivity, groupArray);
                 sb = formatText();
-                groupArray.create(chordPos);
+                groupArray.create(chordPos, text);
 
                 if (scrollActivity.isEditing()) {
                     groupArrayEdited = (GroupArray) groupArray.clone();
@@ -265,8 +265,8 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         //return scrollActivity.getScrollView().getScrollLine();
     }
 
-    public boolean isChordLine (int charPosition) {
-        return groupArray.isChordLine(charPosition);
+    public boolean isChordLine (int charPosition, String score) {
+        return groupArray.isChordLine(charPosition, score);
     }
 
     /*public int getRepeat () {
@@ -319,7 +319,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         matcher = java.util.regex.Pattern.compile("(\\(*(?<![A-Z])[CDEFGAB](?![A-Z])(?:b|bb)*(?:|#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\(]?[\\d\\/-/+]*[\\)]?(?:[CDEFGAB](?:b|bb)*(?:#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\d\\/]*)*\\)*)(?=[\\s|$])(?![a-z])").matcher(sb.toString());
        // final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
         while (matcher.find()) {
-            if (isChordLine(matcher.start())) {
+            if (isChordLine(matcher.start(), text)) {
                // sb.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 chordPos.add(new ChordData(matcher.start(), text.substring(matcher.start(), matcher.end())));
             }

@@ -75,7 +75,7 @@ public class SongLineSettings  {
                     enableUpdates = false;
 
                     String[] arrchords = editable.toString().split(",");
-                    groupData.setChords(arrchords, groupDataOriginal.getChords());
+                    //groupData.setChords(arrchords, groupDataOriginal.getChords());
 
                     editBeats.setText(String.format("%d", groupData.getBeats()));
 
@@ -114,7 +114,7 @@ public class SongLineSettings  {
 
         if (groupIndex == -1) {
             groupData = new GroupData();
-            groupData.setOffsetChords(scrollActivity.getScrollView().getLyricsPos());
+            //groupData.setOffsetChords(scrollActivity.getScrollView().getLyricsPos());
         }
         else {
             groupData = autoScroll.getGroupArray().get(groupIndex);
@@ -123,7 +123,7 @@ public class SongLineSettings  {
         groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromBeats(progress);
 
         editBeats.setText(String.format("%d", groupData.getBeats()));
-        editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]", "")));
+        //editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]", "")));
         editLyrics.setText(scrollActivity.getLyrics());
         enableUpdates = true;
     }

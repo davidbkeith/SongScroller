@@ -57,7 +57,7 @@ public class GroupArray extends ArrayList<GroupData> {
         this.scrollActivity = scrollActivity;
     }
 
-    public void create (List<ChordData> chordPos) {}
+    public void create (List<ChordData> chordPos, String scrore) {}
 
     public int get (GroupData groupData) {
         int count = 0;
@@ -70,11 +70,11 @@ public class GroupArray extends ArrayList<GroupData> {
         return -1;
     }
 
-    public void reset () {
+   /* public void reset () {
         for (GroupData gd: this) {
             gd.setMeasures();
         }
-    }
+    }*/
 
     /*public void setLineMeasuresCount (GroupData gd, int lineMeasureCount) {
         int index = get(gd);
@@ -114,7 +114,7 @@ public class GroupArray extends ArrayList<GroupData> {
                 if (groupLineCount == 1) {
                     groupData = new GroupData();
                     groupData.setOffsetChords(scoreText.length());
-                    groupData.setLengthChords(line.length());
+                    //groupData.setLengthChords(line.length());
                     //groupData.setChordsLineNumber(lineCount);
                 }
                 //// line 2 is lyrics, annotations, etc
@@ -158,7 +158,7 @@ public class GroupArray extends ArrayList<GroupData> {
     }
 
 
-    public void setChordData (List<ChordData> chordPos) {
+   /* public void setChordData (List<ChordData> chordPos) {
 
         if (size() > 0) {
             //// this array has all lines at this point, chords lines and non-chord lines, etc
@@ -187,7 +187,7 @@ public class GroupArray extends ArrayList<GroupData> {
                 }
             }
         }
-    }
+    }*/
 
    /* public void sortGroups (int sortOrder) {
         if (sortOrder == 0) {
@@ -198,14 +198,15 @@ public class GroupArray extends ArrayList<GroupData> {
         }
     }*/
 
-    public boolean isChordLine (int charPosition) {
+    public boolean isChordLine (int charPosition, String score) {
         int i=0;
         while (i < size() && charPosition >= get(i).getOffsetChords()){
             i++;
         }
 
         i--;
-        return charPosition >= get(i).getOffsetChords() && charPosition < get(i).getOffsetChords() + get(i).getLengthChords();
+        //String score = scrollActivity.getSb().toString();
+        return charPosition >= get(i).getOffsetChords() && charPosition < get(i).getOffsetChords() + get(i).getLyrics(score).length();
     }
 
   /*  public int getPriorWrapped (int groupIndex) {
@@ -536,7 +537,7 @@ public class GroupArray extends ArrayList<GroupData> {
                 return scrollActivity.getTextView().getLayout().getLineForOffset(gd.getOffsetChords());
             }
         }
-        return -1;  /// not found
+        return scrollActivity.getTextView().getLayout().getLineCount()-1;  /// not found
     }
 
     public int getScrollLineFromPos (int pos){

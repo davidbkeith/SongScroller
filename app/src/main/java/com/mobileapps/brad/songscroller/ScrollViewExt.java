@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
 
@@ -357,6 +358,7 @@ public class ScrollViewExt extends ScrollView {
             //if (enableScrolling) {
             //if (!scrollActivity.isEditing()) {
            // scrollTo(0, (int) (scrollTo * lineHeight));
+           // Log.d("scrollTo", "%d".format(scrollTo));
             scrollTo(0, scrollActivity.getTextView().getLayout().getLineTop(scrollTo));
             //}
             //else {

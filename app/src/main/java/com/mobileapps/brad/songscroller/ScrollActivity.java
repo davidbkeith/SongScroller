@@ -28,6 +28,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ScrollActivity extends AppCompatActivity implements ScrollViewListener {
 
@@ -348,7 +350,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         if (mediaPlayer == null && song.getPath() != null) {
             mediaPlayer = MediaPlayer.create(context, Uri.parse(song.getPath()));
-            song.setDuration(mediaPlayer.getDuration());
+            //song.setDuration(mediaPlayer.getDuration());
             playingSong = song;
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
@@ -375,13 +377,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         //Read text from file
         //autoScroll = new AutoScrollCalculated(this, file);
-        sb = autoScroll.initialize (this, file);
+        sb = autoScroll.create(this, file);
+        song.setDuration(autoScroll.getSongDuration() * autoScroll.getBeatInterval());
         /*if (!autoScroll.isValid()) {
             AutoScroll autoScrollOld = autoScroll;
             autoScroll = (AutoScrollGuess) findViewById(R.id.seekBarGuess);
             //autoScroll = new AutoScrollGuess(context, autoScroll);
             //autoScroll.setOnSeekBarChangeListener(autoScroll);
-            autoScroll.initialize(this, autoScrollOld);
+            autoScroll.create(this, autoScrollOld);
         }*/
 
         //SpannableStringBuilder text = autoScroll.formatText();
@@ -440,23 +443,27 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isEditing) {
-                    autoScroll.setProgress(autoScroll.getProgress()+1);
-                }
-                else {
-                    song.setStartPosition(song.getPosition() + getAutoScroll().getTimePerBeat());
-                }
+            if (isEditing) {
+                autoScroll.setProgress(autoScroll.getProgress() + 1);
+            }
+            else {
+                song.setStartPosition(song.getPosition() + getAutoScroll().getTimePerBeat());
+            }
             }
         });
         ivPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+            if (autoScroll.getProgress() == 0){
+                onBackPressed();
+            }
+            else {
                 if (isEditing) {
                     autoScroll.setProgress(autoScroll.getProgress() - 1);
-                }
-                else {
+                } else {
                     song.setStartPosition(song.getPosition() - getAutoScroll().getTimePerBeat());
                 }
+            }
             }
         });
 
@@ -579,18 +586,22 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     public void setSpans () {
         SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(sb.toString());
+        Pattern possiblechord = java.util.regex.Pattern.compile("[^\\s]+");
+        Pattern validChord = java.util.regex.Pattern.compile("[^x]+");
 
+        String score = spannableStringBuilder.toString();
         for (GroupData gd: autoScroll.getGroupArray()) {
-            int[] chords = gd.getChords();
-            for (int i=0; i < chords.length - 1; i+=2) {
-                if (chords[i] >= 0) {
-                    final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
-                    int start = chords[i] + gd.getOffsetChords();
-                    spannableStringBuilder.setSpan(fcs, start, start + chords[i + 1], Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            String chordline = gd.getLyrics(score);
+            Matcher matcher = possiblechord.matcher(chordline);
+
+            while (matcher.find()) {
+                final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
+                String chord = chordline.substring(matcher.start(), matcher.end());
+                if (validChord.matcher(chord).matches()) {
+                    spannableStringBuilder.setSpan(fcs, gd.getOffsetChords() + matcher.start(), gd.getOffsetChords() + matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
-            }
+             }
         }
-        //textView.setText(sb);
         setSb(spannableStringBuilder);
     }
 

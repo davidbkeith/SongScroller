@@ -19,7 +19,7 @@ public class GroupArrayGuess extends GroupArray {
     }
 
     @Override
-    public void create (List<ChordData> chordPos) {
+    public void create (List<ChordData> chordPos, String score) {
        // measuresPerChord = 1;
       //  ScoreData scoreData = new ScoreData(1, 120, 1, 3);
         ScoreData scoreData = scrollActivity.getAutoScroll().getScoreData();
@@ -34,12 +34,13 @@ public class GroupArrayGuess extends GroupArray {
             int chordStart = 0;
             for (int i = chordline; i < size(); i++) {
                 GroupData gd = get(i);
+                int chordlineLength = gd.getLyrics(score).length();
                 //for (ChordData chordData : chordPos) {
                 int chordIndex;
                 List chords = new ArrayList();
                 for (chordIndex = chordStart; chordIndex < chordPos.size(); chordIndex++) {
                     ChordData chordData = chordPos.get(chordIndex);
-                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + gd.getLengthChords()) {
+                    if (chordData.getStartPos() >= gd.getOffsetChords() && chordData.getStartPos() <= gd.getOffsetChords() + chordlineLength) {
                         /// has chords on this line
 
                         //// only add chords that are separated by 1 or more characters
@@ -63,7 +64,7 @@ public class GroupArrayGuess extends GroupArray {
                             } else {
                                 //// this is first chord line so happens once only
                                 chordlineOffset = linesRemoved;
-                                scoreData.setSongStartLine(linesRemoved);
+                                //scoreData.setSongStartLine(linesRemoved);
                                 //scoreData.setScrollStart(linesRemoved);
                             }
 
@@ -86,7 +87,7 @@ public class GroupArrayGuess extends GroupArray {
                 }
                 /// no chords on this line, go to next
                 if (chords.size() > 0) {
-                    gd.setChords(chords);
+                    //gd.setChords(chords);
                     chordStart = chordIndex;
                 }
             }

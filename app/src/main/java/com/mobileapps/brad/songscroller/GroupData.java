@@ -15,41 +15,44 @@ import java.util.List;
 
 public class GroupData implements Serializable {
     int offsetChords;
-    int lengthChords; /// length of chords line, not number of chords
-    float measures;
-    int[] chords;
+    //int lengthChords; /// length of chords line, not number of chords
+    //float measures;
+    //int[] chords;
+    int beats;
 
     public GroupData () {
-        measures = -1;
+        beats = -1;
+      //  measures = -1;
      //   repeat = 1;
     }
 
     public void setBeats (int beats) {
-        double measures = beats / (double) AutoScroll.scoreData.getBeatsPerMeasure();
-        setMeasures (measures);
+        //double measures = beats / (double) AutoScroll.scoreData.getBeatsPerMeasure();
+        //setMeasures (measures);
+        this.beats = beats == AutoScroll.scoreData.getBeatsPerLine() ? -1 : beats;
     }
 
     public int getBeats() {
-        return AutoScroll.scoreData.getBeatsPerLine(measures);
+        return beats == -1 ? AutoScroll.scoreData.getBeatsPerLine() : beats; //return AutoScroll.scoreData.getBeatsPerLine(measures);
     }
 
-    public float getMeasures() {
+  /*  public float getMeasures() {
         if (measures == -1) {
             return AutoScroll.scoreData.getMeasuresPerLine();
         }
         return measures;
     }
-
-    public void setMeasures () {
+*/
+   /* public void setMeasures () {
         double guessMeasures = (chords.length/2.0) / AutoScroll.scoreData.getBeatsPerMeasure();
         setMeasures(guessMeasures);
-    }
+    }*/
 
-    public void setMeasures(double lineMeasures) {
+    /*public void setMeasures(double lineMeasures) {
         if (lineMeasures != getMeasures()) {
             this.measures = (float) lineMeasures;
         }
-    }
+    }*/
 
     public boolean equals(Object object2) {
         return object2 instanceof GroupData && getOffsetChords() == ((GroupData) object2).getOffsetChords();
@@ -59,11 +62,11 @@ public class GroupData implements Serializable {
         return beats/(chords.length/2);
     }*/
 
-    public int[] getChords() {
+   /* public int[] getChords() {
         return chords;
-    }
+    }*/
 
-    public int[] getChordsStartPositions() {
+ /*   public int[] getChordsStartPositions() {
         if (chords != null) {
             int[] starts = new int[chords.length / 2];
             for (int i = 0; i < chords.length; i += 2) {
@@ -72,9 +75,9 @@ public class GroupData implements Serializable {
             return starts;
         }
         return new int[]{};
-    }
+    }*/
 
-    public String[] getChords(String text) {
+   /* public String[] getChords(String text) {
         if (chords != null) {
             String[] chordArray = new String[chords.length / 2];
             for (int i = 0; i < chords.length; i += 2) {
@@ -84,9 +87,9 @@ public class GroupData implements Serializable {
             return chordArray;
         }
         return new String[]{};
-    }
+    }*/
 
-    public void setChords(String[] chordsPositions, int[] originalChords) {
+   /* public void setChords(String[] chordsPositions, int[] originalChords) {
         //this.chords = chords;
         //chords = new int[chordsPositions.length];
         //int count = 0;
@@ -111,7 +114,7 @@ public class GroupData implements Serializable {
 
         setChords(newChords);
 
-       /* for (int i=0; i<chords.length; i+=2) {
+       *//* for (int i=0; i<chords.length; i+=2) {
             if (i < chordsPositions.length) {
                 if (chordsPositions[i].length() > 0) {
                     try {
@@ -127,8 +130,8 @@ public class GroupData implements Serializable {
             else {
                 chords[i] = -1;
             }
-        }*/
-    }
+        }*//*
+    }*/
  /*   public void setChords(List chordsPositions) {
         chords = new int[chordsPositions.size()];
         for (int i=0; i<chordsPositions.size(); i++) {
@@ -137,18 +140,18 @@ public class GroupData implements Serializable {
     }*/
 
 
-    public void setChords(List chordsPositions) {
+   /* public void setChords(List chordsPositions) {
         chords = new int[chordsPositions.size()];
         for (int i=0; i<chordsPositions.size(); i++) {
             chords[i] = (int) chordsPositions.get(i);
         }
 
         //setMeasures();
-    }
+    }*/
 
     public String getLyrics (String score) {
         if (score != null) {
-            int indexOf = score.indexOf("\n", offsetChords + lengthChords + 1);
+            int indexOf = score.indexOf("\n", offsetChords);
             if (indexOf != -1) {
                 return (score.substring(offsetChords, indexOf));
             }
@@ -173,7 +176,7 @@ public class GroupData implements Serializable {
             //offsetCharPos = text.length() - offsetChords;
         }
 
-        scrollActivity.getAutoScroll().getGroupArray().updatePositions (offsetChords, offsetCharPos);
+       // scrollActivity.getAutoScroll().getGroupArray().updatePositions (offsetChords, offsetCharPos);
         scrollActivity.setSb(newScore);
     }
 
@@ -195,14 +198,14 @@ public class GroupData implements Serializable {
         this.wrappedLines = wrappedLines;
     }
 */
-    public int getLengthChords() {
+   /* public int getLengthChords() {
         return lengthChords;
     }
 
     public void setLengthChords(int lengthChords) {
         this.lengthChords = lengthChords;
     }
-
+*/
     public int getOffsetChords() {
         return offsetChords;
     }

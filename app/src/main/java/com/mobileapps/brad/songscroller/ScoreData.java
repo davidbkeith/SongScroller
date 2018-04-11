@@ -12,7 +12,7 @@ public class ScoreData implements Serializable {
     private int beatsPerMeasure; // is time signature basically (beatsPerMeasure/4 time);
     private float beatsPerChord;
     private int scrollOffset;
-    private int songStartLine;  /// line number (zero indexed) of first chord of song
+    //private int songStartLine;  /// line number (zero indexed) of first chord of song
 
    /* public float getBeatsPerChord() {
         return beatsPerChord;
@@ -22,13 +22,13 @@ public class ScoreData implements Serializable {
         this.beatsPerChord = beatsPerChord;
     }*/
 
-    public int getSongStartLine() {
+ /*   public int getSongStartLine() {
         return songStartLine;
     }
 
     public void setSongStartLine(int songStartLine) {
         this.songStartLine = songStartLine;
-    }
+    }*/
 
     ScoreData () {}
 
