@@ -4,20 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:theme="@style/MyActionBar"
-    app:popupTheme="@style/MyActionBar">
+    app:popupTheme="@style/MyActionBar"
+    app:theme="@style/MyActionBar">
 
-    <include layout="@layout/song_settings_bar"
-        android:id="@+id/songSettingsContainer"
+     <include layout="@layout/song_settings_bar"
+       android:id="@+id/songSettingsContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+        android:layout_height="match_parent" />
 
     <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/lineSettingsContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/lineSettingsContainer">
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/textBeats"
@@ -25,8 +24,9 @@
             android:layout_height="wrap_content"
             android:text="Beats:"
             android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="@+id/editBeats"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/editBeats" />
 
         <EditText
             android:id="@+id/editBeats"
@@ -35,45 +35,56 @@
             android:ems="10"
             android:inputType="number"
             android:textSize="12dp"
-            app:layout_constraintBottom_toBottomOf="@+id/textBeats"
+            app:layout_constraintBottom_toBottomOf="@+id/checkSongStart"
             app:layout_constraintStart_toEndOf="@+id/textBeats"
-            app:layout_constraintTop_toTopOf="@+id/textBeats" />
+            app:layout_constraintTop_toTopOf="@+id/checkSongStart" />
 
-
-        <TextView
-            android:id="@+id/textChords"
+        <CheckBox
+            android:id="@+id/checkSongStart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chords:"
+            android:text="Start Line"
             android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonAddGroup"
             app:layout_constraintStart_toEndOf="@+id/editBeats"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/buttonAddGroup" />
 
-        <EditText
-            android:id="@+id/editChords"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textMultiLine"
-            android:text="[A,B#,D,G,A,G,C#,F]"
-            android:textSize="12dp"
-            app:layout_constraintBottom_toBottomOf="@+id/textChords"
-            app:layout_constraintStart_toEndOf="@+id/textChords"
-            app:layout_constraintTop_toTopOf="@+id/textChords" />
+        <Button
+            android:id="@+id/buttonAddGroup"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginEnd="8dp"
+            android:paddingVertical="0dp"
+            android:text="+"
+            app:layout_constraintBottom_toBottomOf="@+id/buttonRemoveGroup"
+            app:layout_constraintEnd_toStartOf="@+id/buttonRemoveGroup"
+            app:layout_constraintTop_toTopOf="@+id/buttonRemoveGroup" />
+
+        <Button
+            android:id="@+id/buttonRemoveGroup"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginEnd="8dp"
+            android:paddingVertical="0dp"
+            android:text="-"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
             android:id="@+id/editLyrics"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="100dp"
             android:ems="10"
+            android:hint="Lyrics go here"
             android:inputType="textMultiLine"
             android:singleLine="false"
             android:textSize="14dp"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/checkSongStart" />
 
     </android.support.constraint.ConstraintLayout>
-
 </android.support.v7.widget.Toolbar>
 

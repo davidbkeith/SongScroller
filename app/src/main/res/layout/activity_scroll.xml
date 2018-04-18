@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
- <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollActivity"
@@ -14,17 +14,18 @@
                app:layout_constraintTop_toTopOf="parent"/>-->
 
     <!-- edit line in edit mode -->
-    <include layout="@layout/song_line" android:id="@+id/editSongLine"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+    <include
+        android:id="@+id/editSongLine"
+        layout="@layout/song_line"
         android:layout_width="match_parent"
-        android:layout_height="90dp"/>
+        android:layout_height="260dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.mobileapps.brad.songscroller.ScrollViewExt
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:background="@color/colorScreenDark"
         app:layout_constraintBottom_toTopOf="@id/controls"
         app:layout_constraintEnd_toEndOf="parent"
@@ -39,8 +40,9 @@
             android:text="@string/songtest"
             android:textColor="@color/colorScreenLight"
             android:textSize="16sp"
+
             android:visibility="visible" />
-<!--
+        <!--
         <EditText
             android:id="@+id/editText"
             android:layout_width="match_parent"
@@ -56,8 +58,8 @@
         android:id="@+id/controls"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@color/colorScreenDark"
         android:layout_weight=".25"
+        android:background="@color/colorScreenDark"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <ImageView
@@ -65,20 +67,20 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:alpha=".995"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@android:drawable/screen_background_light_transparent" />
 
         <ImageView
             android:id="@+id/ivPlay"
             android:layout_width="wrap_content"
             android:layout_height="24dp"
-            android:layout_marginBottom="4dp"
             android:layout_gravity="center"
+            android:layout_marginBottom="4dp"
             android:contentDescription="Play song"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="@+id/ivBackground"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@android:drawable/ic_media_play"
             tools:layout_editor_absoluteX="164dp" />
 
@@ -335,6 +337,6 @@
           app:layout_constraintEnd_toEndOf="parent"
           app:srcCompat="@android:drawable/ic_lock_silent_mode" /> -->
 
-   </android.support.constraint.ConstraintLayout>
+</android.support.constraint.ConstraintLayout>
 
 

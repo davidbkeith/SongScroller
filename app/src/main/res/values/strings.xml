@@ -150,7 +150,9 @@ Please correct me if I'm wrong....
 
     <string name="pref_title_vibrate">Vibrate</string>
 
-    <string name="menu_edit">Edit Mode</string>
+    <string name="menu_edit">Edit Line</string>
+    <string name="menu_add_group">Duplicate Group</string>
+    <string name="menu_delete_group">Delete Group</string>
     <string name="menu_back">Back</string>
     <string name="menu_line_options">Line Options</string>
 </resources>

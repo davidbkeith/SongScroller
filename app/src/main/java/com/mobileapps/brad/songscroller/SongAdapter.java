@@ -37,9 +37,9 @@ public class SongAdapter extends BaseAdapter {
         this.songList = songList;
     }
 
-    private Context context;
+    protected Context context;
     protected int layout;
-    static protected ArrayList<Song> songList;
+    protected ArrayList<Song> songList;
     private MainActivity mainActivity;
     private int numScores;
     protected SongAdapter.ViewHolder viewHolder;
@@ -119,8 +119,18 @@ public class SongAdapter extends BaseAdapter {
         }
 
         long duration = song.getDuration();
-        viewHolder.txtTitle.setText(song.getTitle());
-        viewHolder.txtSubtitle.setText(song.getArtist());
+
+        if (MediaStore.Audio.AudioColumns.ARTIST.compareTo(getMainActivity().getmScoreView()) == 0) {
+            viewHolder.txtTitle.setText(songList.get(position).getArtist());
+            viewHolder.txtSubtitle.setText(songList.get(position).getTitle());
+        }
+        else {
+            viewHolder.txtTitle.setText(songList.get(position).getTitle());
+            viewHolder.txtSubtitle.setText(songList.get(position).getArtist());
+        }
+
+        //viewHolder.txtTitle.setText(song.getTitle());
+        //viewHolder.txtSubtitle.setText(song.getArtist());
 
         if (song.getSheetMusicPath() != null && !song.getSheetMusicPath().isEmpty()) {
              viewHolder.txtDuration.setTextColor(viewHolder.txtDuration.getResources().getColor(R.color.colorAccentLight));

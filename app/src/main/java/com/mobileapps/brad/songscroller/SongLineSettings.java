@@ -3,7 +3,9 @@ package com.mobileapps.brad.songscroller;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import java.util.Arrays;
@@ -13,7 +15,7 @@ public class SongLineSettings  {
     private int lineStart;
     private EditText editBeats;
    // EditText editRepeat;
-    private EditText editChords;
+    private CheckBox checkSongStart;
     private EditText editLyrics;
     private Button buttonSave, buttonCancel;
     private GroupData groupDataOriginal, groupData;
@@ -28,8 +30,17 @@ public class SongLineSettings  {
         this.scrollActivity = scrollActivity;
 
         editBeats = (EditText) scrollActivity.findViewById(R.id.editBeats);
-        editChords = (EditText) scrollActivity.findViewById(R.id.editChords);
+        checkSongStart = (CheckBox) scrollActivity.findViewById(R.id.checkSongStart);
         editLyrics = (EditText) scrollActivity.findViewById(R.id.editLyrics);
+
+        checkSongStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (checkSongStart.isChecked()) {
+                    scrollActivity.getAutoScroll().getGroupArray().setSongStart(groupIndex);
+                }
+            }
+        });
 
         editBeats.addTextChangedListener(new TextWatcher() {
             @Override
@@ -57,7 +68,7 @@ public class SongLineSettings  {
             }
         });
 
-        editChords.addTextChangedListener(new TextWatcher() {
+      /*  editChords.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -83,7 +94,7 @@ public class SongLineSettings  {
                     enableUpdates = true;
                 }
             }
-        });
+        });*/
 
         editLyrics.addTextChangedListener(new TextWatcher() {
             @Override
@@ -99,11 +110,16 @@ public class SongLineSettings  {
             @Override
             public void afterTextChanged(Editable editable) {
                 if (enableUpdates) {
-                    groupData.setLyrics(editable.toString(), lineStart, scrollActivity);
-                    //line += editable.toString().split ("\n").length - 1;
+                    autoScroll.getGroupArray().setGroupText(groupIndex, editable.toString());
                 }
             }
         });
+    }
+
+    protected void refresh () {
+        if (groupData != null) {
+            editBeats.setText(String.format("%d", groupData.getBeats()));
+        }
     }
 
     protected void update() {
@@ -114,16 +130,16 @@ public class SongLineSettings  {
 
         if (groupIndex == -1) {
             groupData = new GroupData();
-            //groupData.setOffsetChords(scrollActivity.getScrollView().getLyricsPos());
         }
         else {
             groupData = autoScroll.getGroupArray().get(groupIndex);
+            checkSongStart.setChecked(autoScroll.getGroupArray().isSongStart(groupIndex));
         }
 
         groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromBeats(progress);
 
         editBeats.setText(String.format("%d", groupData.getBeats()));
-        //editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]", "")));
+       // editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]", "")));
         editLyrics.setText(scrollActivity.getLyrics());
         enableUpdates = true;
     }

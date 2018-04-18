@@ -16,10 +16,9 @@
             android:id="@+id/textBPMeasure"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Beats/Measure: "
+            android:text="Beats/Line: "
             android:textSize="12dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            tools:layout_editor_absoluteY="2dp" />
 
         <EditText
             android:id="@+id/editBPMeasure"
@@ -55,60 +54,14 @@
             app:layout_constraintTop_toTopOf="@+id/textPBM" />
 
         <TextView
-            android:id="@+id/textBPL"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="27dp"
-            android:text="Beats/Line: "
-            android:textSize="12dp"
-            app:layout_constraintStart_toEndOf="@+id/editBPMeasure" />
-
-        <EditText
-            android:id="@+id/editBeatsPerLine"
-            android:layout_width="30dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="numberDecimal"
-            android:selectAllOnFocus="true"
-            android:text="0"
-            android:textSize="12dp"
-            app:layout_constraintBottom_toBottomOf="@+id/textBPL"
-            app:layout_constraintStart_toEndOf="@+id/textBPL"
-            app:layout_constraintTop_toTopOf="@+id/textBPL" />
-
-        <TextView
-            android:id="@+id/textStartLine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Start Line:"
-            android:textSize="12dp"
-            app:layout_constraintBottom_toBottomOf="@+id/editBPM"
-            app:layout_constraintStart_toEndOf="@+id/editBPM"
-            app:layout_constraintTop_toTopOf="@+id/editBPM" />
-
-        <EditText
-            android:id="@+id/editStartLine"
-            android:layout_width="22dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="number"
-            android:text="0"
-            android:textSize="12dp"
-            app:layout_constraintBottom_toBottomOf="@+id/textStartLine"
-            app:layout_constraintStart_toEndOf="@+id/textStartLine"
-            app:layout_constraintTop_toTopOf="@+id/textStartLine" />
-
-        <TextView
             android:id="@+id/textBPChord"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="8dp"
             android:text="Beats/Chord"
             android:textSize="12dp"
-            app:layout_constraintBottom_toBottomOf="@+id/editStartLine"
-            app:layout_constraintStart_toEndOf="@+id/editStartLine"
-            app:layout_constraintTop_toTopOf="@+id/editStartLine" />
+            app:layout_constraintStart_toEndOf="@+id/editBPM"
+            tools:layout_editor_absoluteY="35dp" />
 
         <EditText
             android:id="@+id/editBPChord"

@@ -207,8 +207,8 @@ public class Song implements Serializable {
             String name = files[i].getName();
             String[] parts = name.split("-");
             if (parts.length > 1) {
-                song.setArtist (parts[1]);
-                song.setTitle(parts[0]);
+                song.setArtist (parts[0]);
+                song.setTitle(parts[1]);
             }
             else {
                 song.setTitle(parts[0]);

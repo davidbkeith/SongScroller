@@ -56,10 +56,10 @@ public class AlbumAdapter extends BaseAdapter {
     }
     public void sortAblumsBy (String sortBy) {
         if (MediaStore.Audio.AlbumColumns.ALBUM.compareTo(sortBy) == 0) {
-            Collections.sort(albumList, new ArtistCompare());
+            Collections.sort(albumList, new AlbumCompare());
         }
         else {
-            Collections.sort(albumList, new AlbumCompare());
+            Collections.sort(albumList, new ArtistCompare());
         }
     }
 

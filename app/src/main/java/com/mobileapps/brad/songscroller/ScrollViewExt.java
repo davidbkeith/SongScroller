@@ -51,7 +51,7 @@ public class ScrollViewExt extends ScrollView {
 
     public int getCursorLine() {
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
-        if (scrollActivity.isEditing()) {
+        if (scrollActivity.isEditScore()) {
             return scrollLine + 1;
         } else {
             return scrollLine + scrollActivity.getAutoScroll().getScoreData().getScrollOffset() + 1;
@@ -188,9 +188,14 @@ public class ScrollViewExt extends ScrollView {
                 int size = ev.getHistorySize();
                 if (size > 1) {
                     scrollActivity.getSong().pause();
-                    int deltaY = (int) ((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2)));
+                    int deltaY = (int) ((ev.getHistoricalY(size - 2) - ev.getHistoricalY(size - 1)));
 
-                    if (ScrollActivity.isEditing) {
+                    if (scrollActivity.isEditLine()) {
+                        //int scrollAmount =  (int) ((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))/Math.abs((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))));
+                        int scrollAmount =  (int) (deltaY*.5);
+                        scrollActivity.getAutoScroll().setProgress(scrollActivity.getAutoScroll().getProgress() + scrollAmount);
+
+                    } else if (scrollActivity.isEditGroup()) {
                         //int scrollAmount =  (int) ((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))/Math.abs((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))));
                         int scrollAmount =  (int) (deltaY*.5);
                         scrollActivity.getAutoScroll().setProgress(scrollActivity.getAutoScroll().getProgress() + scrollAmount);
@@ -308,10 +313,10 @@ public class ScrollViewExt extends ScrollView {
 
             ////// line measure position cursor
             if (autoScroll.getBeatInterval() > 0) {
-                beatspan = ScrollActivity.isEditing ? 1 : autoScroll.getLineBeats();
+                beatspan = scrollActivity.isEditScore() ? 1 : autoScroll.getLineBeats();
                // beatspan = autoScroll.getLineBeats();
-                if (beatspan > autoScroll.getScoreData().getBeatsPerLine()) {
-                    beatspan = autoScroll.getScoreData().getBeatsPerLine();
+                if (beatspan > autoScroll.getScoreData().getBeats()) {
+                    beatspan = autoScroll.getScoreData().getBeats();
                 }
 
                 beatpos = autoScroll.getProgress() - autoScroll.getStartLineBeats() + 1;
@@ -324,8 +329,8 @@ public class ScrollViewExt extends ScrollView {
             ////// tempo animation
             if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
                 beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
-                beatpos = beatpos % autoScroll.getScoreData().getBeatsPerMeasure() == 0 ? autoScroll.getScoreData().getBeatsPerMeasure() : beatpos % autoScroll.getScoreData().getBeatsPerMeasure();
-                beatspan = autoScroll.getScoreData().getBeatsPerMeasure();
+                beatpos = beatpos % autoScroll.getScoreData().getBeats() == 0 ? autoScroll.getScoreData().getBeats() : beatpos % autoScroll.getScoreData().getBeats();
+                beatspan = autoScroll.getScoreData().getBeats();
                 drawBeatIndicator(beatspan, beatpos, 0, canvas);
             }
 
@@ -350,7 +355,7 @@ public class ScrollViewExt extends ScrollView {
         }*/
 
             int scrollTo = scrollLine;
-            if (scrollActivity.getSong().getPosition() == 0) {
+            if (!scrollActivity.isEditing() && scrollActivity.getSong().getPosition() == 0) {
                 scrollTo = 0;     /// show stuff above starting line of song
             }
 
@@ -358,8 +363,14 @@ public class ScrollViewExt extends ScrollView {
             //if (enableScrolling) {
             //if (!scrollActivity.isEditing()) {
            // scrollTo(0, (int) (scrollTo * lineHeight));
-           // Log.d("scrollTo", "%d".format(scrollTo));
-            scrollTo(0, scrollActivity.getTextView().getLayout().getLineTop(scrollTo));
+            Log.d("scrollTo", Integer.toString(scrollTo));
+
+            try {
+                scrollTo(0, scrollActivity.getTextView().getLayout().getLineTop(scrollTo));
+            }
+            catch (Exception e) {
+                Log.d("Scroll Error", e.toString());
+            }
             //}
             //else {
             //    scrollTo(0, (int) ((scrollTo) * lineHeight));

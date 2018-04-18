@@ -8,6 +8,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.support.v7.widget.Toolbar;
@@ -15,8 +16,8 @@ import android.support.v7.widget.Toolbar;
 public class SongSettings {
     EditText editBPM;
     EditText editBPMeasure;
-    EditText editBeatsPerLine;
-    EditText editStartLine;
+    CheckBox checkSongStart;
+    //EditText editStartLine;
     EditText editDuration;
     RadioButton radioLine;
     RadioButton radioConstant;
@@ -28,11 +29,11 @@ public class SongSettings {
         this.scrollActivity = scrollActivity;
 
         editBPM = (EditText) scrollActivity.findViewById(R.id.editBPM);
-        editBeatsPerLine = (EditText) scrollActivity.findViewById(R.id.editBeatsPerLine);
+        checkSongStart = (CheckBox) scrollActivity.findViewById(R.id.checkSongStart);
         editBPMeasure = (EditText) scrollActivity.findViewById(R.id.editBPMeasure);
-        editStartLine = (EditText) scrollActivity.findViewById(R.id.editStartLine);
+       // editStartLine = (EditText) scrollActivity.findViewById(R.id.editStartLine);
 
-        editStartLine.addTextChangedListener(new TextWatcher() {
+ /*       editStartLine.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -52,9 +53,8 @@ public class SongSettings {
                 {
                     Log.d("Edit BMP", "Invalid integer value");
                 }
-
             }
-        });
+        });*/
 
         editBPM.addTextChangedListener(new TextWatcher() {
             @Override
@@ -94,7 +94,7 @@ public class SongSettings {
             @Override
             public void afterTextChanged(Editable editable) {
                 try {
-                    scrollActivity.getAutoScroll().scoreData.setBeatsPerMeasure(Integer.parseInt(editable.toString().trim()));
+                    scrollActivity.getAutoScroll().scoreData.setBeats(Integer.parseInt(editable.toString().trim()));
                    // scrollActivity.getAutoScroll().getGroupArray().reset();
                 }
                 catch (Exception e)
@@ -104,7 +104,7 @@ public class SongSettings {
             }
         });
 
-        editBeatsPerLine.addTextChangedListener(new TextWatcher() {
+       /* editBeatsPerLine.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -127,7 +127,7 @@ public class SongSettings {
                     editing = false;
                 }
             }
-        });
+        });*/
 
     }
 
@@ -135,9 +135,10 @@ public class SongSettings {
         scoreData = scrollActivity.getAutoScroll().getScoreData();
         if (scoreData != null && !editing) {
             editBPM.setText(String.format("%d", scoreData.getBpm()));
-            editBPMeasure.setText(String.format("%d", scoreData.getBeatsPerMeasure()));
-            editBeatsPerLine.setText(String.format("%d", scoreData.getBeatsPerLine()));
-            editStartLine.setText(String.format("%d", scoreData.getScrollOffset()));
+            editBPMeasure.setText(String.format("%d", scoreData.getBeats()));
+
+            //editBeatsPerLine.setText(String.format("%d", scoreData.getBeatsPerLine()));
+            //editStartLine.setText(String.format("%d", scoreData.getScrollOffset()));
         }
     }
 }

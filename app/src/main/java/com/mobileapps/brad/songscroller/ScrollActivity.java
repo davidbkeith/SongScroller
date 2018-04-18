@@ -1,7 +1,9 @@
 package com.mobileapps.brad.songscroller;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.media.MediaPlayer;
@@ -35,7 +37,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private Context context;
 
-    static public boolean isEditing;
+    //static public boolean isEditing;
 
     private int pause;
     private int currentScrollPos;
@@ -53,6 +55,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private int textViewHeight; /// total height of text window (NOT scroll window)
     private int scrollViewHeight;   /// height of scroll window
     private int swipeCount;
+
+    static private final int NOEDIT = 0;
+    static private final int EDITLINE = 1;
+    static private final int EDITGROUP = 2;
+    static private final int EDITSONG = 3;
+
+    static private int mode;
+    static private int lineEditMode;
 
     private ImageView ivPlay;
     private ImageView ivNext;
@@ -72,37 +82,49 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private MenuItem editMode;
 
-
     static public boolean isEditing() {
-        return isEditing;
+        return isEditScore() || isEditSong() ;
     }
 
-    public void setEditing(boolean editing) {
-        isEditing = editing;
-        if (editing == true) {
-            autoScroll.setMax(getTotalLines());
-        }
-        else {
-            autoScroll.setMax (autoScroll.getGroupArray().getTotalBeats());
-        }
+    static public boolean isEditScore() {
+        return mode == EDITLINE || mode == EDITGROUP;
+    }
+
+    static public boolean isEditSong() {
+        return mode == EDITSONG;
+    }
+
+    static public boolean isEditLine() {
+        return mode == EDITLINE;
+    }
+
+    static public boolean isEditGroup() {
+        return mode == EDITGROUP;
     }
 
     public SpannableStringBuilder getSb() {
         return sb;
     }
 
-    public void setSb(SpannableStringBuilder sb) {
-        this.sb = sb;
-        textView.post(new Runnable() {
+    public void setView () {
+         textView.post(new Runnable() {
             @Override
             public void run() {
                 // actualNumLines = textView.getLineCount();
                 //autoScroll.setWrappedLines();
-                songLineSettings.update();
-                songSettings.update();
+                if (songLineSettings != null) {
+                    songLineSettings.refresh();
+                }
+                //songSettings.update();
             }
         });
         textView.setText(sb);
+
+    }
+    public void setSb(String score) {
+       // this.sb = sb;
+        this.sb = markSpans(sb.toString(), null);
+        setView ();
     }
 
     public int getTotalLines () {
@@ -199,7 +221,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
-            if (!isEditing) {
+            if (!isEditing()) {
                 autoScroll.setSeekBarProgress();
             }
             textCountdown.setText(String.format("%d",autoScroll.getProgress()+1));
@@ -233,12 +255,40 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             case R.id.menu_edit:
                 if (item.isChecked()) {
                     item.setChecked(false);
-                    setEditing(false);
+                    lineEditMode = EDITGROUP;
+                    setMaxScroll(EDITGROUP);
                 }
                 else {
                     item.setChecked(true);
-                    setEditing(true);
+                    lineEditMode = EDITLINE;
+                    setMaxScroll(EDITLINE);
                 }
+                return true;
+            case R.id.menu_add_group:
+                autoScroll.getGroupArray().duplicateGroup (-1);
+                setMaxScroll(-1);
+                return true;
+            case R.id.menu_delete_group:
+                AlertDialog.Builder adb = new AlertDialog.Builder(this);
+                adb.setTitle (R.string.menu_delete_group);
+                adb.setIcon (android.R.drawable.ic_dialog_alert);
+
+                adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        autoScroll.getGroupArray().deleteGroup(-1);
+                        setMaxScroll(-1);
+                    }
+                });
+
+                adb.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+
+                adb.show();
                 return true;
             case R.id.menu_back:
                 // click on 'up' button in the action bar, handle it here
@@ -289,7 +339,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         scrollView.setScrollViewListener(this);
         autoScroll.setOnSeekBarChangeListener(autoScroll);
-        expand(0);
+        //mode = 0;
+        lineEditMode = EDITGROUP;
+        expand(NOEDIT);
+
 
         scrollView.setOnTouchListener(new OnSwipeTouchListener(ScrollActivity.this) {
             public void onSwipeTop() {
@@ -377,7 +430,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         //Read text from file
         //autoScroll = new AutoScrollCalculated(this, file);
-        sb = autoScroll.create(this, file);
+        sb = new SpannableStringBuilder(autoScroll.create(this, file));
         song.setDuration(autoScroll.getSongDuration() * autoScroll.getBeatInterval());
         /*if (!autoScroll.isValid()) {
             AutoScroll autoScrollOld = autoScroll;
@@ -387,7 +440,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             autoScroll.create(this, autoScrollOld);
         }*/
 
-        //SpannableStringBuilder text = autoScroll.formatText();
+        //SpannableStringBuilder text = autoScroll.findChords();
         //textView.setText(sb);
         setSpans();
 
@@ -401,7 +454,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         });*/
 
         //int textLength = text.length();
-        totLines = autoScroll.getNumLines();
+        //totLines = autoScroll.getNumLines();
 
         //float calculatedLineHeight = textVeiwHeight/(float) totLines;
         findTextViewHeight();
@@ -443,7 +496,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if (isEditing) {
+            if (isEditScore()) {
                 autoScroll.setProgress(autoScroll.getProgress() + 1);
             }
             else {
@@ -458,7 +511,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 onBackPressed();
             }
             else {
-                if (isEditing) {
+                if (isEditScore()) {
                     autoScroll.setProgress(autoScroll.getProgress() - 1);
                 } else {
                     song.setStartPosition(song.getPosition() - getAutoScroll().getTimePerBeat());
@@ -488,59 +541,52 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     @Override
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {}
 
-   void expand (int id) {
+   void expand (int viewId) {
         ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
-       // ConstraintSet constraintSet = new ConstraintSet();
-       // ConstraintLayout constraintLayout = new ConstraintLayout(scrollView.getContext());
         ActionBar actionBar = getSupportActionBar();
 
-   /*    if (id==0 || actionBar.isShowing()) {
+       if (viewId==0) {
            actionBar.hide();
            ivBackground.setVisibility(View.GONE);
-         //  lineSettingsContainer.setVisibility(View.GONE);
-         //  songSettingsContainer.setVisibility(View.GONE);
+           setMaxScroll(NOEDIT);
        }
-       else {*/
-           if (id==0) {
-               actionBar.hide();
-               ivBackground.setVisibility(View.GONE);
+       else {
+           if (viewId == EDITLINE ) {
+               songSettingsContainer.setVisibility(View.GONE);
+               lineSettingsContainer.setVisibility(View.VISIBLE);
+               setMaxScroll(lineEditMode);
            }
            else {
-               if (id == 1) {
-                   songSettingsContainer.setVisibility(View.GONE);
-                   lineSettingsContainer.setVisibility(View.VISIBLE);
+               lineSettingsContainer.setVisibility(View.GONE);
+               songSettingsContainer.setVisibility(View.VISIBLE);
+               setMaxScroll(EDITSONG);
+           }
+           actionBar.show ();
+           ivBackground.setVisibility(View.VISIBLE);
+       }
+       //setMaxScroll(id);
+   }
 
-                   //   setSupportActionBar(lineSettings);
-               }
-               else {
-                   lineSettingsContainer.setVisibility(View.GONE);
-                   songSettingsContainer.setVisibility(View.VISIBLE);
-                   //     setSupportActionBar(songSettings);
-               }
-
-               actionBar.show ();
-               ivBackground.setVisibility(View.VISIBLE);
+   public void setMaxScroll(int newmode) {
+        //isEditing = false;
+        mode = newmode == -1 ? mode : newmode;
+        if (autoScroll.getGroupArray() != null) {
+            if (mode == EDITLINE) {
+                autoScroll.setMax(getTextView().getLineCount());
+            } else if (mode == EDITGROUP) {
+                autoScroll.setMax(autoScroll.getGroupArray().size()-1);
+            } else {
+                autoScroll.setMax(autoScroll.getGroupArray().getTotalBeats());
             }
-
-     /*   if (expand) {
-         //   constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.scrollActivity, ConstraintSet.BOTTOM,0);
-            actionBar.hide();
         }
-        else {
-         //   constraintSet.connect(R.id.scrollView,ConstraintSet.BOTTOM,  R.id.ivBackground, ConstraintSet.TOP,0);
-            actionBar.show();
-        }
-       // constraintSet.applyTo(constraintLayout);
-        expand = !expand;*/
-    }
+   }
 
-
-    void showEditLine () {
+    /*void showEditLine () {
         if (isEditing) {
             ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
         }
         isEditing = !isEditing;
-    }
+    }*/
 
    /* void expand () {
         controls.setVisibility(expand ? View.GONE: View.VISIBLE);
@@ -584,33 +630,84 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return super.onTouchEvent(ev);
     }
 
-    public void setSpans () {
-        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(sb.toString());
+    public void markAllLineSpans (String line, GroupData gd, SpannableStringBuilder sb) {
+
+    }
+
+    public void markChordSpans (String chordline, GroupData gd, SpannableStringBuilder spannableStringBuilder) {
         Pattern possiblechord = java.util.regex.Pattern.compile("[^\\s]+");
-        Pattern validChord = java.util.regex.Pattern.compile("[^x]+");
+        Pattern validChord = java.util.regex.Pattern.compile("[^x\\[\\]\\(\\)]+");
+        Pattern repeat = java.util.regex.Pattern.compile(".*\\d[xX]");
 
-        String score = spannableStringBuilder.toString();
-        for (GroupData gd: autoScroll.getGroupArray()) {
-            String chordline = gd.getLyrics(score);
-            Matcher matcher = possiblechord.matcher(chordline);
+        Matcher matcher = possiblechord.matcher(chordline);
 
-            while (matcher.find()) {
+        int chordCount = 0;
+        int numrepeat = 1;
+        while (matcher.find()) {
+            String chord = chordline.substring(matcher.start(), matcher.end());
+            if (validChord.matcher(chord).matches()) {
+                chordCount++;
                 final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
-                String chord = chordline.substring(matcher.start(), matcher.end());
-                if (validChord.matcher(chord).matches()) {
+                if (gd.getBeats() != 0) {
                     spannableStringBuilder.setSpan(fcs, gd.getOffsetChords() + matcher.start(), gd.getOffsetChords() + matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
-             }
+            }
+            else if (repeat.matcher(chord).matches()) {
+                String[] multiple = chord.toLowerCase().split("x");
+                if (multiple.length > 0) {
+                    numrepeat = Integer.parseInt(multiple[0]);
+                }
+            }
         }
-        setSb(spannableStringBuilder);
+        if (gd.getBeats() != 0) {
+            if (autoScroll.getGroupArray().getClass() == GroupArrayGuess.class) {
+                gd.setBeats(chordCount * numrepeat);
+            }
+        }
+    }
+
+    public SpannableStringBuilder markSpans (String text, GroupData groupData) {
+        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(text);
+        Pattern annotation = java.util.regex.Pattern.compile("\\[(.*?)\\]");
+        Pattern linemod = java.util.regex.Pattern.compile("\\((.*?)\\)");
+
+        Matcher matcher = annotation.matcher(text);
+        while (matcher.find()) {
+            final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songannotation));
+            spannableStringBuilder.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        }
+
+        matcher = linemod.matcher(text);
+        while (matcher.find()) {
+            final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songlinemod));
+            spannableStringBuilder.setSpan(fcs, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        }
+
+        if (groupData == null) {
+            String score = text;
+            for (GroupData gd : autoScroll.getGroupArray()) {
+                String chordline = gd.getLyrics(score);
+                markChordSpans(chordline, gd, spannableStringBuilder);
+            }
+        }
+        else {
+            markChordSpans(text.split("\n")[0], groupData, spannableStringBuilder);
+        }
+        return spannableStringBuilder;
+    }
+
+    public void setSpans () {
+        //cmarkSpans(sb.toString(), null);
+        setSb(sb.toString());
+        autoScroll.setMax(autoScroll.getSongDuration());
     }
 
     public String getLyrics () {
         String text = sb.toString();
-        if (!isEditing) {
+        if (lineEditMode != EDITLINE) {
             int group = getAutoScroll().getGroupArray().getCurrentGroup();
             if (group != -1) {
-                return getAutoScroll().getGroupArray().get(group).getLyrics(text);
+                return getAutoScroll().getGroupArray().getText(group, text);
             }
             return "";
         }
@@ -626,5 +723,36 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             }
             return "";
         }
+    }
+
+    public void removeText (int start, int end) {
+        if (end != -1) {
+            sb.delete(start, end);
+        }
+        else {
+            sb.delete(start, sb.length());
+        }
+        setView();
+    }
+
+    public void replaceText (int start, int end, String text) {
+        if (end != -1) {
+            sb.replace(start, end, text);
+        }
+        else {
+            sb.insert(start, text);
+        }
+        setSb(sb.toString());
+    }
+
+    public void duplicateText (int start, int end) {
+        String score = sb.toString();
+        if (end != -1) {
+            sb.insert(start, score.substring(start, end));
+        }
+        else {
+            sb.insert(start, score.substring(start));
+        }
+        setSb(sb.toString());
     }
 }

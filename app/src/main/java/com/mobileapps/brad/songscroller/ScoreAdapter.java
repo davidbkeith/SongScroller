@@ -15,9 +15,9 @@ import java.util.Collections;
  */
 
 public class ScoreAdapter extends SongAdapter {
-    MainActivity mainActivity;
-    Context context;
-    static private ArrayList<Song> scores;
+   // MainActivity mainActivity;
+   // Context context;
+    private ArrayList<Song> scores;
 
     public ScoreAdapter(Context context, int layout, String sortBy) {
         super(context, layout, sortBy);
@@ -30,11 +30,14 @@ public class ScoreAdapter extends SongAdapter {
             }
             ArrayList<Song> textScores = Song.getScores(context, null, sortBy);
             for (Song textScore: textScores ) {
-                if (!scores.contains(textScore)) {
+                if (!songList.contains(textScore)) {
                     scores.add(textScore);
                 }
             }
         }
+
+        //songList.addAll(scores);
+        sortSongsBy(sortBy);
        // if (getMainActivity().getmSongView() == MainActivity.ARTIST) {
        //     sortSongsBy(MainActivity.ARTIST);
        // }
@@ -68,8 +71,14 @@ public class ScoreAdapter extends SongAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = super.getView (position, convertView, parent);
 
-        viewHolder.txtSubtitle.setText(scores.get(position).getTitle());
-        viewHolder.txtTitle.setText(scores.get(position).getArtist());
+        if (MediaStore.Audio.AudioColumns.ARTIST.compareTo(getMainActivity().getmScoreView()) == 0) {
+            viewHolder.txtTitle.setText(scores.get(position).getArtist());
+            viewHolder.txtSubtitle.setText(scores.get(position).getTitle());
+         }
+        else {
+            viewHolder.txtTitle.setText(scores.get(position).getTitle());
+            viewHolder.txtSubtitle.setText(scores.get(position).getArtist());
+        }
         return view;
     }
 }

@@ -8,6 +8,18 @@
         android:visible="true" />
 
     <item
+        android:id="@+id/menu_add_group"
+        android:enabled="true"
+        android:title="@string/menu_add_group"
+        android:visible="true" />
+
+    <item
+        android:id="@+id/menu_delete_group"
+        android:enabled="true"
+        android:title="@string/menu_delete_group"
+        android:visible="true" />
+
+    <item
         android:id="@+id/menu_back"
         android:enabled="true"
         android:title="@string/menu_back"

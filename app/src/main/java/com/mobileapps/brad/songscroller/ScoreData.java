@@ -8,9 +8,9 @@ import java.io.Serializable;
 
 public class ScoreData implements Serializable {
     private int bpm;
-    private float measuresPerLine;
-    private int beatsPerMeasure; // is time signature basically (beatsPerMeasure/4 time);
-    private float beatsPerChord;
+  //  private float measuresPerLine;
+    private int beats; // is time signature basically (beatsPerMeasure/4 time);
+   // private float beatsPerChord;
     private int scrollOffset;
     //private int songStartLine;  /// line number (zero indexed) of first chord of song
 
@@ -32,10 +32,10 @@ public class ScoreData implements Serializable {
 
     ScoreData () {}
 
-    ScoreData (int measuresPerLine, int bpm, int beatsPerMeasure, int scrollOffset) {
+    ScoreData (int measuresPerLine, int bpm, int beats, int scrollOffset) {
         this.bpm = bpm;
-        this.measuresPerLine = measuresPerLine;
-        this.beatsPerMeasure = beatsPerMeasure;
+    //    this.measuresPerLine = measuresPerLine;
+        this.beats = beats;
         //this.beatsPerChord = beatsPerChord;
 
         //// sets the number of lines before beginning of song at which scrolling will begin
@@ -51,41 +51,41 @@ public class ScoreData implements Serializable {
         this.bpm = bpm;
     }
 
-    public int getBeatsPerMeasure() {
-        return beatsPerMeasure;
+    public int getBeats() {
+        return beats;
     }
 
-    public void setBeatsPerMeasure(int beatsPerMeasure) {
-        this.beatsPerMeasure = beatsPerMeasure;
+ /*   public void setBeatsPerMeasure(int beatsPerMeasure) {
+        this.beats = beats;
     }
 
     public void setMeasuresPerLine(float measuresPerLine) {
         this.measuresPerLine = measuresPerLine;
+    }*/
+
+    //public float getMeasuresPerLine() {
+    //    return measuresPerLine;
+    //}
+
+    public void setBeats (int beats) {
+        this.beats = beats;
     }
 
-    public float getMeasuresPerLine() {
-        return measuresPerLine;
-    }
-
-    public void setBeatsPerLine (int beatsPerLine) {
-        measuresPerLine = beatsPerLine / (float) beatsPerMeasure;
-    }
-
-    public int getBeatsPerLine () {
+   /* public int getBeatsPerLine () {
        // if (ScrollActivity.isEditing) {
        //     return 1;
        // }
        // else {
             return (int) (measuresPerLine * beatsPerMeasure);
        // }
-    }
-
+    }*/
+/*
     public int getBeatsPerLine (float measuresperline) {
         if (measuresperline == -1) {
             return getBeatsPerLine();
         }
         return (int) (measuresperline * beatsPerMeasure);
-    }
+    }*/
     // public void setBeatsPerLine(int beatsPerLine) {
    //     this.measuresPerLine = measuresPerLine;
    // }
