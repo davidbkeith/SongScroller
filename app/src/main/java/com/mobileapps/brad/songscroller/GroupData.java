@@ -49,25 +49,6 @@ public class GroupData implements Serializable {
         return "";
     }
 
-    /*public void setLyrics (String newLine, int lineStart, ScrollActivity scrollActivity) {
-        SpannableStringBuilder newScore = scrollActivity.getSb();
-        String text = newScore.toString();
-        int indexOf = text.indexOf("\n", lineStart);
-        int offsetCharPos = 0;
-        //int offsetLineCount = newLine.split("\n").length - 1;
-
-        if (indexOf != -1) {
-            newScore = newScore.replace(lineStart, indexOf, newLine);
-            offsetCharPos = newLine.length() - (indexOf - lineStart);
-           // newScore = text.substring(0, offsetChords).concat(newLine).concat(text.substring(indexOf));
-        } else {
-            newScore = newScore.replace(lineStart,text.length(), newLine);
-            //offsetCharPos = text.length() - offsetChords;
-        }
-       // scrollActivity.getAutoScroll().getGroupArray().updatePositions (offsetChords, offsetCharPos);
-        scrollActivity.setSb(newScore);
-    }*/
-
     public int getOffsetChords() {
         return offsetChords;
     }

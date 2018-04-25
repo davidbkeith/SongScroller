@@ -28,12 +28,23 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     //protected String text;
     protected ScrollActivity scrollActivity;
     protected boolean updateProgress;
-    protected double scrollSensitivity;  /// how much is scrolled per finger movement
     protected List<ChordData> chordPos;
     private GroupArray groupArray;
     protected GroupArray groupArrayEdited;
 
-   /* public String getText() { return text; }
+    public void setMax () {
+        if (getGroupArray() != null) {
+            if (scrollActivity.isEditLine()) {
+                setMax(scrollActivity.getTextView().getLineCount());
+            } else if (scrollActivity.isEditGroup()) {
+                setMax(getGroupArray().size()-1);
+            } else {
+                setMax(getGroupArray().getTotalBeats());
+            }
+        }
+    }
+
+    /* public String getText() { return text; }
 
     public void setText(String text) { this.text = text; }
 */
@@ -94,7 +105,6 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
     public String create(ScrollActivity scrollActivity, File file) {
         this.scrollActivity = scrollActivity;
-        scrollSensitivity = 2.0;
         String text = "";
         int posOffset = 0;
         scoreData = null;
@@ -204,38 +214,6 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         }
     }*/
 
-    private int getGroupIndex (int line) {
-       // int groupIndex = (line - posOffset + scoreData.getScrollStart())/3;
-       // return groupIndex > groupArray.size() - 1 ? groupArray.size() - 1 : groupIndex;
-        if (scrollActivity.getTextView().getLayout() != null) {
-            int lineStartPos = scrollActivity.getTextView().getLayout().getLineStart(line);
-
-            int group = 0;
-            for (GroupData gd: getGroupArray()) {
-                if (lineStartPos <= gd.getOffsetChords()) {
-                    return group;
-                }
-                group++;
-            }
-        }
-
-     /*   int offset = line - scoreData.getSongStartLine() + scoreData.getScrollOffset();
-        int groupIndex = 0;
-        int lineCount = 0;
-        for (int i=0; i<groupArray.size(); i++) {
-            GroupData gdCurrent = groupArray.get(i);
-            GroupData gdLast = i == 0 ? new GroupData() : groupArray.get(i-1);
-
-            lineCount += gdCurrent.getGroupLineCount() + gdCurrent.getWrappedLines() - gdLast.getWrappedLines();
-
-            if (lineCount >= offset) {
-                groupIndex = i;
-                break;
-            }
-        }*/
-        return -1;
-    }
-
     private int getGroupIndex () {
         return getGroupArray().getGroupIndex (getProgress());
     }
@@ -276,29 +254,50 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         return groupArray.getCurrentGroup().getRepeat();
     }*/
 
-    public void setSongPosition (double scrollY) {
-        double offset = scrollY*scrollSensitivity;
-        int newbeat = getProgress() + (int) (offset/getScrollYmin());
-        scrollActivity.getSong().setStartPosition(newbeat * getTimePerBeat());
-    }
-
     public void pageUp () {
-        int newScrollLine = scrollActivity.getScrollView().getScrollLine() - scrollActivity.getLinesPerPage();
+        int newScrollLine = scrollActivity.getScrollView().getScrollLine() - scrollActivity.getLinesPerPage() - 3;
         newScrollLine = newScrollLine < 0 ? 0 : newScrollLine;
 
-        int groupIndex = getGroupIndex(newScrollLine);
-        int beats = groupIndex == 0 ? 0 : getGroupArray().getBeatsToEndOfLine(groupIndex) + 1;
-        scrollActivity.getSong().setStartPosition(beats* getTimePerBeat());
+        if (scrollActivity.isEditLine()) {
+            setProgress(newScrollLine);
+        }
+        else if (scrollActivity.isEditGroup()){
+            int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
+            setProgress(groupIndex);
+        }
+        else {
+            int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
+            int beats = groupIndex == 0 ? 0 : getGroupArray().getBeatsToEndOfLine(groupIndex) + 1;
+            scrollActivity.getSong().setStartPosition(beats * getTimePerBeat());
+        }
     }
 
     public void pageDown () {
-        int newScrollLine = scrollActivity.getScrollView().getScrollLine() + scrollActivity.getLinesPerPage();
-        int groupIndex = getGroupIndex(newScrollLine) - 1;
-        int lastGroupIndex = getGroupArray().getLastPageGroupIndex();
+       // int newScrollLine = scrollActivity.getScrollView().getScrollLine() + scrollActivity.getLinesPerPage();
+        int newScrollLine = scrollActivity.getLastVisibleLine() - 3;
+       // int groupIndex = getGroupIndex(newScrollLine) - 1;
+       // int lastVisibleLine = scrollActivity.getLastVisibleLine();
 
-        groupIndex = groupIndex > lastGroupIndex ? lastGroupIndex : groupIndex;
-        int beats = groupIndex > 0 ? getGroupArray().getBeatsToEndOfLine(groupIndex -1) + 1 : 1;
-        scrollActivity.getSong().setStartPosition(beats* getTimePerBeat());
+
+        if (scrollActivity.isEditLine()) {
+            setProgress(newScrollLine);
+        }
+        else if (scrollActivity.isEditGroup()){
+            int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
+            setProgress(groupIndex);
+        }
+        else {
+            if (newScrollLine > scrollActivity.getTotalLines() - scrollActivity.getLinesPerPage()) {
+                newScrollLine = scrollActivity.getTotalLines() - scrollActivity.getLinesPerPage();
+            }
+
+            //int lastGroupIndex = getGroupArray().getLastPageGroupIndex();
+            int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
+
+            //groupIndex = groupIndex > lastGroupIndex ? lastGroupIndex : groupIndex;
+            int beats = groupIndex > 0 ? getGroupArray().getBeatsToEndOfLine(groupIndex - 1) + 1 : 1;
+            scrollActivity.getSong().setStartPosition(beats * getTimePerBeat());
+        }
     }
 
     public void findChords(String text) {

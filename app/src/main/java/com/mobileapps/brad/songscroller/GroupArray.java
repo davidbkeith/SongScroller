@@ -41,6 +41,7 @@ public class GroupArray extends ArrayList<GroupData> {
         return -1;
     }
 
+
    /* public void reset () {
         for (GroupData gd: this) {
             gd.setMeasures();
@@ -157,6 +158,15 @@ public class GroupArray extends ArrayList<GroupData> {
         return 0;
     }
 
+    public int getBeatsToStartOfLine(int index) {
+        index = index <= size() -1 ? index : size() - 1;
+        int count = 0;
+        for (int i = 0; i<index; i++) {
+            count += get(i).getBeats();
+        }
+        return (count);
+    }
+
     public int getBeatsToEndOfLine(int index) {
         index = index <= size() -1 ? index : size() - 1;
         int count = 0;
@@ -245,25 +255,36 @@ public class GroupArray extends ArrayList<GroupData> {
             //throw (new Throwable("Wrong mode!"));
         }
         else {
-            ScrollActivity scrollActivity = getScrollActivity();
-            AutoScroll autoScroll = scrollActivity.getAutoScroll();
-            Layout layout = scrollActivity.getTextView().getLayout();
+            int chordPos;
+            int endPos = -1;
+            int groupLength = 0;
 
             if (group == -1) {
                 group = getCurrentGroup();
             }
 
-            int chordPos = group == -1 ? layout.getLineStart(autoScroll.getProgress()) : get(group).getOffsetChords();
-            int endPos = -1;
+            //// edit line
+            if (scrollActivity.isEditLine()) {
+                AutoScroll autoScroll = scrollActivity.getAutoScroll();
+                Layout layout = scrollActivity.getTextView().getLayout();
+                chordPos = layout.getLineStart(autoScroll.getProgress());
+                endPos = scrollActivity.getSb().toString().indexOf("\n", chordPos);
+                groupLength = endPos - chordPos;
 
-            if (group < size() - 1) {
-                endPos = group == -1 ? scrollActivity.getSb().toString().indexOf("\n", chordPos) : get(group + 1).getOffsetChords();
-                int groupLength = endPos - chordPos;
-                int offset = groupLength - text.length();
+            }
+            //// edit group
+            else {
+                chordPos = group == -1 ? 0 : get(group).getOffsetChords();
+                if (group < size() - 1) {
+                    endPos = group == -1 ? scrollActivity.getSb().toString().length() : get(group + 1).getOffsetChords();
+                    groupLength = endPos - chordPos;
+                    //offset = groupLength - text.length();
+                 }
+            }
 
-                for (int i = group + 1; i < size(); i++) {
-                    get(i).setOffsetChords(get(i).getOffsetChords() - offset);
-                }
+            int offset = groupLength - text.length();
+            for (int i = group + 1; i < size(); i++) {
+                get(i).setOffsetChords(get(i).getOffsetChords() - offset);
             }
 
             scrollActivity.replaceText(chordPos, endPos, text);
@@ -313,6 +334,22 @@ public class GroupArray extends ArrayList<GroupData> {
             }
         }
         return 0;
+    }
+
+
+    public int getGroupFromLine (int line) {
+        if (scrollActivity.getTextView().getLayout() != null) {
+            int lineStartPos = scrollActivity.getTextView().getLayout().getLineStart(line);
+
+            int group = 0;
+            for (GroupData gd: this) {
+                if (lineStartPos <= gd.getOffsetChords()) {
+                    return group;
+                }
+                group++;
+            }
+        }
+        return -1;
     }
 
     public int getGroupIndex(int measure) {

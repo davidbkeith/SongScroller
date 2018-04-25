@@ -55,6 +55,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private int textViewHeight; /// total height of text window (NOT scroll window)
     private int scrollViewHeight;   /// height of scroll window
     private int swipeCount;
+    protected double scrollSensitivity;  /// how much is scrolled per finger movement
+
 
     static private final int NOEDIT = 0;
     static private final int EDITLINE = 1;
@@ -127,11 +129,6 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         setView ();
     }
 
-    public int getTotalLines () {
-        return sb.toString().split("\n").length;
-        //    return get(size()-1).getChordsLineNumber() + get(size()-1).getGroupLineCount() + get(size()-1).getWrappedLines();
-    }
-
     private SpannableStringBuilder sb;
 
     private Toolbar toolbar;
@@ -162,13 +159,45 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return elapsedTime;
     }
 
+    public int getFirstVisibleLine () {
+        int scrollY   = getScrollView().getScrollY();
+        Layout layout = getTextView().getLayout();
+        return layout.getLineForVertical(scrollY);
+    }
+
+    public int getLastVisibleLine () {
+        int height    = getScrollView().getHeight();
+        int scrollY   = getScrollView().getScrollY();
+        Layout layout = getTextView().getLayout();
+        return layout.getLineForVertical(scrollY+height);
+    }
+
     public int getLinesPerPage () {
+        int height    = getScrollView().getHeight();
+        //int scrollY   = getTextView().getScrollY();
+        Layout layout = getTextView().getLayout();
+
+        //int firstVisibleLineNumber = layout.getLineForVertical(0);
+        return layout.getLineForVertical(height);
+
+       /* Layout layout = getTextView().getLayout();
+        if (layout != null) {
+            return layout.getLineCount();
+            //return (int) (scrollView.getHeight() / scrollView.getLineHeight());
+        }*/
+        //return lastVisibleLineNumber;
+    }
+
+    public int getTotalLines () {
         Layout layout = getTextView().getLayout();
         if (layout != null) {
             return layout.getLineCount();
             //return (int) (scrollView.getHeight() / scrollView.getLineHeight());
         }
         return 0;
+        //return sb.toString().split("\n").length;
+
+        //    return get(size()-1).getChordsLineNumber() + get(size()-1).getGroupLineCount() + get(size()-1).getWrappedLines();
     }
 
     public ImageView getIvPlay() {
@@ -221,7 +250,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
-            if (!isEditScore()) {
+            //if (!isEditScore()) {
+            if (isPlaying() || !isEditScore()) {
                 autoScroll.setSeekBarProgress();
             }
             textCountdown.setText(String.format("%d",autoScroll.getProgress()+1));
@@ -319,6 +349,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         context = this;
         newSeek = -1;
         expand = true;
+        scrollSensitivity = 2.0;
+
         //startTime = System.currentTimeMillis();
 
         textView = (TextView) findViewById(R.id.textView);
@@ -482,26 +514,26 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if (song.isPlaying()) {
-                song.pause();
-                ivPlay.setImageResource(android.R.drawable.ic_media_play);
-            }
-            else {
-                song.start();
-                ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-            }
+                if (song.isPlaying()) {
+                    song.pause();
+                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
+                }
+                else {
+                    song.start();
+                    ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+                }
             }
         });
 
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if (isEditScore()) {
-                autoScroll.setProgress(autoScroll.getProgress() + 1);
-            }
-            else {
-                song.setStartPosition(song.getPosition() + getAutoScroll().getTimePerBeat());
-            }
+                if (isEditScore()) {
+                    autoScroll.setProgress(autoScroll.getProgress() + 1);
+                }
+                else {
+                    song.setStartPosition(song.getPosition() + getAutoScroll().getTimePerBeat());
+                }
             }
         });
         ivPrevious.setOnClickListener(new View.OnClickListener() {
@@ -542,12 +574,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {}
 
    void expand (int viewId) {
-        ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
+        //ivBackground.setVisibility(expand ? View.GONE: View.VISIBLE);
         ActionBar actionBar = getSupportActionBar();
 
        if (viewId==0) {
            actionBar.hide();
-           ivBackground.setVisibility(View.GONE);
+           //ivBackground.setVisibility(View.GONE);
            setMaxScroll(NOEDIT);
        }
        else {
@@ -562,23 +594,36 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                setMaxScroll(EDITSONG);
            }
            actionBar.show ();
-           ivBackground.setVisibility(View.VISIBLE);
+           //ivBackground.setVisibility(View.VISIBLE);
        }
        //setMaxScroll(id);
    }
 
+   public void updateSongAndSeekProgress (int progress) {
+       int newProgress = getAutoScroll().getProgress() + progress;
+       getAutoScroll().setProgress(newProgress);
+       if (isEditLine()) {
+           int group = getAutoScroll().getGroupArray().getGroupFromLine(progress);
+           song.setStartPosition(getAutoScroll().getGroupArray().getBeatsToStartOfLine(group) * getAutoScroll().getTimePerBeat());
+       }
+       else if (isEditGroup()) {
+           song.setStartPosition(getAutoScroll().getGroupArray().getBeatsToStartOfLine(newProgress) * getAutoScroll().getTimePerBeat());
+       }
+       else {
+           setSongPosition (newProgress);
+       }
+   }
+
+    public void setSongPosition (double scrollY) {
+        double offset = scrollY*scrollSensitivity;
+        int newbeat = getAutoScroll().getProgress() + (int) (offset/getAutoScroll().getScrollYmin());
+        getSong().setStartPosition(newbeat * getAutoScroll().getTimePerBeat());
+    }
+
    public void setMaxScroll(int newmode) {
         //isEditing = false;
         mode = newmode == -1 ? mode : newmode;
-        if (autoScroll.getGroupArray() != null) {
-            if (mode == EDITLINE) {
-                autoScroll.setMax(getTextView().getLineCount());
-            } else if (mode == EDITGROUP) {
-                autoScroll.setMax(autoScroll.getGroupArray().size()-1);
-            } else {
-                autoScroll.setMax(autoScroll.getGroupArray().getTotalBeats());
-            }
-        }
+        autoScroll.setMax();
    }
 
     /*void showEditLine () {
@@ -661,7 +706,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         if (gd.getBeats() != 0) {
             if (autoScroll.getGroupArray().getClass() == GroupArrayGuess.class) {
-                gd.setBeats(chordCount * numrepeat);
+                gd.setBeats(gd.getBeats() * numrepeat);
             }
         }
     }
@@ -747,16 +792,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     public void duplicateText (int start, int end, int group) {
         String score = sb.toString();
-        String insert;
         if (end != -1) {
-            insert = score.substring(start, end);
+            sb.insert(start, score.substring(start, end));
         }
         else {
-            insert = score.substring(start);
+            sb.insert(start, score.substring(start));
         }
-
-        //SpannableStringBuilder sb = markSpans(insert, autoScroll.getGroupArray().get(group));
-        sb.insert(start, insert);
         setSb(sb.toString());
     }
 }

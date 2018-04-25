@@ -21,6 +21,7 @@ public class GroupArrayGuess extends GroupArray {
     @Override
     public void create (List<ChordData> chordPos, String score) {
         ScoreData scoreData = scrollActivity.getAutoScroll().getScoreData();
+        int totalChordCount = 0;
 
         if (size() > 0) {
             int chordline = 0;
@@ -59,6 +60,7 @@ public class GroupArrayGuess extends GroupArray {
                 /// go to next if chords finished
                 if (numChords > 0) {
                     chordStart = chordIndex;
+                    totalChordCount += numChords;
                 }
             }
 
@@ -68,6 +70,11 @@ public class GroupArrayGuess extends GroupArray {
                 remove(chordline);
             }
         }
+
+        int beats = totalChordCount/this.size();
+
+        //// guess 4 or 8 beats per line
+        scoreData.setBeats (beats < 6 ? 4 : 8);
         createScoreData(scoreData, scrollActivity.getAutoScroll(), score);
     }
 
