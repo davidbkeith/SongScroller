@@ -21,6 +21,11 @@ public class GroupData implements Serializable {
         beats = -1;
     }
 
+    public GroupData (GroupData groupData) {
+        this.offsetChords = groupData.offsetChords;
+        this.beats = groupData.beats;
+    }
+
     public void setBeats (int beats) {
         this.beats = beats == AutoScroll.scoreData.getBeats() ? -1 : beats;
     }

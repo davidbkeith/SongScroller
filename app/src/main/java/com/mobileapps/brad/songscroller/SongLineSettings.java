@@ -130,15 +130,17 @@ public class SongLineSettings  {
 
         if (groupIndex == -1) {
             groupData = new GroupData();
+            editBeats.setText("0");
         }
         else {
             groupData = autoScroll.getGroupArray().get(groupIndex);
             checkSongStart.setChecked(autoScroll.getGroupArray().isSongStart(groupIndex));
+            editBeats.setText(String.format("%d", groupData.getBeats()));
         }
 
         groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromBeats(progress);
 
-        editBeats.setText(String.format("%d", groupData.getBeats()));
+
        // editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]", "")));
         editLyrics.setText(scrollActivity.getLyrics());
         enableUpdates = true;

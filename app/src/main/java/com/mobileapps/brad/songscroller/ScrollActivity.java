@@ -221,7 +221,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     Runnable moveSeekBarThread = new Runnable() {
         public void run() {
-            if (!isEditing()) {
+            if (!isEditScore()) {
                 autoScroll.setSeekBarProgress();
             }
             textCountdown.setText(String.format("%d",autoScroll.getProgress()+1));
@@ -635,30 +635,30 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     }
 
     public void markChordSpans (String chordline, GroupData gd, SpannableStringBuilder spannableStringBuilder) {
-        Pattern possiblechord = java.util.regex.Pattern.compile("[^\\s]+");
-        Pattern validChord = java.util.regex.Pattern.compile("[^x\\[\\]\\(\\)]+");
-        Pattern repeat = java.util.regex.Pattern.compile(".*\\d[xX]");
+        chordline = chordline.concat("\n");
+        //Pattern possiblechord = java.util.regex.Pattern.compile("[^\\s]+");
+        //Pattern validChord = java.util.regex.Pattern.compile("[^x\\[\\]\\(\\)]+");
+        Pattern validChord = java.util.regex.Pattern.compile("(\\(*(?<![A-Z])[CDEFGAB](?![A-Z])(?:b|bb)*(?:|#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\(]?[\\d\\/-/+]*[\\)]?(?:[CDEFGAB](?:b|bb)*(?:#|##|add|sus|maj|min|aug|m|M|b|°|[0-9])*[\\d\\/]*)*\\)*)(?=[\\s|$])(?![a-z])");
+        Pattern repeat = java.util.regex.Pattern.compile("\\d+[xX]");
 
-        Matcher matcher = possiblechord.matcher(chordline);
-
-        int chordCount = 0;
         int numrepeat = 1;
-        while (matcher.find()) {
-            String chord = chordline.substring(matcher.start(), matcher.end());
-            if (validChord.matcher(chord).matches()) {
-                chordCount++;
-                final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
-                if (gd.getBeats() != 0) {
-                    spannableStringBuilder.setSpan(fcs, gd.getOffsetChords() + matcher.start(), gd.getOffsetChords() + matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                }
-            }
-            else if (repeat.matcher(chord).matches()) {
-                String[] multiple = chord.toLowerCase().split("x");
-                if (multiple.length > 0) {
-                    numrepeat = Integer.parseInt(multiple[0]);
-                }
+
+        Matcher repeatMatcher = repeat.matcher(chordline);
+        if (repeatMatcher.find()) {
+            String multiple = chordline.substring(repeatMatcher.start(), repeatMatcher.end()-1);
+            numrepeat = Integer.parseInt(multiple);
+        }
+
+        Matcher chordMatcher = validChord.matcher(chordline);
+        int chordCount = 0;
+        while (chordMatcher.find()) {
+            chordCount++;
+            final ForegroundColorSpan fcs = new ForegroundColorSpan(getResources().getColor(R.color.songchords));
+            if (gd.getBeats() != 0) {
+                spannableStringBuilder.setSpan(fcs, gd.getOffsetChords() + chordMatcher.start(), gd.getOffsetChords() + chordMatcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             }
         }
+
         if (gd.getBeats() != 0) {
             if (autoScroll.getGroupArray().getClass() == GroupArrayGuess.class) {
                 gd.setBeats(chordCount * numrepeat);
@@ -745,14 +745,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         setSb(sb.toString());
     }
 
-    public void duplicateText (int start, int end) {
+    public void duplicateText (int start, int end, int group) {
         String score = sb.toString();
+        String insert;
         if (end != -1) {
-            sb.insert(start, score.substring(start, end));
+            insert = score.substring(start, end);
         }
         else {
-            sb.insert(start, score.substring(start));
+            insert = score.substring(start);
         }
+
+        //SpannableStringBuilder sb = markSpans(insert, autoScroll.getGroupArray().get(group));
+        sb.insert(start, insert);
         setSb(sb.toString());
     }
 }

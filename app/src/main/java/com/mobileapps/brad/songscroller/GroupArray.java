@@ -1,5 +1,6 @@
 package com.mobileapps.brad.songscroller;
 
+import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 
@@ -196,7 +197,7 @@ public class GroupArray extends ArrayList<GroupData> {
             group = getCurrentGroup();
         }
 
-        GroupData copyGroup = get(group);
+        GroupData copyGroup = new GroupData(get(group));
         int chordPos = get(group).getOffsetChords();
         int endPos = -1;
         int groupLength;
@@ -216,7 +217,7 @@ public class GroupArray extends ArrayList<GroupData> {
         //GroupData newGroup = get(group);
         copyGroup.setOffsetChords(chordPos);
         add (group, copyGroup);
-        scrollActivity.duplicateText(chordPos, chordPos + groupLength);
+        scrollActivity.duplicateText(chordPos, chordPos + groupLength, group);
     }
 
     public void deleteGroup (int group) {
@@ -238,25 +239,35 @@ public class GroupArray extends ArrayList<GroupData> {
         scrollActivity.removeText(chordPos, endPos);
     }
 
+    ////// must be in line edit or group edit mode to use this function
     public void setGroupText (int group, String text) {
-        if (group == -1) {
-            group = getCurrentGroup();
+        if (!scrollActivity.isEditScore()) {
+            //throw (new Throwable("Wrong mode!"));
         }
+        else {
+            ScrollActivity scrollActivity = getScrollActivity();
+            AutoScroll autoScroll = scrollActivity.getAutoScroll();
+            Layout layout = scrollActivity.getTextView().getLayout();
 
-        int chordPos = get(group).getOffsetChords();
-        int endPos = -1;
-
-        if (group < size()-1) {
-            endPos = get(group + 1).getOffsetChords();
-            int groupLength = endPos - chordPos;
-            int offset = groupLength - text.length();
-
-            for (int i = group + 1; i < size(); i++) {
-                get(i).setOffsetChords(get(i).getOffsetChords()-offset);
+            if (group == -1) {
+                group = getCurrentGroup();
             }
-        }
 
-        scrollActivity.replaceText(chordPos, endPos, text);
+            int chordPos = group == -1 ? layout.getLineStart(autoScroll.getProgress()) : get(group).getOffsetChords();
+            int endPos = -1;
+
+            if (group < size() - 1) {
+                endPos = group == -1 ? scrollActivity.getSb().toString().indexOf("\n", chordPos) : get(group + 1).getOffsetChords();
+                int groupLength = endPos - chordPos;
+                int offset = groupLength - text.length();
+
+                for (int i = group + 1; i < size(); i++) {
+                    get(i).setOffsetChords(get(i).getOffsetChords() - offset);
+                }
+            }
+
+            scrollActivity.replaceText(chordPos, endPos, text);
+        }
     }
 
     public int getCurrentGroup () {
