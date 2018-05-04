@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -46,7 +47,25 @@ public class Song implements Serializable {
     private int albumId;
     private String track;
 
-    public  long getPosition () {
+    public String getScoreName () {
+        return getArtist() + "-" + getTitle();
+    }
+
+    ///// returns beat position in measure (1 to 4 for common time)
+    public int getBeat () {
+        return (int) (((getPosition() / 60000.0) * AutoScroll.scoreData.getBpm()) % AutoScroll.scoreData.getBeatsPerMeasure()) + 1;
+    }
+
+
+    public int getMeasure () {
+        return (int) (getPosition () * (AutoScroll.scoreData.getBpm()/60000.0)) / AutoScroll.scoreData.getBeatsPerMeasure() + 1;
+    }
+
+    public int getTotalMeasures () {
+        return (int) (duration * (AutoScroll.scoreData.getBpm()/60000.0)) / AutoScroll.scoreData.getBeatsPerMeasure();
+    }
+
+    public long getPosition () {
         if (isPlaying) {
             return System.currentTimeMillis() - startTime + startPosition;
         }
@@ -211,6 +230,7 @@ public class Song implements Serializable {
                 song.setTitle(parts[1]);
             }
             else {
+                song.setArtist("Unknown");
                 song.setTitle(parts[0]);
             }
             song.setSheetMusicPath(files[i].getAbsolutePath());
@@ -260,8 +280,9 @@ public class Song implements Serializable {
                     song.setArtist(songCursor.getString(0));
                     song.setTitle(songCursor.getString(1));
                     //File file = new File(sdcard, "/Music/" + song.getArtist() + "-" + song.getTitle() + ".txt");
-                    File score = FindFile.find(song.getArtist() + "-" + song.getTitle() + ".txt", dirmusic, false );
-                    Log.d("Score Path is: ", score.getPath());
+                    File score = new File (dirmusic, song.getScoreName() + ".txt");
+                   // File score = FindFile.find(song.getScoreName() + ".txt", dirmusic, false );
+                   // Log.d("Score Path is: ", score.getPath());
                     if (score.exists()){
                         song.setSheetMusicPath(score.getPath());
                     }
@@ -326,5 +347,60 @@ public class Song implements Serializable {
             }
         }
         return songs;
+    }
+
+    static public Song getSong (Context context, String path) {
+        ContentResolver contentResolver = context.getContentResolver();
+        MediaStore.Audio.Media media = new MediaStore.Audio.Media();
+        String selection = "is_music != 0";
+
+        String[] projection = new String[]{
+                media.ARTIST,
+                media.TITLE,
+                media.DATA,
+                media.DISPLAY_NAME,
+                media.DURATION,
+                media.ALBUM_ID,
+                media.TRACK
+        };
+
+        Cursor songCursor = null;
+        Song song = null;
+        try {
+            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            songCursor = contentResolver.query(uri, projection, selection, null, MediaStore.Audio.AudioColumns.TRACK);
+            if (songCursor != null) {
+                songCursor.moveToFirst();
+
+                while (!songCursor.isAfterLast()) {
+                    String mp3path = songCursor.getString(2);
+                    if (mp3path.compareToIgnoreCase(path) == 0) {
+                        song = new Song();
+                        song.setArtist(songCursor.getString(0));
+                        song.setTitle(songCursor.getString(1));
+
+                        //String score = song.getArtist() + "-" + song.getTitle() + "-" + (new File(path)).getName() + ".txt";
+
+                        song.setPath(mp3path);
+                        song.setDispayName((songCursor.getString(3)));
+                        song.setDuration(songCursor.getLong(4));
+                        song.setAlbumId(songCursor.getInt(5));
+                        song.setTrack(songCursor.getString(6));
+                        //song.setSheetMusicPath(score);
+                        songCursor.close();
+                        return song;
+                    }
+                    songCursor.moveToNext();
+                }
+                songCursor.close();
+            }
+        } catch (Exception e) {
+            Log.e("Media", e.toString());
+        } finally {
+            if (songCursor != null) {
+                songCursor.close();
+            }
+        }
+        return song;
     }
 }

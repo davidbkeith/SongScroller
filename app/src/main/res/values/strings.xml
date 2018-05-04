@@ -76,6 +76,12 @@ Please correct me if I'm wrong....
         <item>Score</item>
         <item>Playlist</item>
     </string-array>
+    <string-array name="timesig_spinner">
+        <item>2/4</item>
+        <item>3/4</item>
+        <item>4/4</item>
+        <item>6/8</item>
+    </string-array>
     <string name="title_activity_song_settings">Song Settings</string>
 
     <!-- Strings related to Settings -->
@@ -155,4 +161,6 @@ Please correct me if I'm wrong....
     <string name="menu_delete_group">Delete Group</string>
     <string name="menu_back">Back</string>
     <string name="menu_line_options">Line Options</string>
+    <string name="menu_setmp3">Set MP3</string>
+
 </resources>

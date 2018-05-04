@@ -316,15 +316,16 @@ public class ScrollViewExt extends ScrollView {
 
             ////// line measure position cursor
             if (autoScroll.getBeatInterval() > 0) {
-                beatspan = scrollActivity.isEditScore() ? 1 : autoScroll.getLineBeats();
-               // beatspan = autoScroll.getLineBeats();
-                if (beatspan > autoScroll.getScoreData().getBeats()) {
-                    beatspan = autoScroll.getScoreData().getBeats();
-                }
+                beatspan = scrollActivity.isEditScore() ? 1 : autoScroll.getLineMeasures();
+               // beatspan = autoScroll.getLineMeasures();
+               // if (beatspan > autoScroll.getScoreData().getMeasures()) {
+               //     beatspan = autoScroll.getScoreData().getMeasures();
+               // }
 
-                beatpos = autoScroll.getProgress() - autoScroll.getStartLineBeats() + 1;
-                int numbeatsmax = (int) beatspan;
-                beatpos = beatpos % (int) beatspan == 0 ? (int) beatspan : beatpos % (int) beatspan;
+                beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasures() + 1;
+
+               // int numbeatsmax = (int) beatspan;
+               // beatpos = beatpos % (int) beatspan == 0 ? (int) beatspan : beatpos % (int) beatspan;
                 //beatpos = beatpos % (int) beatspan;
                 drawBeatIndicator(beatspan, beatpos, getCursorLine(), canvas);
             }
@@ -332,28 +333,28 @@ public class ScrollViewExt extends ScrollView {
             ////// tempo animation
             if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
                 beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
-                beatpos = beatpos % autoScroll.getScoreData().getBeats() == 0 ? autoScroll.getScoreData().getBeats() : beatpos % autoScroll.getScoreData().getBeats();
-                beatspan = autoScroll.getScoreData().getBeats();
+                beatpos = beatpos % autoScroll.getScoreData().getMeasures() == 0 ? autoScroll.getScoreData().getMeasures() : beatpos % autoScroll.getScoreData().getMeasures();
+                beatspan = autoScroll.getScoreData().getMeasures();
                 drawBeatIndicator(beatspan, beatpos, 0, canvas);
             }
 
 
        /* ////// tempo animation
         if (autoScroll.getBeatInterval() > 0) {
-            beatspan = autoScroll.getLineBeats();
+            beatspan = autoScroll.getLineMeasures();
             if (beatspan > autoScroll.getScoreData().getMeasuresPerLine()) {
                 beatspan = autoScroll.getScoreData().getMeasuresPerLine();
             }
 
-            beatpos = autoScroll.getProgress() - autoScroll.getStartLineBeats() + 1;
+            beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasures() + 1;
             beatpos = beatpos % beatspan+1;
             drawBeatIndicator(beatspan, beatpos, scrollLine + autoScroll.getScoreData().getScrollStart() + 2, canvas);
         }
 
         if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
             beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
-            beatpos = beatpos % autoScroll.getScoreData().getBeats() + 1;
-            beatspan = autoScroll.getScoreData().getBeats();
+            beatpos = beatpos % autoScroll.getScoreData().getMeasures() + 1;
+            beatspan = autoScroll.getScoreData().getMeasures();
             drawBeatIndicator(beatspan, beatpos, 0, canvas);
         }*/
 

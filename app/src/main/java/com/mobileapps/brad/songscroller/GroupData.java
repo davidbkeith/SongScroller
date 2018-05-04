@@ -1,13 +1,8 @@
 package com.mobileapps.brad.songscroller;
 
-import android.text.SpannableStringBuilder;
-import android.util.Log;
-
 import org.json.JSONObject;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by brad on 2/26/18.
@@ -15,23 +10,30 @@ import java.util.List;
 
 public class GroupData implements Serializable {
     int offsetChords;
-    int beats;
+    int measures;
+    int next;
 
     public GroupData () {
-        beats = -1;
+        measures = -1;
+        next = -1;
+    }
+
+    public GroupData (int offsetChords, int measures) {
+        this.offsetChords = offsetChords;
+        this.measures = measures;
     }
 
     public GroupData (GroupData groupData) {
         this.offsetChords = groupData.offsetChords;
-        this.beats = groupData.beats;
+        this.measures = groupData.measures;
     }
 
-    public void setBeats (int beats) {
-        this.beats = beats == AutoScroll.scoreData.getBeats() ? -1 : beats;
+    public void setMeasures(int measures) {
+        this.measures = measures == AutoScroll.scoreData.getMeasures() ? -1 : measures;
     }
 
-    public int getBeats() {
-        return beats == -1 ? AutoScroll.scoreData.getBeats() : beats;
+    public int getMeasures() {
+        return measures == -1 ? AutoScroll.scoreData.getMeasures() : measures;
     }
 
     public boolean equals(Object object2) {
@@ -59,12 +61,12 @@ public class GroupData implements Serializable {
 
     public void getLineMetaData (String JSON) throws Exception {
         JSONObject jsonObject = new JSONObject(JSON);
-        int beats = jsonObject.optInt("beats", -1);
-        int repeat = jsonObject.optInt("repeat", 1);
+        int linemeasures = jsonObject.optInt("measures", -1);
+        int repeat = jsonObject.optInt("repeat", 0) + 1;
 
-        beats = beats == -1 ? AutoScroll.scoreData.getBeats() : beats;
-        beats = repeat * beats;
-        setBeats(repeat * beats);
+        int measures = linemeasures == -1 ? AutoScroll.scoreData.getMeasures() : linemeasures;
+        //measures = repeat * linemeasures;
+        setMeasures(repeat * measures);
     }
 }
 

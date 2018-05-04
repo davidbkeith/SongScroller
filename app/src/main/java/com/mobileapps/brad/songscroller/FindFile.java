@@ -1,8 +1,19 @@
 package com.mobileapps.brad.songscroller;
 
+import android.content.Context;
+import android.net.Uri;
+import android.os.Environment;
+import android.util.Base64;
+import android.util.Base64InputStream;
+import android.util.Log;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -12,6 +23,44 @@ import java.util.regex.Pattern;
  */
 
 public class FindFile {
+
+    static public File getScoreDataDir (Context context) {
+        File file = new File(context.getExternalFilesDir(null), "scoredata");
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                Log.e("Create data file", "Directory not created");
+            }
+        }
+        return file;
+    }
+
+    static public String readTextFile (Context context, String filePath) {
+        BufferedReader reader = null;
+        StringBuilder builder = new StringBuilder();
+        try {
+            File readFile = new File (filePath);
+            reader = new BufferedReader(new InputStreamReader(context.getContentResolver().openInputStream (Uri.fromFile(readFile))));
+            String line = "";
+
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return builder.toString();
+    }
 
     static public File find(String name, File file, boolean recurse)
     {

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_edit"
+        android:checkable="true"
+        android:enabled="true"
+        android:title="@string/menu_edit"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/menu_add_group"
+        android:enabled="true"
+        android:title="@string/menu_add_group"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/menu_delete_group"
+        android:enabled="true"
+        android:title="@string/menu_delete_group"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/menu_set_mp3"
+        android:title="@string/menu_setmp3"
+        android:visible="false"/>
+
+    <item
+        android:id="@+id/menu_back"
+        android:enabled="true"
+        android:title="@string/menu_back"
+        android:visible="true" />
+
+</menu>

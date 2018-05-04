@@ -16,8 +16,6 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.support.v7.widget.Toolbar;
 
-import java.io.File;
-
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
@@ -100,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onCreateOptionsMenu (Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.score_menu, menu);
+        inflater.inflate(R.menu.group_menu, menu);
         return true;
     }
     

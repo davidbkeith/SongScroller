@@ -16,8 +16,9 @@
             android:id="@+id/textBPMeasure"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Beats/Line: "
-            android:textSize="12dp" />
+            android:text="Measures/Line: "
+            android:textSize="12dp"
+            tools:layout_editor_absoluteY="4dp" />
 
         <EditText
             android:id="@+id/editBPMeasure"
@@ -57,23 +58,44 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Beats/Chord"
+            android:text="Time Signature"
             android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="@+id/editBPM"
             app:layout_constraintStart_toEndOf="@+id/editBPM"
-            tools:layout_editor_absoluteY="35dp" />
+            app:layout_constraintTop_toTopOf="@+id/editBPM" />
 
-        <EditText
-            android:id="@+id/editBPChord"
-            android:layout_width="30dp"
+        <Spinner
+            android:id="@+id/timesig_spinner"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:ems="10"
-            android:inputType="numberDecimal"
-            android:text="0.0"
-            android:textSize="12dp"
+            android:prompt="@array/timesig_spinner"
             app:layout_constraintBottom_toBottomOf="@+id/textBPChord"
             app:layout_constraintStart_toEndOf="@+id/textBPChord"
             app:layout_constraintTop_toTopOf="@+id/textBPChord" />
+
+        <TextView
+            android:id="@+id/textDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Duration:"
+            app:layout_constraintBottom_toBottomOf="@+id/editBPMeasure"
+            app:layout_constraintStart_toEndOf="@+id/editBPMeasure"
+            app:layout_constraintTop_toTopOf="@+id/editBPMeasure" />
+
+        <EditText
+            android:id="@+id/editDuration"
+            android:layout_width="95dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:text="0"
+            android:textAlignment="textEnd"
+            android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="@+id/textDuration"
+            app:layout_constraintStart_toEndOf="@+id/textDuration"
+            app:layout_constraintTop_toTopOf="@+id/textDuration" />
 
 
     </android.support.constraint.ConstraintLayout>

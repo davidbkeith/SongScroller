@@ -2,6 +2,7 @@ package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
 import android.support.v7.widget.AppCompatSeekBar;
+import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
@@ -14,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -39,7 +41,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
             } else if (scrollActivity.isEditGroup()) {
                 setMax(getGroupArray().size()-1);
             } else {
-                setMax(getGroupArray().getTotalBeats());
+                setMax(getGroupArray().getTotalMeasures());
             }
         }
     }
@@ -90,12 +92,14 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         super(context, attrs, defStyle);
     }
 
-    public long getTimePerBeat() {
-        return scrollActivity.getAutoScroll().getScoreData().getBeats() * getBeatInterval();
-    }
+    //public long getTimePerBeat() {
+
+        //return 60000/scoreData.getBpm();
+        //return scrollActivity.getAutoScroll().getScoreData().getBeatsPerMeasure() * getBeatInterval();
+    //}
 
     public double getScrollYmin () {
-        double retval = ((scrollActivity.getScrollVeiwHeight() / 2.0) / getGroupArray().getTotalBeats());
+        double retval = ((scrollActivity.getScrollVeiwHeight() / 2.0) / getGroupArray().getTotalMeasures());
         return retval < 2 ? 2 : retval;
     }
 
@@ -112,48 +116,89 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
-            groupArray = new GroupArray(scrollActivity);
 
-            while (scoreData == null && (line = br.readLine()) != null) {
-                //// used for autoscrollguess only ///
+            String songData = scrollActivity.getSongData();
+            if (songData != null && !songData.isEmpty()) {
+                scoreData = new ScoreData(songData);
+                if (scoreData.getScorePath() == null || scoreData.getScorePath().isEmpty()) {
+                    scoreData.setScorePath(scrollActivity.getSong().getSheetMusicPath());
+                }
+                groupArray = new GroupArray(scrollActivity, songData);
+            }
+            else {
+                groupArray = new GroupArray(scrollActivity);
+            }
+
+            String line;
+            while ((line = br.readLine()) != null) {
                 GroupData gd = new GroupData();
                 gd.setOffsetChords(text.length());
-                //gd.setLengthChords(line.length());
-                //gd.setChordsLineNumber(posOffset);
                 groupArray.add(gd);
                 //////////////////////////////////////
 
-                text += getScoreDataFromJson(line);
+                if (scoreData == null) {
+                    text += getScoreDataFromJson(line);
+                }
+                else {
+                    text += line;
+                }
                 text += "\n";
                 posOffset = ++startLine;
             }
 
-            if (scoreData != null) {
+            //// autoscroll for 3 lines in per group format
+            if (scoreData != null && groupArray == null) {
                 //scoreData.setSongStartLine(posOffset);
                 groupArray = new GroupArray(scrollActivity);
                 text = groupArray.create(br, text, scoreData);
-                findChords(text);
+          //      findChords(text);
          //       groupArray.setChordData(chordPos);
          //       setMax (getSongDuration());
             }
-            else {
-                scoreData = new ScoreData(1, 120, 4 , 3);
+          /*  else if ((scoreDataIndex = text.indexOf("{scoredata={")) != -1) {
+
+                int end = text.indexOf(",}}", scoreDataIndex);
+
+                if (end != -1) {
+                    String score = text.substring(scoreDataIndex + 12, end);
+                    List<String> data = Arrays.asList(score.split(","));
+                    scoreData = new ScoreData(Integer.parseInt((String) data.get(0)), 4, Integer.parseInt((String) data.get(1)), Integer.parseInt((String) data.get(2)));
+
+                    groupArray = new GroupArray(scrollActivity);
+                    Layout layout = scrollActivity.getTextView().getLayout();
+
+                    for (int i=3; i<data.size(); i++) {
+                        String[] items = data.get(i).split("\\.");
+                        int measures = Integer.parseInt(items[1]);
+                        GroupData groupData = new GroupData(Integer.parseInt(items[0]), measures);
+                        groupArray.add(groupData);
+                    }
+                }
+
+                text = text.substring(0, scoreDataIndex);
+                setMax(scrollActivity.getSong().getTotalMeasures()); // number of measures in song
+                scrollActivity.setView(text, true);
+                br.close();
+            }*/
+            else if (scoreData == null) {
+                scoreData = new ScoreData(120, 4, 4 , 3, "");
                 groupArray = new GroupArrayGuess(scrollActivity, groupArray);
                 findChords(text);
                 groupArray.create(chordPos, text);
 
                 //if (scrollActivity.isEditScore()) {
-                    groupArrayEdited = (GroupArray) groupArray.clone();
+                //    groupArrayEdited = (GroupArray) groupArray.clone();
                // }
                 //posOffset = groupArray.get(0).getChordsLineNumber();
                 //groupArray.setScoreData(this);
             }
 
-          //  long duration = (long) ((double) groupArray.getTotalBeats() / ( (double) scoreData.getBpm()/scoreData.getBeats()) * 60000);
+            groupArrayEdited = (GroupArray) groupArray.clone();
+
+          //  long duration = (long) ((double) groupArray.getTotalMeasures() / ( (double) scoreData.getBpm()/scoreData.getMeasures()) * 60000);
           //  scrollActivity.getSong().setDuration(duration);
-            scrollActivity.getScrollView().setMaxMeasuresPerLine (scoreData.getBeats() == 3 ? 9 : 8);
-            setMax (getSongDuration()); // number of beats in song
+            scrollActivity.getScrollView().setMaxMeasuresPerLine (scoreData.getMeasures() == 3 ? 9 : 8);
+            setMax (scrollActivity.getSong().getTotalMeasures()); // number of measures in song
             br.close();
         }
         catch (Exception e) {
@@ -166,16 +211,16 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     public String getScoreDataFromJson (String JSON) {
         try {
             JSONObject jsonObject = new JSONObject(JSON);
-            scoreData = new ScoreData(jsonObject.optInt("measures", 1), jsonObject.optInt("bpm", 120), jsonObject.optInt("beats", 4), jsonObject.optInt("start", 3));
+            scoreData = new ScoreData(jsonObject.optInt("bpm", 120), jsonObject.optInt("measures", 4), jsonObject.optInt("timesig", 4), jsonObject.optInt("start", 3), jsonObject.optString("scorepath", ""));
             //BeatInterval = 60000 / scoreData.getBpm();
 
-            //// tempo = beats (per measure) * (number of beats/song duration in seconds) * 60
-          //  int bpm = (int) (scoreData.getBeats() * groupArray.getTotalBeats() * 60 / (scrollActivity.getSong().getDuration()/1000));
+            //// tempo = measures (per measure) * (number of measures/song duration in seconds) * 60
+          //  int bpm = (int) (scoreData.getMeasures() * groupArray.getTotalMeasures() * 60 / (scrollActivity.getSong().getDuration()/1000));
           //  scoreData.setBpm(bpm);
 
-            /* (bpm/60) =  beats (per measure) * (number of beats/song duration in seconds) */
-            /* (bpm/60) / beats (per measure) = (number of beats/song duration in seconds) */
-            /* number of beats / ((bpm/60) / beats (per measure)) = song duration in seconds */
+            /* (bpm/60) =  measures (per measure) * (number of measures/song duration in seconds) */
+            /* (bpm/60) / measures (per measure) = (number of measures/song duration in seconds) */
+            /* number of measures / ((bpm/60) / measures (per measure)) = song duration in seconds */
 
             return "";
         }
@@ -185,18 +230,18 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         }
     }
 
-    public int getSongDuration () {
-        return getGroupArray().getTotalBeats();
-    }
+   /* public int getSongDuration () {
+        return getGroupArray().getTotalMeasures();
+    }*/
 
     public void setSeekBarProgress() {
         long elpasedTime = scrollActivity.getSong().getPosition();
-        setProgress((int) (elpasedTime/ getTimePerBeat()));
+        setProgress((int) (elpasedTime/ (scoreData.getBeatInterval() * scoreData.getBeatsPerMeasure())));
     }
 
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
         if (updateProgress) {
-            scrollActivity.getSong().setStartPosition(i* getTimePerBeat());
+            scrollActivity.getSong().setStartPosition(i * scoreData.getBeatInterval() * scoreData.getBeatsPerMeasure());
         }
     }
 
@@ -218,18 +263,19 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         return getGroupArray().getGroupIndex (getProgress());
     }
 
-    public int getStartLineBeats() {
-        int beats = getProgress();
-        return getGroupArray().getStartLineBeatsFromTotalBeats(beats);
+    public int getStartLineMeasures() {
+        int measures = getProgress();
+        return getGroupArray().getStartLineMeasuresFromTotalMeasures(measures);
     }
 
-    public int getLineBeats() {
-        int beats = getProgress();
-        return getGroupArray().getLineBeatsFromTotalBeats(beats);
+    public int getLineMeasures() {
+        int group = getGroupArray().getCurrentGroup();
+        //return getGroupArray().getLineMeasuresFromTotalMeasures(measures);
+        return getGroupArray().get(group).getMeasures();
     }
 
-    public int getScrollLine(int beats) {
-        return getGroupArray().getLine(beats) - scoreData.getScrollOffset();
+    public int getScrollLine(int measures) {
+        return getGroupArray().getLine(measures) - scoreData.getScrollOffset();
     }
 
     public int getScrollLine() {
@@ -268,7 +314,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         else {
             int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
             int beats = groupIndex == 0 ? 0 : getGroupArray().getBeatsToEndOfLine(groupIndex) + 1;
-            scrollActivity.getSong().setStartPosition(beats * getTimePerBeat());
+            scrollActivity.getSong().setStartPosition(beats * scoreData.getBeatInterval());
         }
     }
 
@@ -296,7 +342,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
             //groupIndex = groupIndex > lastGroupIndex ? lastGroupIndex : groupIndex;
             int beats = groupIndex > 0 ? getGroupArray().getBeatsToEndOfLine(groupIndex - 1) + 1 : 1;
-            scrollActivity.getSong().setStartPosition(beats * getTimePerBeat());
+            scrollActivity.getSong().setStartPosition(beats * scoreData.getBeatInterval());
         }
     }
 

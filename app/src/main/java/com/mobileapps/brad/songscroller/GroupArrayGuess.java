@@ -1,6 +1,5 @@
 package com.mobileapps.brad.songscroller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,10 +70,10 @@ public class GroupArrayGuess extends GroupArray {
             }
         }
 
-        int beats = totalChordCount/this.size();
+        int measures = totalChordCount/this.size();
 
-        //// guess 4 or 8 beats per line
-        scoreData.setBeats (beats < 6 ? 4 : 8);
+        //// guess 2, 4, 6 or 8 measures per line
+        scoreData.setMeasures(measures < 3 ? 2 : measures < 6 ? 4 : measures < 8 ? 6: 8);
         createScoreData(scoreData, scrollActivity.getAutoScroll(), score);
     }
 
@@ -103,9 +102,9 @@ public class GroupArrayGuess extends GroupArray {
             }
         }
 
-        ///////////// beats per measure (default 4/4 time)
-        if (map.get("beats") != null) {
-            scoreData.setBeats(Integer.parseInt(((String)map.get("beats"))));
+        ///////////// measures per measure (default 4/4 time)
+        if (map.get("measures") != null) {
+            scoreData.setMeasures(Integer.parseInt(((String)map.get("measures"))));
         }
 
         ///////////// duration (from mp3 if available)
@@ -126,8 +125,8 @@ public class GroupArrayGuess extends GroupArray {
            // autoScroll.setBeatInterval((int) (60000 / scoreData.getBpm()));
         }
         else {
-            //// tempo = beats (per measure) * (number of beats/song duration in seconds) * 60
-            int bpm = (int) (scoreData.getBeats() * getTotalBeats() * 60 / (scrollActivity.getSong().getDuration()/1000));
+            //// tempo = measures (per measure) * (number of measures/song duration in seconds) * 60
+            int bpm = (int) (scoreData.getMeasures() * getTotalMeasures() * 60 / (scrollActivity.getSong().getDuration()/1000));
             scoreData.setBpm(bpm);
         }
 

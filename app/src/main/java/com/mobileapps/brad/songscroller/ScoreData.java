@@ -1,46 +1,59 @@
 package com.mobileapps.brad.songscroller;
 
+import android.text.Layout;
+
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by brad on 2/26/18.
  */
 
 public class ScoreData implements Serializable {
+
+    private int timesignature;
     private int bpm;
-  //  private float measuresPerLine;
-    private int beats; // is time signature basically (beatsPerMeasure/4 time);
-   // private float beatsPerChord;
+    private int measures; // number of measures on most lines;
     private int scrollOffset;
-    //private int songStartLine;  /// line number (zero indexed) of first chord of song
+    private String scorePath;
 
-   /* public float getBeatsPerChord() {
-        return beatsPerChord;
+    private int version = 0;
+
+    public int getTimesignature() {
+        return timesignature;
     }
 
-    public void setBeatsPerChord(float beatsPerChord) {
-        this.beatsPerChord = beatsPerChord;
-    }*/
-
- /*   public int getSongStartLine() {
-        return songStartLine;
+    public void setTimesignature(int timesignature) {
+        this.timesignature = timesignature;
     }
-
-    public void setSongStartLine(int songStartLine) {
-        this.songStartLine = songStartLine;
-    }*/
 
     ScoreData () {}
 
-    ScoreData (int measuresPerLine, int bpm, int beats, int scrollOffset) {
+    ScoreData (String datafile) {
+        String[] data = datafile.split(",");
+        this.version = Integer.parseInt(data[0]);
+        switch (version) {
+            default:
+                this.bpm = Integer.parseInt(data[1]);
+                this.measures = 4;
+                this.timesignature = Integer.parseInt(data[2]);
+                this.scrollOffset = Integer.parseInt(data[3]);
+                this.scorePath = data[4];
+        }
+    }
+
+    ScoreData (int bpm, int measures, int timesignature, int scrollOffset, String scorePath) {
         this.bpm = bpm;
-    //    this.measuresPerLine = measuresPerLine;
-        this.beats = beats;
+
+        this.measures = measures;
         //this.beatsPerChord = beatsPerChord;
+        this.timesignature = timesignature;
 
         //// sets the number of lines before beginning of song at which scrolling will begin
         //// default is 3 lines
         this.scrollOffset = scrollOffset;
+        this.scorePath = scorePath;
     }
 
     public int getBpm() {
@@ -51,44 +64,34 @@ public class ScoreData implements Serializable {
         this.bpm = bpm;
     }
 
-    public int getBeats() {
-        return beats;
+    public int getMeasures() {
+        return measures;
     }
 
- /*   public void setBeatsPerMeasure(int beatsPerMeasure) {
-        this.beats = beats;
-    }
-
-    public void setMeasuresPerLine(float measuresPerLine) {
-        this.measuresPerLine = measuresPerLine;
-    }*/
-
-    //public float getMeasuresPerLine() {
-    //    return measuresPerLine;
-    //}
-
-    public void setBeats (int beats) {
-        this.beats = beats;
-    }
-
-   /* public int getBeatsPerLine () {
-       // if (ScrollActivity.isEditing) {
-       //     return 1;
-       // }
-       // else {
-            return (int) (measuresPerLine * beatsPerMeasure);
-       // }
-    }*/
-/*
-    public int getBeatsPerLine (float measuresperline) {
-        if (measuresperline == -1) {
-            return getBeatsPerLine();
+    public int getBeatsPerMeasure () {
+        switch (timesignature) {
+            case 6:
+                return 6;
+            default:
+                return 4;
         }
-        return (int) (measuresperline * beatsPerMeasure);
-    }*/
-    // public void setBeatsPerLine(int beatsPerLine) {
-   //     this.measuresPerLine = measuresPerLine;
-   // }
+    }
+
+    public String getScorePath() {
+        return scorePath;
+    }
+
+    public void setScorePath(String scorePath) {
+        this.scorePath = scorePath;
+    }
+
+    public String getSerializedData () {
+        return String.format("%d,%d,%d,%d,%s,", version, bpm, timesignature, scrollOffset, scorePath);
+    }
+
+    public void setMeasures(int measures) {
+        this.measures = measures;
+    }
 
     public int getScrollOffset() { return scrollOffset; }
 
@@ -98,5 +101,9 @@ public class ScoreData implements Serializable {
 
     public int getBeatInterval () {
         return 60000 / bpm;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }

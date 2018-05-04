@@ -7,6 +7,19 @@
     android:background="@color/colorScreen"
     tools:context="com.mobileapps.brad.songscroller.AlbumSongsActivity">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <include layout="@layout/app_bar" android:id="@+id/app_bar"/>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
     <ImageView
         android:id="@+id/ivBackground"
         android:layout_width="match_parent"
@@ -71,6 +84,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivBackground" />
+
+    </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
 
 
 </android.support.constraint.ConstraintLayout>
