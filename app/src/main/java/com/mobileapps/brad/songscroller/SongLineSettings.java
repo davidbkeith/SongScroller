@@ -69,7 +69,7 @@ public class SongLineSettings  {
                         else {
                             //autoScroll.getGroupArray().remove(groupIndex);
                             groupData.setMeasures(0);
-                            scrollActivity.setSb();
+                            scrollActivity.setView();
                             //autoScroll.setMax();
                         }
                         //autoScroll.getGroupArray().setLineMeasuresCount(groupData, Integer.parseInt(editable.toString().trim()));
@@ -155,7 +155,7 @@ public class SongLineSettings  {
             editBeats.setText(String.format("%d", groupData.getMeasures()));
         }
 
-        groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromMeasures(progress);
+        //groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromMeasures(progress);
 
 
        // editChords.setText(String.format("%s", Arrays.toString(groupData.getChordsStartPositions()).replaceAll("\\[|\\]", "")));

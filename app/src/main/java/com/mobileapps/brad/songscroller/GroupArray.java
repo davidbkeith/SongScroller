@@ -17,14 +17,24 @@ public class GroupArray extends ArrayList<GroupData> {
 
     protected ScrollActivity scrollActivity;
 
+    public boolean isSetPositions() {
+        return setPositions;
+    }
+
+    public boolean setPositions;
+
     public ScrollActivity getScrollActivity() {
         return scrollActivity;
     }
 
-    public GroupArray () {}
+    public GroupArray () {
+        setPositions = false;
+    }
 
     public GroupArray (ScrollActivity scrollActivity, String datafile) {
         this.scrollActivity = scrollActivity;
+        setPositions = true;  /// used to convert line positions to character positions after view is built
+
         String[] data = datafile.split(",");
         int first = 5;
         switch (AutoScroll.scoreData.getVersion()) {
@@ -42,6 +52,7 @@ public class GroupArray extends ArrayList<GroupData> {
 
     public GroupArray (ScrollActivity scrollActivity) {
         this.scrollActivity = scrollActivity;
+        setPositions = false;
     }
 
     public void create (List<ChordData> chordPos, String scrore) {}
@@ -122,6 +133,15 @@ public class GroupArray extends ArrayList<GroupData> {
         }
     }*/
 
+    /*public int getStartLineMeasures(int measures) {
+        //int measures = getProgress();
+        return getStartLineMeasuresFromTotalMeasures(measures);
+    }*/
+
+    public int getScrollLine(int measures) {
+       return getLine(measures) - AutoScroll.scoreData.getScrollOffset();
+    }
+
     public boolean isChordLine (int charPosition, String score) {
         int i=0;
         while (i < size() && charPosition >= get(i).getOffsetChords()){i++;}
@@ -150,7 +170,7 @@ public class GroupArray extends ArrayList<GroupData> {
                 get(i).setMeasures(0);
             }
             scrollActivity.getSong().setStartPosition(0);
-            scrollActivity.setSpans();
+            scrollActivity.setView();
         }
     }
 
@@ -160,6 +180,7 @@ public class GroupArray extends ArrayList<GroupData> {
         for (GroupData gd :this) {
             gd.offsetChords = layout.getLineStart(gd.getOffsetChords());
         }
+        setPositions = false;
     }
 
     public int getTotalMeasures() {
@@ -324,31 +345,39 @@ public class GroupArray extends ArrayList<GroupData> {
         }
     }
 
+    public int getMeasures(int group) {
+        int groupIndex = group == -1 ? getCurrentGroup() : group;
+        return get(groupIndex).getMeasures();
+    }
+
     public int getCurrentGroup () {
         if (ScrollActivity.isEditGroup()) {
             return scrollActivity.getAutoScroll().getProgress();
-        }
-        else {
-            if (scrollActivity.getTextView().getLayout() != null) {
-                int currentScrollPos = scrollActivity.getScrollView().getChordsPos();
-                if (currentScrollPos != -1) {
-                    int group = 0;
-                    for (GroupData gd : this) {
-                        if (group < size() - 1) {
-                            if (currentScrollPos >= gd.getOffsetChords() && currentScrollPos < get(group + 1).getOffsetChords()) {
-                                return group;
-                            }
-                        } else {
-                            if (currentScrollPos >= gd.getOffsetChords()) {
-                                return group;
-                            }
-                        }
-                        group++;
-                    }
+        } else {
+            //if (scrollActivity.getTextView().getLayout() != null) {
+            //    int currentScrollPos = scrollActivity.getScrollView().getChordsPos();
+            int measures = scrollActivity.getAutoScroll().getProgress();
+            //    if (currentScrollPos != -1) {
+            int group = 0;
+            int sum = 0;
+            for (GroupData gd : this) {
+                //if (group < size() - 1) {
+                sum += gd.getMeasures();
+                if (measures < sum) {
+                    return group;
                 }
+                // } else {
+                //     if (currentScrollPos >= gd.getOffsetChords()) {
+                //return group;
+                //     }
+                // }
+                group++;
+                // }
+                //   }
+                //}
             }
+            return size()-1;
         }
-        return -1;
     }
 
     public int getLastPageGroupIndex () {
@@ -422,13 +451,17 @@ public class GroupArray extends ArrayList<GroupData> {
         return scrollActivity.getTextView().getLayout().getLineCount()-1;  /// not found
     }
 
-    public int getScrollLineFromPos (int pos){
+    public int getLineFromGroup(int group) {
+        return scrollActivity.getTextView().getLayout().getLineForOffset(get(group).getOffsetChords());
+    }
+
+    /*public int getScrollLineFromPos (int pos){
         int LinePos = (int) (pos/scrollActivity.getScrollView().getLineHeight());
         if (LinePos < size()) {
             return get(LinePos).getOffsetChords();
         }
         return -1;
-    }
+    }*/
 
     public void updatePositions (int offsetChords, int offsetCharPos) {
         int count=0;

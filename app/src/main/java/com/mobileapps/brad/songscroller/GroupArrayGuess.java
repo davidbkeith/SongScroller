@@ -75,6 +75,7 @@ public class GroupArrayGuess extends GroupArray {
         //// guess 2, 4, 6 or 8 measures per line
         scoreData.setMeasures(measures < 3 ? 2 : measures < 6 ? 4 : measures < 8 ? 6: 8);
         createScoreData(scoreData, scrollActivity.getAutoScroll(), score);
+
     }
 
     public void createScoreData (ScoreData scoreData, AutoScroll autoScroll, String text) {

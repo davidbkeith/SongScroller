@@ -25,6 +25,12 @@
         android:visible="false"/>
 
     <item
+        android:id="@+id/menu_save_score"
+        android:title="@string/menu_save_score" />
+    <item
+        android:id="@+id/menu_clear_score"
+        android:title="@string/menu_clear_score" />
+    <item
         android:id="@+id/menu_back"
         android:enabled="true"
         android:title="@string/menu_back"

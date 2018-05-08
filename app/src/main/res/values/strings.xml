@@ -162,5 +162,7 @@ Please correct me if I'm wrong....
     <string name="menu_back">Back</string>
     <string name="menu_line_options">Line Options</string>
     <string name="menu_setmp3">Set MP3</string>
+    <string name="menu_save_score">Save Score Data</string>
+    <string name="menu_clear_score">Clear Score Data</string>
 
 </resources>

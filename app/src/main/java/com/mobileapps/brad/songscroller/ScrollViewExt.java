@@ -19,20 +19,10 @@ public class ScrollViewExt extends ScrollView {
     protected long lastTapTime;
     protected long[] tapIntervals = new long[8];
     protected int tapIntervalIndex;
-    private float lineHeight;
     final private double scrollSensitivity = 2.0;  /// how much is scrolled per finger movement
     private double scrollFactor = 2.0;   /// how fast to scroll - higher is slower, 1 no delay
     private int scrollLine;
 
-    public int getMaxMeasuresPerLine() {
-        return maxMeasuresPerLine;
-    }
-
-    public void setMaxMeasuresPerLine(int maxMeasuresPerLine) {
-        this.maxMeasuresPerLine = maxMeasuresPerLine;
-    }
-
-    private int maxMeasuresPerLine = 8;
     boolean startPlayerAfterMove;
 
     public void setScrollLine(int scrollLine) {
@@ -74,12 +64,6 @@ public class ScrollViewExt extends ScrollView {
     }
 
     int[] beatcolor = getResources().getIntArray(R.array.beatcolor);
-
-    public void setLineHeight(float lineHeight) {
-        this.lineHeight = lineHeight;
-    }
-
-    public float getLineHeight () { return lineHeight; }
 
     public long getAvgTapSpeed () {
 
@@ -204,7 +188,8 @@ public class ScrollViewExt extends ScrollView {
                         scrollActivity.updateSongAndSeekProgress(scrollAmount);
 
                     } else {
-                        scrollActivity.setSongPosition(deltaY);
+                        //scrollActivity.setSongPosition(deltaY);
+                        scrollActivity.updateSongAndSeekProgress(deltaY);
                     }
                 }
                 return false;
@@ -316,13 +301,14 @@ public class ScrollViewExt extends ScrollView {
 
             ////// line measure position cursor
             if (autoScroll.getBeatInterval() > 0) {
-                beatspan = scrollActivity.isEditScore() ? 1 : autoScroll.getLineMeasures();
+                beatspan = scrollActivity.isEditScore() ? 1 : autoScroll.getGroupArray().getMeasures(-1);
                // beatspan = autoScroll.getLineMeasures();
                // if (beatspan > autoScroll.getScoreData().getMeasures()) {
                //     beatspan = autoScroll.getScoreData().getMeasures();
                // }
 
-                beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasures() + 1;
+                //beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasures() + 1;
+                beatpos = autoScroll.getProgress() - autoScroll.getGroupArray().getStartLineMeasuresFromTotalMeasures(autoScroll.getProgress()) + 1;
 
                // int numbeatsmax = (int) beatspan;
                // beatpos = beatpos % (int) beatspan == 0 ? (int) beatspan : beatpos % (int) beatspan;
