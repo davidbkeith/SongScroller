@@ -2,7 +2,6 @@ package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
 import android.support.v7.widget.AppCompatSeekBar;
-import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
@@ -15,7 +14,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -156,7 +154,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     }
 
     public void setSeekBarProgress() {
-        long elpasedTime = scrollActivity.getSong().getPosition();
+        double elpasedTime = scrollActivity.getSong().getPosition();
         setProgress((int) (elpasedTime/ (scoreData.getBeatInterval() * scoreData.getBeatsPerMeasure())));
     }
 
@@ -195,8 +193,8 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         }
         else {
             int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
-            int beats = groupIndex == 0 ? 0 : getGroupArray().getBeatsToEndOfLine(groupIndex) + 1;
-            scrollActivity.getSong().setStartPosition(beats * scoreData.getBeatInterval());
+            int measures = groupIndex == 0 ? 0 : getGroupArray().getMeasuresToEndOfLine(groupIndex) + 1;
+            scrollActivity.getSong().setStartPosition(measures * scoreData.getBeatInterval());
         }
     }
 
@@ -217,7 +215,7 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
             int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
 
-            int beats = groupIndex > 0 ? getGroupArray().getBeatsToEndOfLine(groupIndex - 1) + 1 : 1;
+            int beats = groupIndex > 0 ? getGroupArray().getMeasuresToEndOfLine(groupIndex - 1) + 1 : 1;
             scrollActivity.getSong().setStartPosition(beats * scoreData.getBeatInterval());
         }
     }

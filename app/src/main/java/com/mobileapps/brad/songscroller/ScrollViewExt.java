@@ -177,19 +177,21 @@ public class ScrollViewExt extends ScrollView {
                     if (scrollActivity.isEditLine()) {
                         //int scrollAmount =  (int) ((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))/Math.abs((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))));
                         int scrollAmount =  (int) (deltaY*.5);
+                        scrollActivity.setSongPosition(deltaY);
                         //scrollActivity.getAutoScroll().setProgress(scrollActivity.getAutoScroll().getProgress() + scrollAmount);
-                        scrollActivity.updateSongAndSeekProgress(scrollAmount);
+                        //scrollActivity.updateSongAndSeekProgress(scrollAmount);
 
 
                     } else if (scrollActivity.isEditGroup()) {
                         //int scrollAmount =  (int) ((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))/Math.abs((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))));
                         int scrollAmount =  (int) (deltaY*.5);
+                        scrollActivity.setSongPosition(deltaY);
                         //scrollActivity.getAutoScroll().setProgress(scrollActivity.getAutoScroll().getProgress() + scrollAmount);
-                        scrollActivity.updateSongAndSeekProgress(scrollAmount);
+                        //scrollActivity.updateSongAndSeekProgress(scrollAmount);
 
                     } else {
-                        //scrollActivity.setSongPosition(deltaY);
-                        scrollActivity.updateSongAndSeekProgress(deltaY);
+                        scrollActivity.setSongPosition(deltaY);
+                        //scrollActivity.updateSongAndSeekProgress(deltaY);
                     }
                 }
                 return false;

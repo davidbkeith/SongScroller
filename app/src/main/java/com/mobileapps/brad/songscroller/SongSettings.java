@@ -33,7 +33,7 @@ public class SongSettings implements AdapterView.OnItemSelectedListener{
         this.scrollActivity = scrollActivity;
 
         editBPM = (EditText) scrollActivity.findViewById(R.id.editBPM);
-        checkSongStart = (CheckBox) scrollActivity.findViewById(R.id.checkSongStart);
+        //checkSongStart = (CheckBox) scrollActivity.findViewById(R.id.checkSongStart);
         editBPMeasure = (EditText) scrollActivity.findViewById(R.id.editBPMeasure);
         editDuration = (EditText) scrollActivity.findViewById(R.id.editDuration);
         timeSigs = (Spinner) scrollActivity.findViewById(R.id.timesig_spinner);

@@ -31,14 +31,14 @@ public class Song implements Serializable {
     private String lyrics;
     private String path;
     private String sheetMusicPath;
-    private long duration;/// SHOULD NOT NORMALLY BE USED IN CALCULATIONS.  USE MEASURES AND BPM FROM ONLINE SOURCE
-    private long startTime;
+    private double duration;/// SHOULD NOT NORMALLY BE USED IN CALCULATIONS.  USE MEASURES AND BPM FROM ONLINE SOURCE
+    private double startTime;
     private boolean isPlaying;
 
-    public long getStartPosition() {
+    public double getStartPosition() {
         return startPosition;
     }
-    private long startPosition;
+    private double startPosition;
 
     public boolean isPlaying() {
         return isPlaying;
@@ -53,19 +53,21 @@ public class Song implements Serializable {
 
     ///// returns beat position in measure (1 to 4 for common time)
     public int getBeat () {
-        return (int) (((getPosition() / 60000.0) * AutoScroll.scoreData.getBpm()) % AutoScroll.scoreData.getBeatsPerMeasure()) + 1;
+        //// add .1 to prevent rounding errors
+        return (int) (((((getPosition() / 60000.0) * AutoScroll.scoreData.getBpm()) + 1) % AutoScroll.scoreData.getBeatsPerMeasure()) + 1);
     }
 
 
     public int getMeasure () {
-        return (int) (getPosition () * (AutoScroll.scoreData.getBpm()/60000.0)) / AutoScroll.scoreData.getBeatsPerMeasure() + 1;
+        //// add .01 to prevent rounding errors
+        return (int) ((getPosition () * (AutoScroll.scoreData.getBpm()/60000.0)) / AutoScroll.scoreData.getBeatsPerMeasure() + 1.01);
     }
 
     public int getTotalMeasures () {
         return (int) (duration * (AutoScroll.scoreData.getBpm()/60000.0)) / AutoScroll.scoreData.getBeatsPerMeasure();
     }
 
-    public long getPosition () {
+    public double getPosition () {
         if (isPlaying) {
             return System.currentTimeMillis() - startTime + startPosition;
         }
@@ -74,7 +76,7 @@ public class Song implements Serializable {
         }
     }
 
-    public void setStartPosition(long startPosition) {
+    public void setStartPosition(double startPosition) {
         this.startPosition = startPosition;
 //        startTime = System.currentTimeMillis();
         if (startPosition < 0) {
@@ -196,7 +198,7 @@ public class Song implements Serializable {
         this.path = path;
     }
 
-    public long getDuration() {
+    public double getDuration() {
         return duration;
     }
 

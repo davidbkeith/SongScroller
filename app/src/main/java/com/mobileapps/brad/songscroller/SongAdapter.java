@@ -118,7 +118,7 @@ public class SongAdapter extends BaseAdapter {
             viewHolder = (SongAdapter.ViewHolder) convertView.getTag();
         }
 
-        long duration = song.getDuration();
+        double duration = song.getDuration();
 
         if (MediaStore.Audio.AudioColumns.ARTIST.compareTo(getMainActivity().getmScoreView()) == 0) {
             viewHolder.txtTitle.setText(songList.get(position).getArtist());
@@ -139,8 +139,8 @@ public class SongAdapter extends BaseAdapter {
             viewHolder.txtDuration.setTextColor(viewHolder.txtDuration.getResources().getColor(R.color.colorMenuBarLight));
         }
 
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % TimeUnit.HOURS.toMinutes(1);
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % TimeUnit.MINUTES.toSeconds(1);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes((long) duration) % TimeUnit.HOURS.toMinutes(1);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds((long) duration) % TimeUnit.MINUTES.toSeconds(1);
         viewHolder.txtDuration.setText(String.format("%d:%02d", minutes, seconds));
         return convertView;
     }

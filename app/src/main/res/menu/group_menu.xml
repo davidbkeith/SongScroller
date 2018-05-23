@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/menu_edit"
         android:checkable="true"
@@ -25,11 +27,23 @@
         android:visible="false"/>
 
     <item
-        android:id="@+id/menu_save_score"
-        android:title="@string/menu_save_score" />
+        android:id="@+id/menu_edit_score"
+        android:title="@string/menu_edit_verse"
+        android:icon="@android:drawable/ic_menu_edit"
+        app:showAsAction="ifRoom"
+        android:visible="false"/>
+
+    <item
+        android:id="@+id/menu_record"
+        android:checkable="true"
+        android:enabled="true"
+        android:title="@string/menu_record"
+        android:visible="false"/>
+
     <item
         android:id="@+id/menu_clear_score"
         android:title="@string/menu_clear_score" />
+
     <item
         android:id="@+id/menu_back"
         android:enabled="true"

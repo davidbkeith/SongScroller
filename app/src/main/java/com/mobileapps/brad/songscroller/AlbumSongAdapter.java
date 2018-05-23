@@ -98,7 +98,7 @@ public class AlbumSongAdapter extends BaseAdapter {
 
         final Song song = (Song) getItem(position);
 
-        long duration = song.getDuration();
+        double duration = song.getDuration();
         viewHolder.txtSongName.setText(String.format("%s. %s", song.getTrack(), song.getTitle()));
         if (song.getSheetMusicPath() != null && !song.getSheetMusicPath().isEmpty()) {
             //Log.d("Message", "Path is: " + song.getSheetMusicPath());
@@ -108,8 +108,8 @@ public class AlbumSongAdapter extends BaseAdapter {
         else {
             viewHolder.txtSongName.setTextColor(viewHolder.txtSongName.getResources().getColor(R.color.colorScreenLight));
         }
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % TimeUnit.HOURS.toMinutes(1);
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % TimeUnit.MINUTES.toSeconds(1);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes((long) duration) % TimeUnit.HOURS.toMinutes(1);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds((long) duration) % TimeUnit.MINUTES.toSeconds(1);
     //    long seconds=(duration/1000)%60;
      //   long minutes =((duration-seconds)/1000)/60;
 

@@ -211,7 +211,7 @@ public class GroupArray extends ArrayList<GroupData> {
         return 0;
     }
 
-    public int getBeatsToStartOfLine(int index) {
+    public int getMeasuresToStartOfLine(int index) {
         index = index <= size() -1 ? index : size() - 1;
         int count = 0;
         for (int i = 0; i<index; i++) {
@@ -220,7 +220,7 @@ public class GroupArray extends ArrayList<GroupData> {
         return (count);
     }
 
-    public int getBeatsToEndOfLine(int index) {
+    public int getMeasuresToEndOfLine(int index) {
         index = index <= size() -1 ? index : size() - 1;
         int count = 0;
         for (int i = 0; i<=index; i++) {

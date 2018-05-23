@@ -31,12 +31,12 @@ public class SongLineSettings  {
     public SongLineSettings(final ScrollActivity scrollActivity) {
         this.scrollActivity = scrollActivity;
 
-        editBeats = (EditText) scrollActivity.findViewById(R.id.editBeats);
-        textBeat = (TextView) scrollActivity.findViewById(R.id.textBeat);
-        checkSongStart = (CheckBox) scrollActivity.findViewById(R.id.checkSongStart);
+        //editBeats = (EditText) scrollActivity.findViewById(R.id.editBeats);
+        //textBeat = (TextView) scrollActivity.findViewById(R.id.textBeat);
+        //checkSongStart = (CheckBox) scrollActivity.findViewById(R.id.checkSongStart);
         editLyrics = (EditText) scrollActivity.findViewById(R.id.editLyrics);
 
-        checkSongStart.setOnClickListener(new View.OnClickListener() {
+        /*checkSongStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (checkSongStart.isChecked()) {
@@ -79,7 +79,7 @@ public class SongLineSettings  {
                     }
                 }
             }
-        });
+        });*/
 
       /*  editChords.addTextChangedListener(new TextWatcher() {
             @Override
@@ -129,15 +129,15 @@ public class SongLineSettings  {
         });
     }
 
-    public void updateBeat (int beat) {
-        textBeat.setText(Integer.toString(beat));
-    }
+    //public void updateBeat (int beat) {
+    //    textBeat.setText(Integer.toString(beat));
+    //}
 
-    protected void refresh () {
+   /* protected void refresh () {
         if (groupData != null) {
             editBeats.setText(String.format("%d", groupData.getMeasures()));
         }
-    }
+    }*/
 
     protected void update() {
         enableUpdates = false;
@@ -147,12 +147,12 @@ public class SongLineSettings  {
 
         if (groupIndex == -1) {
             groupData = new GroupData();
-            editBeats.setText("0");
+        //    editBeats.setText("0");
         }
         else {
             groupData = autoScroll.getGroupArray().get(groupIndex);
-            checkSongStart.setChecked(autoScroll.getGroupArray().isSongStart(groupIndex));
-            editBeats.setText(String.format("%d", groupData.getMeasures()));
+        //    checkSongStart.setChecked(autoScroll.getGroupArray().isSongStart(groupIndex));
+        //    editBeats.setText(String.format("%d", groupData.getMeasures()));
         }
 
         //groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromMeasures(progress);

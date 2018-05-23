@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scoreSettingsContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorMenuBar">
+
+    <TextView
+        android:id="@+id/textBPMeasure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Measures/Line: "
+        android:textSize="12dp"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/editBPMeasure"
+        android:layout_width="22dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        android:textSize="12dp"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintBottom_toBottomOf="@+id/textBPMeasure"
+        app:layout_constraintStart_toEndOf="@+id/textBPMeasure"
+        app:layout_constraintTop_toTopOf="@+id/textBPMeasure" />
+
+    <TextView
+        android:id="@+id/textPBM"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text=" BPM: "
+        android:textSize="12dp"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textBPMeasure" />
+
+    <EditText
+        android:id="@+id/editBPM"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        android:text="0"
+        android:textSize="12dp"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintBottom_toBottomOf="@+id/textPBM"
+        app:layout_constraintStart_toEndOf="@+id/textPBM"
+        app:layout_constraintTop_toTopOf="@+id/textPBM" />
+
+    <TextView
+        android:id="@+id/textBPChord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="Time Signature"
+        android:textSize="12dp"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintBottom_toBottomOf="@+id/editBPM"
+        app:layout_constraintStart_toEndOf="@+id/editBPM"
+        app:layout_constraintTop_toTopOf="@+id/editBPM" />
+
+    <Spinner
+        android:id="@+id/timesig_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:prompt="@array/timesig_spinner"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintBottom_toBottomOf="@+id/textBPChord"
+        app:layout_constraintStart_toEndOf="@+id/textBPChord"
+        app:layout_constraintTop_toTopOf="@+id/textBPChord" />
+
+    <TextView
+        android:id="@+id/textDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="Duration:"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintBottom_toBottomOf="@+id/editBPMeasure"
+        app:layout_constraintStart_toEndOf="@+id/editBPMeasure"
+        app:layout_constraintTop_toTopOf="@+id/editBPMeasure" />
+
+    <EditText
+        android:id="@+id/editDuration"
+        android:layout_width="95dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        android:text="0"
+        android:textAlignment="textEnd"
+        android:gravity="end"
+        android:textSize="12dp"
+        android:textColor="@color/colorScreenLight"
+        app:layout_constraintBottom_toBottomOf="@+id/textDuration"
+        app:layout_constraintStart_toEndOf="@+id/textDuration"
+        app:layout_constraintTop_toTopOf="@+id/textDuration" />
+
+</android.support.constraint.ConstraintLayout>
