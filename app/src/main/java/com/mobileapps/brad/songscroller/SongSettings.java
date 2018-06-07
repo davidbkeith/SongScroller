@@ -152,7 +152,7 @@ public class SongSettings implements AdapterView.OnItemSelectedListener{
         if (scoreData != null && !editing) {
             editBPM.setText(String.format("%d", scoreData.getBpm()));
             editBPMeasure.setText(String.format("%d", scoreData.getMeasures()));
-            editDuration.setText(String.format("%d", scrollActivity.getSong().getDuration() / 1000));
+            editDuration.setText(String.format("%d", (int) scrollActivity.getSong().getDuration() / 1000));
 
             ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(scrollActivity, R.array.timesig_spinner, android.R.layout.simple_spinner_dropdown_item);
             timeSigs.setAdapter(adapterSpinner);

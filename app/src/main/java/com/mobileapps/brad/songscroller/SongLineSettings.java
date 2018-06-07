@@ -123,7 +123,16 @@ public class SongLineSettings  {
             @Override
             public void afterTextChanged(Editable editable) {
                 if (enableUpdates) {
-                    autoScroll.getGroupArray().setGroupText(groupIndex, editable.toString());
+                    scrollActivity.replaceEditText (editable.toString());
+                    //autoScroll.getGroupArray().setGroupText(groupIndex, editable.toString());
+                    if (editable.toString().endsWith("\n")) {
+                        autoScroll.setProgress(autoScroll.getProgress() + 1);
+                        update();
+                    }
+                    else if (editable.toString().startsWith("\n")) {
+                        //autoScroll.setProgress(autoScroll.getProgress() -1 );
+                        update();
+                    }
                 }
             }
         });
@@ -142,8 +151,8 @@ public class SongLineSettings  {
     protected void update() {
         enableUpdates = false;
         autoScroll = scrollActivity.getAutoScroll();
-        int progress = autoScroll.getProgress();
-        groupIndex = autoScroll.getGroupArray().getCurrentGroup();
+      //  int progress = autoScroll.getProgress();
+      /*  groupIndex = autoScroll.getGroupArray().getCurrentGroup();
 
         if (groupIndex == -1) {
             groupData = new GroupData();
@@ -153,7 +162,7 @@ public class SongLineSettings  {
             groupData = autoScroll.getGroupArray().get(groupIndex);
         //    checkSongStart.setChecked(autoScroll.getGroupArray().isSongStart(groupIndex));
         //    editBeats.setText(String.format("%d", groupData.getMeasures()));
-        }
+        }*/
 
         //groupDataOriginal = autoScroll.getGroupArrayOriginal().getGroupFromMeasures(progress);
 

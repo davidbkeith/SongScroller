@@ -2,6 +2,7 @@ package com.mobileapps.brad.songscroller;
 
 import android.content.Context;
 import android.support.v7.widget.AppCompatSeekBar;
+import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
@@ -30,11 +31,12 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
     public void setMax () {
         if (getGroupArray() != null) {
-            if (scrollActivity.isEditLine()) {
+            if (scrollActivity.isEditText()) {
                 setMax(scrollActivity.getTextView().getLineCount());
-            } else if (scrollActivity.isEditGroup()) {
+            }/* else if (scrollActivity.isEditGroup()) {
                 setMax(getGroupArray().size()-1);
-            } else {
+            } */
+            else {
                 setMax(getGroupArray().getTotalMeasures());
             }
         }
@@ -154,8 +156,12 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     }
 
     public void setSeekBarProgress() {
-        double elpasedTime = scrollActivity.getSong().getPosition();
-        setProgress((int) (elpasedTime/ (scoreData.getBeatInterval() * scoreData.getBeatsPerMeasure())));
+        if (!scrollActivity.isEditText()) {
+            setProgress(scrollActivity.getSong().getMeasure());
+        }
+        //else if (scrollActivity.isSongSaved()) {
+        ///    setProgress(groupArray.getLine (scrollActivity.getSong().getMeasure()));
+        //}
     }
 
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -165,12 +171,12 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     }
 
     public int getScrollLine() {
-        if (scrollActivity.isEditLine()) {
+        if (scrollActivity.isEditText()) {
             return getProgress();
         }
-        else if (scrollActivity.isEditGroup()) {
+        /*else if (scrollActivity.isEditGroup()) {
              return getGroupArray().getLineFromGroup(getProgress());
-        }
+        }*/
         else {
             return getGroupArray().getScrollLine(getProgress());
         }
@@ -184,30 +190,30 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
         int newScrollLine = scrollActivity.getScrollView().getScrollLine() - scrollActivity.getLinesPerPage() - 3;
         newScrollLine = newScrollLine < 0 ? 0 : newScrollLine;
 
-        if (scrollActivity.isEditLine()) {
+        if (scrollActivity.isEditText()) {
             setProgress(newScrollLine);
         }
-        else if (scrollActivity.isEditGroup()){
+       /* else if (scrollActivity.isEditGroup()){
             int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
             setProgress(groupIndex);
-        }
+        }*/
         else {
             int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
             int measures = groupIndex == 0 ? 0 : getGroupArray().getMeasuresToEndOfLine(groupIndex) + 1;
-            scrollActivity.getSong().setStartPosition(measures * scoreData.getBeatInterval());
+            scrollActivity.getSong().setStartPosition(measures * scoreData.getBeatsPerMeasure()  * scoreData.getBeatInterval());
         }
     }
 
     public void pageDown () {
         int newScrollLine = scrollActivity.getLastVisibleLine() - 3;
 
-        if (scrollActivity.isEditLine()) {
+        if (scrollActivity.isEditText()) {
             setProgress(newScrollLine);
         }
-        else if (scrollActivity.isEditGroup()){
+       /* else if (scrollActivity.isEditGroup()){
             int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
             setProgress(groupIndex);
-        }
+        }*/
         else {
             if (newScrollLine > scrollActivity.getTotalLines() - scrollActivity.getLinesPerPage()) {
                 newScrollLine = scrollActivity.getTotalLines() - scrollActivity.getLinesPerPage();
@@ -215,8 +221,8 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
 
             int groupIndex = getGroupArray().getGroupFromLine(newScrollLine);
 
-            int beats = groupIndex > 0 ? getGroupArray().getMeasuresToEndOfLine(groupIndex - 1) + 1 : 1;
-            scrollActivity.getSong().setStartPosition(beats * scoreData.getBeatInterval());
+            int measures = groupIndex > 0 ? getGroupArray().getMeasuresToEndOfLine(groupIndex - 1) + 1 : 1;
+            scrollActivity.getSong().setStartPosition(measures * scoreData.getBeatsPerMeasure() * scoreData.getBeatInterval());
         }
     }
 

@@ -305,7 +305,7 @@ public class GroupArray extends ArrayList<GroupData> {
 
     ////// must be in line edit or group edit mode to use this function
     public void setGroupText (int group, String text) {
-        if (!scrollActivity.isEditScore()) {
+        if (!scrollActivity.isEditText()) {
             //throw (new Throwable("Wrong mode!"));
         }
         else {
@@ -318,7 +318,7 @@ public class GroupArray extends ArrayList<GroupData> {
             }
 
             //// edit line
-            if (scrollActivity.isEditLine()) {
+            if (group == -1) {
                 AutoScroll autoScroll = scrollActivity.getAutoScroll();
                 Layout layout = scrollActivity.getTextView().getLayout();
                 chordPos = layout.getLineStart(autoScroll.getProgress());
@@ -328,9 +328,9 @@ public class GroupArray extends ArrayList<GroupData> {
             }
             //// edit group
             else {
-                chordPos = group == -1 ? 0 : get(group).getOffsetChords();
+                chordPos = get(group).getOffsetChords();
                 if (group < size() - 1) {
-                    endPos = group == -1 ? scrollActivity.getSb().toString().length() : get(group + 1).getOffsetChords();
+                    endPos = get(group + 1).getOffsetChords();
                     groupLength = endPos - chordPos;
                     //offset = groupLength - text.length();
                  }
@@ -346,17 +346,18 @@ public class GroupArray extends ArrayList<GroupData> {
     }
 
     public int getMeasures(int group) {
-        int groupIndex = group == -1 ? getCurrentGroup() : group;
+        int groupIndex = group == -1 ? getCurrentGroup() == -1 ? 0 : getCurrentGroup() : group;
         return get(groupIndex).getMeasures();
     }
 
     public int getCurrentGroup () {
-        if (ScrollActivity.isEditGroup()) {
-            return scrollActivity.getAutoScroll().getProgress();
+        if (ScrollActivity.isEditText()) {
+            return scrollActivity.getAutoScroll().getGroupArray().getGroupFromLine(scrollActivity.getAutoScroll().getProgress());
         } else {
             //if (scrollActivity.getTextView().getLayout() != null) {
             //    int currentScrollPos = scrollActivity.getScrollView().getChordsPos();
             int measures = scrollActivity.getAutoScroll().getProgress();
+            //int measures = scrollActivity.getSong().getMeasure();
             //    if (currentScrollPos != -1) {
             int group = 0;
             int sum = 0;
@@ -398,16 +399,64 @@ public class GroupArray extends ArrayList<GroupData> {
         return 0;
     }
 
+    public int getGroupOrMakeChordLine (int line) {
+        if (scrollActivity.getTextView().getLayout() != null) {
+            int lineStartPos = scrollActivity.getTextView().getLayout().getLineStart(line);
+
+            if (lineStartPos >= get(0).getOffsetChords()) {
+                int group = 0;
+                for (GroupData gd : this) {
+                    if (lineStartPos <= gd.getOffsetChords()) {
+                        if (lineStartPos == gd.getOffsetChords()) {
+                            return group;
+                        }
+                        else {
+                            this.add(group, new GroupData(lineStartPos, 0));
+                            return group;
+                        }
+                    }
+                    group++;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public int getGroupIfChordLine (int line) {
+        if (scrollActivity.getTextView().getLayout() != null) {
+            int lineStartPos = scrollActivity.getTextView().getLayout().getLineStart(line);
+
+            if (lineStartPos >= get(0).getOffsetChords()) {
+                int group = 0;
+                for (GroupData gd : this) {
+                    if (lineStartPos <= gd.getOffsetChords()) {
+                        if (lineStartPos == gd.getOffsetChords()) {
+                            return group;
+                        }
+                        else {
+                            return -1;
+                        }
+                    }
+                    group++;
+                }
+            }
+        }
+        return -1;
+    }
+
     public int getGroupFromLine (int line) {
         if (scrollActivity.getTextView().getLayout() != null) {
             int lineStartPos = scrollActivity.getTextView().getLayout().getLineStart(line);
 
-            int group = 0;
-            for (GroupData gd: this) {
-                if (lineStartPos <= gd.getOffsetChords()) {
-                    return group;
+            if (lineStartPos >= get(0).getOffsetChords()) {
+                int group = 0;
+                for (GroupData gd : this) {
+                    if (lineStartPos <= gd.getOffsetChords()) {
+                        return group;
+
+                    }
+                    group++;
                 }
-                group++;
             }
         }
         return -1;
@@ -463,13 +512,11 @@ public class GroupArray extends ArrayList<GroupData> {
         return -1;
     }*/
 
-    public void updatePositions (int offsetChords, int offsetCharPos) {
-        int count=0;
-        while (get(count++).getOffsetChords() < offsetChords);
-        count = count - 1 == -1 ? 0 : count - 1;
-
-        for (int i=count; i<size(); i++) {
-            get(i).setOffsetChords(get(i).getOffsetChords() + offsetCharPos);
+    public void updatePositions (int lineStartPos, int offset) {
+        for (int i=0; i<size(); i++) {
+            if (get(i).getOffsetChords() > lineStartPos) {
+                get(i).setOffsetChords(get(i).getOffsetChords() + offset);
+            }
         }
     }
 

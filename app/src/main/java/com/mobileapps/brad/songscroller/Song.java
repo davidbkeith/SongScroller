@@ -54,14 +54,15 @@ public class Song implements Serializable {
     ///// returns beat position in measure (1 to 4 for common time)
     public int getBeat () {
         //// add .1 to prevent rounding errors
-        //return (int) (((((getPosition() / 60000.0) * AutoScroll.scoreData.getBpm())) % AutoScroll.scoreData.getBeatsPerMeasure()) + 1);
-        return (int) ((getPosition() / AutoScroll.scoreData.getBeatInterval()) % 4) + 1;
+        return (int) (getPosition() / AutoScroll.scoreData.getBeatInterval()) % AutoScroll.scoreData.getBeatsPerMeasure();
+        //return (int) (((((getPosition() / 60000.0) * AutoScroll.scoreData.getBpm()) + 1) % AutoScroll.scoreData.getBeatsPerMeasure()) + 1);
     }
 
 
     public int getMeasure () {
         //// add .01 to prevent rounding errors
-        return Math.abs((int) ((getPosition() / AutoScroll.scoreData.getBeatInterval()) / 4) - 1);
+        int measure = (int) (getPosition() / AutoScroll.scoreData.getBeatInterval() / AutoScroll.scoreData.getBeatsPerMeasure());
+        return measure < 0 ? 0 : measure;
         //return (int) ((getPosition () * (AutoScroll.scoreData.getBpm()/60000.0)) / AutoScroll.scoreData.getBeatsPerMeasure() + 1.01);
     }
 

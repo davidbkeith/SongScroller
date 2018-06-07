@@ -67,14 +67,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
 
     static private final int NOEDIT = 0;
-    static private final int EDITLINE = 1;
-    static private final int EDITGROUP = 2;
-    static private final int EDITSONG = 3;
+    static private final int EDITTEXT = 1;
+    //static private final int EDITGROUP = 2;
+    static private final int EDITSCORE = 2;
 
     private File sheetMusicFile;
 
     static private int mode;
-    static private int lineEditMode;
+    //static private int lineEditMode;
 
     private ImageView ivPlay;
     private ImageView ivNext;
@@ -102,25 +102,25 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
        return record;
     }
 
-    static public boolean isEditing() {
-        return isEditScore() || isEditSong() ;
-    }
+    //static public boolean isEditing() {
+     //   return isEditScore() || isEditText() ;
+   // }
 
     static public boolean isEditScore() {
-        return mode == EDITLINE || mode == EDITGROUP;
+        return mode == EDITSCORE;
     }
 
-    static public boolean isEditSong() {
-        return mode == EDITSONG;
+    //static public boolean isEditSong() {
+    //    return mode == EDITSCORE;
+    //}
+
+    static public boolean isEditText() {
+        return mode == EDITTEXT;
     }
 
-    static public boolean isEditLine() {
-        return mode == EDITLINE;
-    }
-
-    static public boolean isEditGroup() {
-        return mode == EDITGROUP;
-    }
+    //static public boolean isEditGroup() {
+    //    return mode == EDITGROUP;
+    //}
 
     public SpannableStringBuilder getSb() {
         return sb;
@@ -280,6 +280,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return null;
     }
 
+    public boolean isSongSaved () {
+        File dataFile = new File(FindFile.getScoreDataDir(context), song.getScoreName() + ".dat");
+        return dataFile.exists();
+    }
 
     public void saveSongData () {
         if (autoScroll.getScoreData() != null && autoScroll.getGroupArray() != null) {
@@ -316,21 +320,36 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             //if (!isEditScore()) {
             //int beat = autoScroll.getProgress() - autoScroll.getGroupArray().getStartLineMeasuresFromTotalMeasures(autoScroll.getProgress()) + 1;
 
-            int beat = song.getBeat();
-            //if (isPlaying() && !isEditScore()) {
-                autoScroll.setSeekBarProgress();
-            //}
+            autoScroll.setSeekBarProgress();
+            if  (isEditText()) {
+                textCountdown.setText(String.format("%d", autoScroll.getProgress()));
+                //int group = autoScroll.getGroupArray().getCurrentGroup();
+                int group = autoScroll.getGroupArray().getGroupIfChordLine(autoScroll.getProgress());
+                if (group != -1) {
+                    if (!isPlaying()) {
+                        textNumMeasures.setText(String.format("%d", autoScroll.getGroupArray().getMeasures(group)));
+                    }
+                    else {
+                        int current_measure = song.getMeasure();
+                        textNumMeasures.setText(String.format("%d", current_measure - lastSongPos + 1));
+                    }
+                }
+                else {
+                    textNumMeasures.setText("");
+                }
+            }
             //else if (isEditScore()) {
             //    songLineSettings.updateBeat(beat);
             //}
-            textCountdown.setText(String.format("%d.%d", song.getMeasure(), beat));
-            int group = autoScroll.getGroupArray().getCurrentGroup();
-            textNumMeasures.setText(String.format("%d",  autoScroll.getGroupArray().get(group).getMeasures()));
-            if (isPlaying() && scrollView.isEnableScrolling()) {
-                elapsedTime = 0;
-            }
             else {
-                elapsedTime +=  100;
+                textCountdown.setText(String.format("%d.%d", song.getMeasure() + 1, song.getBeat() + 1));
+                int group = autoScroll.getGroupArray().getCurrentGroup();
+                textNumMeasures.setText(String.format("%d", autoScroll.getGroupArray().get(group).getMeasures()));
+                if (isPlaying() && scrollView.isEnableScrolling()) {
+                    elapsedTime = 0;
+                } else {
+                    elapsedTime += 100;
+                }
             }
             scrollView.invalidate ();
             handler.postDelayed(this, 100); //Looping the thread after 0.1 second
@@ -353,7 +372,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     @Override
     public boolean onOptionsItemSelected (MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_edit:
+           /* case R.id.menu_edit:
                 if (item.isChecked()) {
                     item.setChecked(false);
                     lineEditMode = EDITGROUP;
@@ -364,10 +383,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                     lineEditMode = EDITLINE;
                     setMaxScroll(EDITLINE);
                 }
-                return true;
-            case R.id.menu_add_group:
+                return true;*/
+       /*     case R.id.menu_add_group:
                 autoScroll.getGroupArray().duplicateGroup (-1);
-                setMaxScroll(-1);
+                autoScroll.setMax();
+                //setMaxScroll(-1);
                 return true;
             case R.id.menu_delete_group:
                 AlertDialog.Builder adb = new AlertDialog.Builder(this);
@@ -378,7 +398,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         autoScroll.getGroupArray().deleteGroup(-1);
-                        setMaxScroll(-1);
+                        autoScroll.setMax();
+                        //setMaxScroll(-1);
                     }
                 });
 
@@ -390,7 +411,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 });
 
                 adb.show();
-                return true;
+                return true;*/
             case R.id.menu_set_mp3:
                 DirectoryChooserDialog directoryChooserDialog = new DirectoryChooserDialog(this, new DirectoryChooserDialog.ChosenDirectoryListener() {
                     @Override
@@ -445,9 +466,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                  //   ivPrevMeasure.setColorFilter(filter);
                 }
                 // click on 'up' button in the action bar, handle it here
-                //saveSongData();
+//                saveSongData();
 //                setScore();
 //                scrollView.invalidate();
+                return true;
+            case R.id.menu_save_score:
+                saveSongData();
                 return true;
             case R.id.menu_clear_score:
                 // click on 'up' button in the action bar, handle it here
@@ -468,33 +492,48 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     @Override
     public boolean onPrepareOptionsMenu (Menu menu) {
-        MenuItem editLine = menu.getItem(0);
-        MenuItem duplicateGroup = menu.getItem(1);
-        MenuItem deleteGroup = menu.getItem(2);
-        MenuItem setmp3 = menu.getItem(3);
-        MenuItem editscore = menu.getItem(4);
-       // MenuItem saveScore = menu.getItem(5);
-        MenuItem record = menu.getItem(5);
-        MenuItem clearScore = menu.getItem(6);
+       // MenuItem editLine = menu.getItem(0);
+      //  MenuItem duplicateGroup = menu.getItem(0);
+      //  MenuItem deleteGroup = menu.getItem(1);
+        MenuItem setmp3 = menu.getItem(0);
+        MenuItem editscore = menu.getItem(1);
+       // MenuItem saveScore = menu.getItem(4);
+        MenuItem record = menu.getItem(2);
+        MenuItem saveScore = menu.getItem(3);
+        MenuItem clearScore = menu.getItem(4);
 
-        editLine.setVisible(false);
-        duplicateGroup.setVisible(false);
-        deleteGroup.setVisible(false);
+        //editLine.setVisible(false);
+        //duplicateGroup.setVisible(false);
+        //deleteGroup.setVisible(false);
+
         setmp3.setVisible(true);
-        clearScore.setVisible(true);
+
+
         editscore.setVisible(true);
         record.setVisible(true);
 
-        if (isEditSong()) {
-           // setmp3.setVisible(true);
-           // saveScore.setVisible(true);
-           // clearScore.setVisible(true);
+        if (isEditText()) {
+           //  duplicateGroup.setVisible(true);
+           // deleteGroup.setVisible(true);
+
+            //// hide main menu
+            setmp3.setVisible(false);
+            clearScore.setVisible(false);
+            //editscore.setVisible(false);
+            record.setVisible(false);
+            saveScore.setVisible(true);
+
+            if (isSongSaved()) {
+                clearScore.setVisible(true);
+            }
         }
         else if (isEditScore()) {
-            editLine.setVisible(true);
-            duplicateGroup.setVisible(true);
-            deleteGroup.setVisible(true);
+            // setmp3.setVisible(true);
+            // saveScore.setVisible(true);
+            // clearScore.setVisible(true);
+            //editLine.setVisible(true);
         }
+
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -506,8 +545,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mediaPlayer) {
-                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
-                    autoScroll.setProgress(0);
+                ivPlay.setImageResource(android.R.drawable.ic_media_play);
+                autoScroll.setProgress(0);
+
+                if (isEditText()) {
+                    saveSongData();
+                }
                 }
             });
         }
@@ -528,6 +571,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         sb = new SpannableStringBuilder(autoScroll.create(this, sheetMusicFile));
         setView();
         //songSettings.update();
+    }
+
+    public void nextLine () {
+
     }
 
     @Override
@@ -568,19 +615,19 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
         scrollView.setScrollViewListener(this);
         autoScroll.setOnSeekBarChangeListener(autoScroll);
-        lineEditMode = EDITGROUP;
+        //lineEditMode = EDITTEXT;
         expand(NOEDIT);
 
         scrollView.setOnTouchListener(new OnSwipeTouchListener(ScrollActivity.this) {
             public void onSwipeTop() {
                 //Toast.makeText(ScrollActivity.this, "top", Toast.LENGTH_SHORT).show();
             }
-            public void onSwipeRight() {
-                expand(Math.abs(++swipeCount % 3));
-            }
-            public void onSwipeLeft() {
-                expand(Math.abs(--swipeCount % 3));
-            }
+            //public void onSwipeRight() {
+            //    expand(Math.abs(++swipeCount % 3));
+           // }
+            //public void onSwipeLeft() {
+            //    expand(Math.abs(--swipeCount % 3));
+            //}
             public void onSwipeBottom() {
                 //Toast.makeText(ScrollActivity.this, "bottom", Toast.LENGTH_SHORT).show();
             }
@@ -620,108 +667,142 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (song.isPlaying()) {
-                    song.pause();
-                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
+            if (song.isPlaying()) {
+                song.pause();
+                ivPlay.setImageResource(android.R.drawable.ic_media_play);
+            }
+            else {
+                lastSongPos = song.getMeasure();
+
+                //// set the position indicator to first line of song if in edit mode and playing song
+                if (lastSongPos == 0 && isEditText()) {
+                    autoScroll.setProgress(autoScroll.getGroupArray().getLine(0));
                 }
-                else {
-                    lastSongPos = song.getMeasure();
-                    song.start();
-                    ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-                    //lastSongPos = song.getMeasure();
-                }
+
+                song.start();
+                ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+                //lastSongPos = song.getMeasure();
+            }
             }
         });
 
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int nextGroup = autoScroll.getGroupArray().getCurrentGroup();
-                //if (isEditScore()) {
-
-                    while (++nextGroup < autoScroll.getGroupArray().size() && autoScroll.getGroupArray().get(nextGroup).getMeasures() == 0);
-                    if (!isRecord()) {
-                        //autoScroll.setProgress(autoScroll.getGroupArray().getMeasuresToStartOfLine(nextGroup));
-                        song.setStartPosition((autoScroll.getGroupArray().getMeasuresToStartOfLine(nextGroup)) * AutoScroll.scoreData.getBeatsPerMeasure() * getAutoScroll().getScoreData().getBeatInterval());
-                    }
-                    else {
-                        /////// set measures per group
-                        int current_measure = song.getMeasure();
-                        autoScroll.getGroupArray().get(nextGroup).setMeasures(current_measure - lastSongPos);
-                        autoScroll.setProgress(nextGroup);
-                        lastSongPos = current_measure;
-                    }
+            int nextGroup = autoScroll.getGroupArray().getCurrentGroup();
+            //while (++nextGroup < autoScroll.getGroupArray().size() && autoScroll.getGroupArray().get(nextGroup).getMeasures() == 0);
+            nextGroup = nextGroup < autoScroll.getGroupArray().size() - 1 ? nextGroup + 1 : autoScroll.getGroupArray().size() - 1;
+            if (isEditText()) {
+                //autoScroll.pageDown();
+                if (!isPlaying()) {
+                    autoScroll.setProgress(autoScroll.getProgress() + 1);
+                }
+                else {
+                    /////// set measures per group
+                    int current_measure = song.getMeasure();
+                    autoScroll.getGroupArray().get(nextGroup).setMeasures(current_measure - lastSongPos);
+                    autoScroll.setProgress(autoScroll.getGroupArray().getLine(current_measure));
+                    lastSongPos = current_measure;
+                }
+            }
+            else {
+                //if (!isRecord()) {
+                    //autoScroll.setProgress(autoScroll.getGroupArray().getMeasuresToStartOfLine(nextGroup));
+                song.setStartPosition((autoScroll.getGroupArray().getMeasuresToStartOfLine(nextGroup)) * AutoScroll.scoreData.getBeatsPerMeasure() * getAutoScroll().getScoreData().getBeatInterval());
                 //}
-                //else {
-                //    autoScroll.setProgress(nextGroup);
-                    //song.setStartPosition(song.getPosition() + getAutoScroll().getScoreData().getBeatInterval());
-               // }
+            }
             }
         });
 
         ivNextMeasure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isEditScore()) {
-                    int group = autoScroll.getProgress();
-                    if (group < autoScroll.getGroupArray().size() - 1) {
-                        int measures = autoScroll.getGroupArray().get(group).getMeasures() + 1;
-                        autoScroll.getGroupArray().get(group).setMeasures(measures);
-                        autoScroll.setMax();
+          //  if (isEditText()) {
+          //      autoScroll.setProgress(autoScroll.getProgress() + 1);
+          //  } else {
+                if (isEditText()) {
+                    if (!isPlaying()) {
+                        int group = autoScroll.getGroupArray().getGroupOrMakeChordLine(autoScroll.getProgress());
+                        if (group != -1) {
+                            //if (group < autoScroll.getGroupArray().size() - 1) {
+                                int measures = autoScroll.getGroupArray().get(group).getMeasures() + 1;
+                                autoScroll.getGroupArray().get(group).setMeasures(measures);
+                                autoScroll.setMax();
+
+                                //// need to update view if previously zero
+                                if (measures == 1) {
+                                    setView();
+                                }
+
+                                if (isSongSaved()) {
+                                    saveSongData();
+                                }
+                            //}
+                        }
                     }
-                    songLineSettings.update();
+                    //songLineSettings.update();
+                } else {
+                    song.setStartPosition(song.getPosition() + AutoScroll.scoreData.getBeatInterval());
                 }
-                else {
-                    song.setStartPosition(song.getPosition() + getAutoScroll().getScoreData().getBeatInterval());
-                }
+           // }
             }
         });
 
         ivPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (autoScroll.getProgress() == 0) {
-                   // if (!isEditing() && !isRecord()) {
-                   //     onBackPressed();
-                   // }
-                }
-                else {
-                    int prevGroup = autoScroll.getGroupArray().getCurrentGroup();
-                    while (--prevGroup >= 0 && autoScroll.getGroupArray().get(prevGroup).getMeasures() == 0);
-                    if (isRecord()) {
-                        ///int prevGroup = autoScroll.getProgress();
-                         autoScroll.setProgress(prevGroup);
-                    } else {
+            if (isEditText()) {
+                //autoScroll.pageUp();
+                autoScroll.setProgress(autoScroll.getProgress() - 1);
+            }
+            else {
+                int prevGroup = autoScroll.getGroupArray().getCurrentGroup();
+                prevGroup = prevGroup > 0 ? prevGroup - 1 : 0;
+                //while (--prevGroup >= 0 && autoScroll.getGroupArray().get(prevGroup).getMeasures() == 0);
+                if (isRecord()) {
+                    ///int prevGroup = autoScroll.getProgress();
+                    autoScroll.setProgress(prevGroup);
+                } else {
                     ///    song.setStartPosition(song.getPosition() - getAutoScroll().getScoreData().getBeatInterval());
-                        song.setStartPosition((autoScroll.getGroupArray().getMeasuresToStartOfLine(prevGroup)) * AutoScroll.scoreData.getBeatsPerMeasure() * getAutoScroll().getScoreData().getBeatInterval());
-                    }
+                    song.setStartPosition((autoScroll.getGroupArray().getMeasuresToStartOfLine(prevGroup)) * AutoScroll.scoreData.getBeatsPerMeasure() * getAutoScroll().getScoreData().getBeatInterval());
                 }
+            }
             }
         });
 
         ivPrevMeasure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            /*    if (autoScroll.getProgress() == 0) {
-                    if (!isEditing()) {
-                        onBackPressed();
+          //  if (isEditText()) {
+          //      autoScroll.setProgress(autoScroll.getProgress() - 1);
+          //  }
+          //  else {
+                if (isEditText()) {
+                    if (!isPlaying()) {
+                        int group = autoScroll.getGroupArray().getGroupIfChordLine(autoScroll.getProgress());
+                        if (group != -1) {
+                            int measures = autoScroll.getGroupArray().get(group).getMeasures() - 1;
+                            if (measures <= 0) {
+                                autoScroll.getGroupArray().remove(group);
+                            } else {
+                                autoScroll.getGroupArray().get(group).setMeasures(measures < 0 ? 0 : measures);
+                            }
+
+                            if (measures == 0) {
+                                setView();
+                            } else {
+                                autoScroll.setMax();
+                            }
+
+                            if (isSongSaved()) {
+                                saveSongData();
+                            }
+                        }
                     }
+                } else {
+                    song.setStartPosition(song.getPosition() - AutoScroll.scoreData.getBeatInterval());
                 }
-                else {*/
-                    if (isEditScore()) {
-                        int group = autoScroll.getProgress();
-                        int measures = autoScroll.getGroupArray().get(group).getMeasures() - 1;
-                        autoScroll.getGroupArray().get(group).setMeasures(measures < 0 ? 0 : measures);
-                        if (measures == 0) {
-                            setView();
-                        }
-                        else {
-                            autoScroll.setMax();
-                        }
-                    } else {
-                        song.setStartPosition(song.getPosition() - getAutoScroll().getScoreData().getBeatInterval());
-                    }
-               // }
+           // }
             }
         });
 
@@ -742,39 +823,43 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     public void onScrollChanged(ScrollViewExt scrollView, int x, int y, int oldx, int oldy) {}
 
    void expand (int viewId) {
-        ActionBar actionBar = getSupportActionBar();
+        //ActionBar actionBar = getSupportActionBar();
 
        if (viewId==0) {
           // actionBar.hide();
            scoreSettingsContainer.setVisibility(View.GONE);
           // lineSettingsContainer.setVisibility(View.GONE);
-           setMaxScroll(NOEDIT);
+       }
+       else if (viewId == EDITTEXT ) {
+           scoreSettingsContainer.setVisibility(View.GONE);
+           lineSettingsContainer.setVisibility(View.VISIBLE);
+           //setMaxScroll(EDITTEXT);
+           songLineSettings.update();
        }
        else {
-           if (viewId == EDITLINE ) {
-               scoreSettingsContainer.setVisibility(View.GONE);
-               lineSettingsContainer.setVisibility(View.VISIBLE);
-               setMaxScroll(lineEditMode);
-           }
-           else {
-               lineSettingsContainer.setVisibility(View.GONE);
-               scoreSettingsContainer.setVisibility(View.VISIBLE);
-               setMaxScroll(EDITSONG);
-           }
-           actionBar.show ();
+           lineSettingsContainer.setVisibility(View.GONE);
+           scoreSettingsContainer.setVisibility(View.VISIBLE);
+           //setMaxScroll(EDITSCORE);
+           songSettings.update();
        }
+           //actionBar.show ();
+
+       //setMaxScroll(viewId);
+       mode = viewId;
+       autoScroll.setMax();
+
    }
 
    public void updateSongAndSeekProgress (int progress) {
        int newProgress = getAutoScroll().getProgress() + progress;
        getAutoScroll().setProgress(newProgress);
-       if (isEditLine()) {
+       if (isEditText()) {
            int group = getAutoScroll().getGroupArray().getGroupFromLine(progress);
            song.setStartPosition(getAutoScroll().getGroupArray().getMeasuresToStartOfLine(group) * getAutoScroll().getScoreData().getBeatInterval());
        }
-       else if (isEditGroup()) {
-           song.setStartPosition(getAutoScroll().getGroupArray().getMeasuresToStartOfLine(newProgress) * getAutoScroll().getScoreData().getBeatInterval());
-       }
+       //else if (isEditGroup()) {
+       //    song.setStartPosition(getAutoScroll().getGroupArray().getMeasuresToStartOfLine(newProgress) * getAutoScroll().getScoreData().getBeatInterval());
+       //}
        else {
            setSongPosition (newProgress);
        }
@@ -786,11 +871,11 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         getSong().setStartPosition(newmeasure * getAutoScroll().getScoreData().getBeatsPerMeasure() * getAutoScroll().getScoreData().getBeatInterval());
     }
 
-   public void setMaxScroll(int newmode) {
+   /*public void setMaxScroll(int newmode) {
         //isEditing = false;
         mode = newmode == -1 ? mode : newmode;
         autoScroll.setMax();
-   }
+   }*/
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
@@ -871,15 +956,12 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     }
 
     public String getLyrics () {
-        String text = sb.toString();
-        if (lineEditMode != EDITLINE) {
-            int group = getAutoScroll().getGroupArray().getCurrentGroup();
-            if (group != -1) {
-                return getAutoScroll().getGroupArray().getText(group, text);
-            }
-            return "";
+       String text = sb.toString();
+      /*   int group = getAutoScroll().getGroupArray().getCurrentGroup();
+        if (group != -1) {
+            return getAutoScroll().getGroupArray().getText(group, text);
         }
-        else {
+        else {*/
             int lineSartPos = getScrollView().getChordsPos();
             if (lineSartPos != -1) {
                 int endpos = text.indexOf("\n", lineSartPos);
@@ -890,7 +972,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 }
             }
             return "";
-        }
+       // }
     }
 
     public void removeText (int start, int end) {
@@ -901,6 +983,26 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             sb.delete(start, sb.length());
         }
         setView();
+    }
+
+    public void replaceEditText (String text) {
+
+        int lineStartPos;
+        int lineEndPos = -1;
+        int lineLength = 0;// = autoScroll.getGroupArray().getCurrentGroup();
+
+        //// edit line
+        //AutoScroll autoScroll = scrollActivity.getAutoScroll();
+        Layout layout = getTextView().getLayout();
+        lineStartPos = layout.getLineStart(autoScroll.getProgress());
+        lineEndPos = getSb().toString().indexOf("\n", lineStartPos);
+        if (lineEndPos == -1) {
+            lineEndPos = getSb().toString().length();
+        }
+
+        lineLength = lineEndPos - lineStartPos;
+        autoScroll.getGroupArray().updatePositions (lineStartPos,  text.length() - lineLength);
+        replaceText(lineStartPos, lineEndPos, text);
     }
 
     public void replaceText (int start, int end, String text) {
