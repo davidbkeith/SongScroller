@@ -166,6 +166,7 @@ Please correct me if I'm wrong....
     <string name="menu_clear_score">Clear Score Data</string>
     <string name="menu_edit_verse">Edit Verse</string>
     <string name="menu_edit_score">Edit Score</string>
-    <string name="menu_record">Record</string>
+    <string name="menu_play_line">Repeat Line</string>
+    <string name="menu_song_settings">Song Settings</string>
 
 </resources>

@@ -173,6 +173,9 @@ public class ScrollViewExt extends ScrollView {
                             //    scrollActivity.getAutoScroll().pageUp();
                            // } else {
                                 scrollActivity.getAutoScroll().setProgress(line);
+                                int group = scrollActivity.getAutoScroll().getGroupArray().getGroupFromLine(line);
+                                scrollActivity.getSong().setStartPosition(scrollActivity.getAutoScroll().getGroupArray().getMeasuresToStartOfLine(group) * scrollActivity.getAutoScroll().getScoreData().getBeatsPerMeasure() * scrollActivity.getAutoScroll().getScoreData().getBeatInterval());
+
                           //  }
                         }
 
@@ -216,10 +219,15 @@ public class ScrollViewExt extends ScrollView {
 
                     } else {*/
 
-                    if (!scrollActivity.isEditText()) {
-                        scrollActivity.setSongPosition(deltaY);
+                    if (!scrollActivity.isEditText() && deltaY != 0) {
+                  //      scrollActivity.setSongPosition(deltaY);
+                        int currentGroup = scrollActivity.getAutoScroll().getGroupArray().getCurrentGroup();
+                        currentGroup += deltaY/2;
+                        scrollActivity.getSong().setStartPosition( scrollActivity.getAutoScroll().getGroupArray().getMeasuresToStartOfLine(currentGroup) * scrollActivity.getAutoScroll().getScoreData().getBeatsPerMeasure() * scrollActivity.getAutoScroll().getScoreData().getBeatInterval());
+
                     }
                     else {
+
                         scrollActivity.getAutoScroll().setProgress( scrollActivity.getAutoScroll().getProgress() + deltaY/2);
                     }
                         //scrollActivity.updateSongAndSeekProgress(deltaY);
@@ -239,7 +247,7 @@ public class ScrollViewExt extends ScrollView {
             ScrollViewListener scrollViewListener = getScrollViewListener();
 
             setScrollViewListener(null);
-            if (!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG || true) {
                 if (y > getScrollY()) {
                     int scrollto = getScrollY() + (int)((y - getScrollY())/scrollFactor);
                     if (scrollto > y) {
@@ -334,7 +342,7 @@ public class ScrollViewExt extends ScrollView {
 
             ////// line measure position cursor
             if (autoScroll.getBeatInterval() > 0) {
-                beatspan = scrollActivity.isEditText() ? 1 : autoScroll.getGroupArray().getMeasures(-1);
+                beatspan = !scrollActivity.isPlaying() ? 1 : autoScroll.getGroupArray().getMeasures(-1);
                // beatspan = autoScroll.getLineMeasures();
                // if (beatspan > autoScroll.getScoreData().getMeasures()) {
                //     beatspan = autoScroll.getScoreData().getMeasures();

@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final int ALBUM = 0;
     public static final int ARTIST = 1;
     public static final int SONG = 0;
+    public static int scrollMode = 1;
 
   /*  public String getMainView() {
         return mainView;

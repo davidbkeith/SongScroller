@@ -156,11 +156,26 @@ public class AutoScroll extends AppCompatSeekBar implements android.widget.SeekB
     }
 
     public void setSeekBarProgress() {
+        if (scrollActivity.isPlayLine()) {
+            if (!scrollActivity.isEditText()) {
+                int newGroup = groupArray.getGroupIndex(getProgress());
+                if (newGroup !=  groupArray.getCurrentGroup()) {
+                    scrollActivity.getSong().pauseSeekStart();    //// reset to beginning of line
+                    scrollActivity.getIvPlay().setImageResource(android.R.drawable.ic_media_play);
+                }
+            }
+            else {
+                int newLine = groupArray.getLine(scrollActivity.getSong().getMeasure());
+                if (newLine != getProgress()) {
+                    scrollActivity.getSong().pauseSeekStart();    //// reset to beginning of line
+                    scrollActivity.getIvPlay().setImageResource(android.R.drawable.ic_media_play);
+                }
+            }
+        }
+        //else {
         if (!scrollActivity.isEditText()) {
             setProgress(scrollActivity.getSong().getMeasure());
         }
-        //else if (scrollActivity.isSongSaved()) {
-        ///    setProgress(groupArray.getLine (scrollActivity.getSong().getMeasure()));
         //}
     }
 

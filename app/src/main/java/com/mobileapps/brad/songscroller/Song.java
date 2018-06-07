@@ -34,10 +34,6 @@ public class Song implements Serializable {
     private double duration;/// SHOULD NOT NORMALLY BE USED IN CALCULATIONS.  USE MEASURES AND BPM FROM ONLINE SOURCE
     private double startTime;
     private boolean isPlaying;
-
-    public double getStartPosition() {
-        return startPosition;
-    }
     private double startPosition;
 
     public boolean isPlaying() {
@@ -46,6 +42,7 @@ public class Song implements Serializable {
 
     private int albumId;
     private String track;
+
 
     public String getScoreName () {
         return getArtist() + "-" + getTitle();
@@ -95,6 +92,18 @@ public class Song implements Serializable {
     }
 
     public Song () {}
+
+    public boolean pauseSeekStart() {
+        boolean currentPlaying = isPlaying;
+        if (isPlaying) {
+            if (ScrollActivity.mediaPlayer != null) {
+                ScrollActivity.mediaPlayer.pause();
+                ScrollActivity.mediaPlayer.seekTo((int) startPosition);
+            }
+            isPlaying = false;
+        }
+        return currentPlaying;
+    }
 
     public boolean pause() {
         boolean currentPlaying = isPlaying;

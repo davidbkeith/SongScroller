@@ -15,10 +15,10 @@
         android:visible="false"/>
 
     <item
-        android:id="@+id/menu_record"
+        android:id="@+id/menu_play_line"
         android:checkable="true"
         android:enabled="true"
-        android:title="@string/menu_record"
+        android:title="@string/menu_play_line"
         android:visible="false"/>
 
     <item
@@ -29,6 +29,13 @@
     <item
         android:id="@+id/menu_clear_score"
         android:title="@string/menu_clear_score"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/menu_song_settings"
+        android:checkable="true"
+        android:enabled="true"
+        android:title="@string/menu_song_settings"
         android:visible="false" />
 
     <item

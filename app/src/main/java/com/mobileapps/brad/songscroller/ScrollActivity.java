@@ -43,7 +43,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private Context context;
 
     //static public boolean isEditing;
-    private boolean record;
+    private boolean playLine;
+    private boolean showSongSettings;
 
     private int pause;
     private int currentScrollPos;
@@ -98,8 +99,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
    // private MenuItem editLine;
    // private MenuItem duplicateGroup;
    // private MenuItem deleteGroup;
-    public boolean isRecord() {
-       return record;
+    public boolean isPlayLine() {
+       return playLine;
     }
 
     //static public boolean isEditing() {
@@ -435,16 +436,23 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 return true;
             case R.id.menu_edit_score:
                 // click on 'up' button in the action bar, handle it here
-                expand(Math.abs(++swipeCount % 3));
+                expand(isEditText() ? NOEDIT: EDITTEXT);
 //                saveSongData();
 //                setScore();
 //                scrollView.invalidate();
+                if (isEditText()) {
+                    int newLine = autoScroll.getGroupArray().getLine (getSong().getMeasure());
+                    autoScroll.setProgress(newLine);
+                }
+                else {
+                    autoScroll.setProgress(song.getMeasure());
+                }
                 return true;
-            case R.id.menu_record:
+            case R.id.menu_play_line:
                 //Drawable icon = getResources().getDrawable(R.id.icic_media_play');
                 if (item.isChecked()) {
                     item.setChecked(false);
-                    record = false;
+                    playLine = false;
 
                     ColorFilter filter = new LightingColorFilter(Color.WHITE, Color.WHITE);
                     ivPlay.setColorFilter(filter);
@@ -456,7 +464,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 }
                 else {
                     item.setChecked(true);
-                    record = true;
+                    playLine = true;
 
                     ColorFilter filter = new LightingColorFilter(Color.RED, Color.RED);
                     ivPlay.setColorFilter(filter);
@@ -480,6 +488,18 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 //                scrollView.invalidate();
                 return true;
 
+            case R.id.menu_song_settings:
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                    scoreSettingsContainer.setVisibility(View.GONE);
+                    showSongSettings = false;
+                }
+                else {
+                    item.setChecked(true);
+                    scoreSettingsContainer.setVisibility(View.VISIBLE);
+                    showSongSettings = true;
+                }
+                return true;
             case R.id.menu_back:
                 // click on 'up' button in the action bar, handle it here
                 onBackPressed();
@@ -498,19 +518,21 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         MenuItem setmp3 = menu.getItem(0);
         MenuItem editscore = menu.getItem(1);
        // MenuItem saveScore = menu.getItem(4);
-        MenuItem record = menu.getItem(2);
+        MenuItem playLine = menu.getItem(2);
         MenuItem saveScore = menu.getItem(3);
         MenuItem clearScore = menu.getItem(4);
+        MenuItem songSettings = menu.getItem(5);
 
         //editLine.setVisible(false);
         //duplicateGroup.setVisible(false);
         //deleteGroup.setVisible(false);
 
-        setmp3.setVisible(true);
-
-
+       // setmp3.setVisible(true);
         editscore.setVisible(true);
-        record.setVisible(true);
+        playLine.setVisible(true);
+        songSettings.setVisible(true);
+        //clearScore.setVisible(true);
+        //record.setVisible(true);
 
         if (isEditText()) {
            //  duplicateGroup.setVisible(true);
@@ -518,19 +540,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
             //// hide main menu
             setmp3.setVisible(false);
-            clearScore.setVisible(false);
-            //editscore.setVisible(false);
-            record.setVisible(false);
             saveScore.setVisible(true);
+            clearScore.setVisible(isSongSaved());
 
-            if (isSongSaved()) {
-                clearScore.setVisible(true);
-            }
         }
-        else if (isEditScore()) {
-            // setmp3.setVisible(true);
-            // saveScore.setVisible(true);
-            // clearScore.setVisible(true);
+        else {
+             setmp3.setVisible(true);
+             saveScore.setVisible(false);
+             clearScore.setVisible(false);
             //editLine.setVisible(true);
         }
 
@@ -573,8 +590,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //songSettings.update();
     }
 
-    public void nextLine () {
-
+    public void clickPlay () {
     }
 
     @Override
@@ -617,6 +633,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         autoScroll.setOnSeekBarChangeListener(autoScroll);
         //lineEditMode = EDITTEXT;
         expand(NOEDIT);
+
+
 
         scrollView.setOnTouchListener(new OnSwipeTouchListener(ScrollActivity.this) {
             public void onSwipeTop() {
@@ -667,31 +685,31 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if (song.isPlaying()) {
-                song.pause();
-                ivPlay.setImageResource(android.R.drawable.ic_media_play);
-            }
-            else {
-                lastSongPos = song.getMeasure();
-
-                //// set the position indicator to first line of song if in edit mode and playing song
-                if (lastSongPos == 0 && isEditText()) {
-                    autoScroll.setProgress(autoScroll.getGroupArray().getLine(0));
+                if (song.isPlaying()) {
+                    song.pause();
+                    ivPlay.setImageResource(android.R.drawable.ic_media_play);
                 }
+                else {
+                    lastSongPos = song.getMeasure();
 
-                song.start();
-                ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-                //lastSongPos = song.getMeasure();
-            }
+                    //// set the position indicator to first line of song if in edit mode and playing song
+                    if (isEditText() && autoScroll.getProgress() == 0) {
+                        autoScroll.setProgress(autoScroll.getGroupArray().getLine(getSong().getMeasure()));
+                    }
+
+                    song.start();
+                    ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+                    //lastSongPos = song.getMeasure();
+                }
             }
         });
 
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            int nextGroup = autoScroll.getGroupArray().getCurrentGroup();
+            int currGroup = autoScroll.getGroupArray().getCurrentGroup();
             //while (++nextGroup < autoScroll.getGroupArray().size() && autoScroll.getGroupArray().get(nextGroup).getMeasures() == 0);
-            nextGroup = nextGroup < autoScroll.getGroupArray().size() - 1 ? nextGroup + 1 : autoScroll.getGroupArray().size() - 1;
+            int nextGroup = currGroup < autoScroll.getGroupArray().size() - 1 ? currGroup + 1 : autoScroll.getGroupArray().size() - 1;
             if (isEditText()) {
                 //autoScroll.pageDown();
                 if (!isPlaying()) {
@@ -700,7 +718,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 else {
                     /////// set measures per group
                     int current_measure = song.getMeasure();
-                    autoScroll.getGroupArray().get(nextGroup).setMeasures(current_measure - lastSongPos);
+                    autoScroll.getGroupArray().get(currGroup).setMeasures(current_measure - lastSongPos);
                     autoScroll.setProgress(autoScroll.getGroupArray().getLine(current_measure));
                     lastSongPos = current_measure;
                 }
@@ -759,13 +777,13 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 int prevGroup = autoScroll.getGroupArray().getCurrentGroup();
                 prevGroup = prevGroup > 0 ? prevGroup - 1 : 0;
                 //while (--prevGroup >= 0 && autoScroll.getGroupArray().get(prevGroup).getMeasures() == 0);
-                if (isRecord()) {
+                /*if (isRecord()) {
                     ///int prevGroup = autoScroll.getProgress();
                     autoScroll.setProgress(prevGroup);
-                } else {
+                } else {*/
                     ///    song.setStartPosition(song.getPosition() - getAutoScroll().getScoreData().getBeatInterval());
                     song.setStartPosition((autoScroll.getGroupArray().getMeasuresToStartOfLine(prevGroup)) * AutoScroll.scoreData.getBeatsPerMeasure() * getAutoScroll().getScoreData().getBeatInterval());
-                }
+                //}
             }
             }
         });
@@ -827,21 +845,23 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
        if (viewId==0) {
           // actionBar.hide();
-           scoreSettingsContainer.setVisibility(View.GONE);
-          // lineSettingsContainer.setVisibility(View.GONE);
+           if (showSongSettings) {
+               scoreSettingsContainer.setVisibility(View.VISIBLE);
+           }
+           lineSettingsContainer.setVisibility(View.GONE);
        }
        else if (viewId == EDITTEXT ) {
            scoreSettingsContainer.setVisibility(View.GONE);
+           songLineSettings.update();
            lineSettingsContainer.setVisibility(View.VISIBLE);
            //setMaxScroll(EDITTEXT);
-           songLineSettings.update();
        }
-       else {
+   /*    else {
            lineSettingsContainer.setVisibility(View.GONE);
            scoreSettingsContainer.setVisibility(View.VISIBLE);
            //setMaxScroll(EDITSCORE);
            songSettings.update();
-       }
+       }*/
            //actionBar.show ();
 
        //setMaxScroll(viewId);
