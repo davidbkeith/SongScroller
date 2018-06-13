@@ -112,7 +112,7 @@ public class ScrollViewExt extends ScrollView {
 
    @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-       ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+        ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
 
         long currTap;
         switch (ev.getAction()) {
@@ -247,7 +247,7 @@ public class ScrollViewExt extends ScrollView {
             ScrollViewListener scrollViewListener = getScrollViewListener();
 
             setScrollViewListener(null);
-            if (!BuildConfig.DEBUG || true) {
+            if (!BuildConfig.DEBUG || false) {
                 if (y > getScrollY()) {
                     int scrollto = getScrollY() + (int)((y - getScrollY())/scrollFactor);
                     if (scrollto > y) {
