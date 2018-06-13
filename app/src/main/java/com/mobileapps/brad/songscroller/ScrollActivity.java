@@ -18,10 +18,14 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.InputType;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.text.method.KeyListener;
 import android.text.style.ForegroundColorSpan;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,6 +33,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -92,9 +97,10 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private ViewGroup scoreSettingsContainer;
     private ViewGroup lineSettingsContainer;
 
-    private TextView textView;
+    private EditText textView;
     private TextView textCountdown;
     private TextView textNumMeasures;
+    //private EditText editText;
 
    // private MenuItem editLine;
    // private MenuItem duplicateGroup;
@@ -281,6 +287,19 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         return null;
     }
 
+    public void saveScoreText () {
+        String data = sb.toString();
+        try {
+            //FileOutputStream fileOutputStream = new FileOutputStream (sheetMusicFile);
+            File textFile = new File(song.getSheetMusicPath());
+            FileOutputStream fileOutputStream = new FileOutputStream(textFile, false);
+            fileOutputStream.write(data.getBytes());
+            fileOutputStream.close();
+        } catch (Throwable t) {
+            Toast.makeText(this, "Unable to save file: " + t.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
     public boolean isSongSaved () {
         File dataFile = new File(FindFile.getScoreDataDir(context), song.getScoreName() + ".dat");
         return dataFile.exists();
@@ -298,6 +317,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
             } catch (Throwable t) {
                 Toast.makeText(this, "Unable to save file: " + t.toString(), Toast.LENGTH_LONG).show();
             }
+
+            saveScoreText();
         }
     }
 
@@ -436,16 +457,47 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 return true;
             case R.id.menu_edit_score:
                 // click on 'up' button in the action bar, handle it here
-                expand(isEditText() ? NOEDIT: EDITTEXT);
-//                saveSongData();
-//                setScore();
-//                scrollView.invalidate();
+                //expand(isEditText() ? NOEDIT: EDITTEXT);
+                mode = mode == EDITTEXT ? NOEDIT : EDITTEXT;
+
+
                 if (isEditText()) {
-                    int newLine = autoScroll.getGroupArray().getLine (getSong().getMeasure());
-                    autoScroll.setProgress(newLine);
+                    //int newLine = autoScroll.getGroupArray().getLine (getSong().getMeasure());
+                    //autoScroll.setProgress(newLine);
+                    //textView.setInputType(InputType.TYPE_CLASS_TEXT);
+                    textView.setEnabled(true);
+                    textView.setKeyListener(new KeyListener() {
+                        @Override
+                        public int getInputType() {
+                            return 0;
+                        }
+
+                        @Override
+                        public boolean onKeyDown(View view, Editable editable, int i, KeyEvent keyEvent) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onKeyUp(View view, Editable editable, int i, KeyEvent keyEvent) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onKeyOther(View view, Editable editable, KeyEvent keyEvent) {
+                            return false;
+                        }
+
+                        @Override
+                        public void clearMetaKeyState(View view, Editable editable, int i) {
+
+                        }
+                    });
                 }
                 else {
-                    autoScroll.setProgress(song.getMeasure());
+                    //autoScroll.setProgress(song.getMeasure());
+                    //textView.setInputType(InputType.TYPE_NULL);
+                    textView.setEnabled(false);
+                    textView.setKeyListener(null);
                 }
                 return true;
             case R.id.menu_play_line:
@@ -566,8 +618,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 autoScroll.setProgress(0);
 
                 if (isEditText()) {
-                    saveSongData();
-                }
+                        saveSongData();
+                    }
                 }
             });
         }
@@ -621,13 +673,20 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         ivPrevMeasure = (ImageView) findViewById(R.id.ivPrevMeasure);
         ivBackground =  (ImageView) findViewById(R.id.ivBackground);
         autoScroll =    (AutoScroll) findViewById(R.id.seekBar);
-        textView =      (TextView) findViewById(R.id.textView);
+        textView =      (EditText) findViewById(R.id.textView);
         textCountdown = (TextView) findViewById(R.id.textCountdown);
         textNumMeasures = (TextView) findViewById(R.id.textNumMeasures);
         scrollView =    (ScrollViewExt) findViewById(R.id.scrollView);
 
         lineSettingsContainer = (ViewGroup) findViewById(R.id.editSongLine);
         scoreSettingsContainer = (ViewGroup) findViewById(R.id.editScore);
+
+        ///// disable keyboard input
+        textView.setKeyListener(null);
+        ///// prevent editor reposition of scrollY
+        textView.setMovementMethod(null);
+
+
 
         scrollView.setScrollViewListener(this);
         autoScroll.setOnSeekBarChangeListener(autoScroll);
@@ -741,7 +800,13 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 if (isEditText()) {
                     if (!isPlaying()) {
                         int group = autoScroll.getGroupArray().getGroupOrMakeChordLine(autoScroll.getProgress());
-                        if (group != -1) {
+                        if (group == -1) {
+                            Layout layout = getTextView().getLayout();
+                            int lineStart = layout.getLineStart(autoScroll.getProgress());
+                            autoScroll.getGroupArray().add(new GroupData(lineStart, 0));
+                            group = autoScroll.getGroupArray().size() - 1;
+                        }
+                        //if (group != -1) {
                             //if (group < autoScroll.getGroupArray().size() - 1) {
                                 int measures = autoScroll.getGroupArray().get(group).getMeasures() + 1;
                                 autoScroll.getGroupArray().get(group).setMeasures(measures);
@@ -756,7 +821,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                                     saveSongData();
                                 }
                             //}
-                        }
+                        //}
                     }
                     //songLineSettings.update();
                 } else {
