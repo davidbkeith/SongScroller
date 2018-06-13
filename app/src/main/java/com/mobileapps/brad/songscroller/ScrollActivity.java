@@ -1,9 +1,7 @@
 package com.mobileapps.brad.songscroller;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.graphics.Color;
@@ -14,18 +12,15 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.InputType;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.method.KeyListener;
+import android.text.method.MovementMethod;
 import android.text.style.ForegroundColorSpan;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -101,6 +96,8 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
     private TextView textCountdown;
     private TextView textNumMeasures;
     //private EditText editText;
+    private KeyListener keyListener;
+    private MovementMethod movementMethod;
 
    // private MenuItem editLine;
    // private MenuItem duplicateGroup;
@@ -245,7 +242,7 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
 
     private ScrollViewExt scrollView;
 
-    public TextView getTextView() {
+    public EditText getTextView() {
         return textView;
     }
 
@@ -459,45 +456,27 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
                 // click on 'up' button in the action bar, handle it here
                 //expand(isEditText() ? NOEDIT: EDITTEXT);
                 mode = mode == EDITTEXT ? NOEDIT : EDITTEXT;
+                autoScroll.setMax();
 
 
                 if (isEditText()) {
                     //int newLine = autoScroll.getGroupArray().getLine (getSong().getMeasure());
                     //autoScroll.setProgress(newLine);
                     //textView.setInputType(InputType.TYPE_CLASS_TEXT);
+                    /*textView.setMovementMethod(movementMethod);
+                    textView.setKeyListener(keyListener);
                     textView.setEnabled(true);
-                    textView.setKeyListener(new KeyListener() {
-                        @Override
-                        public int getInputType() {
-                            return 0;
-                        }
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.showSoftInput(textView, InputMethodManager.SHOW_IMPLICIT);*/
+                    enableEditMode();
 
-                        @Override
-                        public boolean onKeyDown(View view, Editable editable, int i, KeyEvent keyEvent) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean onKeyUp(View view, Editable editable, int i, KeyEvent keyEvent) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean onKeyOther(View view, Editable editable, KeyEvent keyEvent) {
-                            return false;
-                        }
-
-                        @Override
-                        public void clearMetaKeyState(View view, Editable editable, int i) {
-
-                        }
-                    });
                 }
                 else {
                     //autoScroll.setProgress(song.getMeasure());
                     //textView.setInputType(InputType.TYPE_NULL);
-                    textView.setEnabled(false);
-                    textView.setKeyListener(null);
+                    //textView.setEnabled(false);
+                    ///textView.setKeyListener(null);
+                    disableEditMode();
                 }
                 return true;
             case R.id.menu_play_line:
@@ -642,7 +621,31 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         //songSettings.update();
     }
 
-    public void clickPlay () {
+    public boolean isEditActivated () {
+        return textView.isActivated();
+    }
+
+    public void disableEditMode () {
+      //  textView.setMovementMethod(null);
+    //    textView.setKeyListener(null);
+
+     //   textView.setFocusable(false);
+     //   textView.setInputType(InputType.TYPE_NULL); //// causes HORIZONTAL ONE LINE text!!!!!!
+     //   textView.setCursorVisible(false);
+     //   textView.setKeyListener(null);
+
+        textView.setFocusable(false);
+    }
+
+    private void enableEditMode() {
+       // textView.setMovementMethod(null);
+      //  textView.setKeyListener(keyListener);
+      //  textView.setCursorVisible(true);
+        textView.setFocusable(true);
+        textView.setFocusableInTouchMode(true);
+   //     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+   //     imm.showSoftInput(textView, InputMethodManager.SHOW_IMPLICIT);
+
     }
 
     @Override
@@ -682,11 +685,14 @@ public class ScrollActivity extends AppCompatActivity implements ScrollViewListe
         scoreSettingsContainer = (ViewGroup) findViewById(R.id.editScore);
 
         ///// disable keyboard input
-        textView.setKeyListener(null);
+        keyListener = textView.getKeyListener();
+        //textView.setKeyListener(null);
+
         ///// prevent editor reposition of scrollY
-        textView.setMovementMethod(null);
+        movementMethod = textView.getMovementMethod();
+        disableEditMode();
 
-
+        //textView.setKeyListener(null);
 
         scrollView.setScrollViewListener(this);
         autoScroll.setOnSeekBarChangeListener(autoScroll);

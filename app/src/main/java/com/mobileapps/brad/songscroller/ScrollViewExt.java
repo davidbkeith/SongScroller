@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 /**
  * Created by brad on 2/2/18.
@@ -23,8 +24,33 @@ public class ScrollViewExt extends ScrollView {
     final private double scrollSensitivity = 2.0;  /// how much is scrolled per finger movement
     private double scrollFactor = 2.0;   /// how fast to scroll - higher is slower, 1 no delay
     private int scrollLine;
+    private boolean showSoftKeyboard;
 
     boolean startPlayerAfterMove;
+
+   /* @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        final int proposedheight = MeasureSpec.getSize(heightMeasureSpec);
+        final int actualHeight = getHeight();
+
+        ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+        if (actualHeight > proposedheight){
+            // Keyboard is shown
+            //scrollActivity.getTextView().setFocusableInTouchMode(true);
+            showSoftKeyboard = true;
+       //     Toast.makeText(scrollActivity, "show keyboard", Toast.LENGTH_SHORT).show();
+
+        } else {
+            // Keyboard is hidden
+            if (showSoftKeyboard) {
+                //scrollActivity.getTextView().setFocusable(false);
+                showSoftKeyboard = false;
+                Toast.makeText(scrollActivity, "hide keyboard", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }*/
 
     public void setScrollLine(int scrollLine) {
         isScrolling = true;
@@ -43,7 +69,12 @@ public class ScrollViewExt extends ScrollView {
     public int getCursorLine() {
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
         if (scrollActivity.isEditText()) {
-            return scrollLine + 1;
+            if (scrollActivity.getAutoScroll().getProgress() < scrollActivity.getAutoScroll().getMax()) {
+                return scrollActivity.getAutoScroll().getProgress() + 1;
+            }
+            return scrollActivity.getAutoScroll().getProgress();
+            //return scrollLine + 1;
+
         } else {
             return scrollLine + scrollActivity.getAutoScroll().getScoreData().getScrollOffset() + 1;
         }
@@ -113,10 +144,14 @@ public class ScrollViewExt extends ScrollView {
    @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+        if (scrollActivity.isEditText()) {
+            return super.onInterceptTouchEvent(ev);
+        }
 
         long currTap;
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
+            //    Toast.makeText(scrollActivity, "touche.action_down", Toast.LENGTH_SHORT).show();
            //     enableScrolling = false;
                  startPlayerAfterMove = scrollActivity.getSong().isPlaying();
            //     Toast.makeText(scrollActivity, "disabled", Toast.LENGTH_SHORT).show();
@@ -141,7 +176,14 @@ public class ScrollViewExt extends ScrollView {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+
+
        ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+
+     /*  if (scrollActivity.isEditText()) {
+           return super.onTouchEvent(ev);
+       }*/
+
        switch (ev.getAction()) {
             case MotionEvent.ACTION_UP:
                 //Toast.makeText(ScrollActivity.this, "up", Toast.LENGTH_SHORT).show();
@@ -178,15 +220,6 @@ public class ScrollViewExt extends ScrollView {
 
                           //  }
                         }
-
-                       /* if (ev.getY() < scrollActivity.getScrollVeiwHeight() * 0.4) {
-                             scrollActivity.getAutoScroll().pageUp();
-                        } else if (ev.getY() >= scrollActivity.getScrollVeiwHeight() * 0.6) {
-                            scrollActivity.getAutoScroll().pageDown();
-                        }
-                        else {
-                            startPlayerAfterMove = !startPlayerAfterMove;
-                        }*/
                     }
                 }
              //   Toast.makeText(scrollActivity, "enabled", Toast.LENGTH_SHORT).show();
@@ -195,31 +228,16 @@ public class ScrollViewExt extends ScrollView {
                 isScrolling = false;
                 break;
             case MotionEvent.ACTION_DOWN:
+              //  Toast.makeText(scrollActivity, "motionevent.action_down", Toast.LENGTH_SHORT).show();
                 break;
             case MotionEvent.ACTION_MOVE:
                 int size = ev.getHistorySize();
                 if (size > 1) {
+                   // scrollActivity.disableEditMode();
                     scrollActivity.getSong().pause();
                     int deltaY = (int) ((ev.getHistoricalY(size - 2) - ev.getHistoricalY(size - 1)));
 
-                  /*  if (scrollActivity.isEditText()) {
-                        //int scrollAmount =  (int) ((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))/Math.abs((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))));
-                        int scrollAmount =  (int) (deltaY*.5);
-                        scrollActivity.setSongPosition(deltaY);
-                        //scrollActivity.getAutoScroll().setProgress(scrollActivity.getAutoScroll().getProgress() + scrollAmount);
-                        //scrollActivity.updateSongAndSeekProgress(scrollAmount);
-
-
-                   } else if (scrollActivity.isEditGroup()) {
-                        //int scrollAmount =  (int) ((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))/Math.abs((ev.getHistoricalY(size - 1) - ev.getHistoricalY(size - 2))));
-                        int scrollAmount =  (int) (deltaY*.5);
-                        scrollActivity.setSongPosition(deltaY);
-                        //scrollActivity.getAutoScroll().setProgress(scrollActivity.getAutoScroll().getProgress() + scrollAmount);
-                        //scrollActivity.updateSongAndSeekProgress(scrollAmount);
-
-                    } else {*/
-
-                    if (!scrollActivity.isEditText() && deltaY != 0) {
+                   if (!scrollActivity.isEditText() && deltaY != 0) {
                   //      scrollActivity.setSongPosition(deltaY);
                         int currentGroup = scrollActivity.getAutoScroll().getGroupArray().getCurrentGroup();
                         currentGroup += deltaY/2;
@@ -232,12 +250,13 @@ public class ScrollViewExt extends ScrollView {
                     }
                         //scrollActivity.updateSongAndSeekProgress(deltaY);
                     //}
+                    scrollToProgress();
                 }
                 return false;
 
         }
-     //  return super.onTouchEvent(ev);
-       return false;
+       return super.onTouchEvent(ev);
+     //   return false;
     }
 
     /////// turn off scroll event handler when app calls scrollTo
@@ -283,27 +302,32 @@ public class ScrollViewExt extends ScrollView {
     }
 
     void drawBeatIndicator (float beatspan, int beatpos, int linePos, Canvas canvas) {
-        if (beatspan > 0) {
-            ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
-            //int position = beatpos % beatspan + 1;
-            //int rectBottom = (int) (linePos * lineHeight);
-            int rectBottom = scrollActivity.getTextView().getLayout().getLineTop(linePos);
+        //try {
+            if (beatspan > 0) {
+                ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+                //int position = beatpos % beatspan + 1;
+                //int rectBottom = (int) (linePos * lineHeight);
+                int rectBottom = scrollActivity.getTextView().getLayout().getLineTop(linePos);
 
 
-            int width = (int) (scrollActivity.getScrollView().getWidth() / beatspan * beatpos);
+                int width = (int) (scrollActivity.getScrollView().getWidth() / beatspan * beatpos);
 
-            // create a rectangle that we'll draw later
-            Rect rectangle = new Rect(0, rectBottom+8, width, rectBottom + 12);
+                // create a rectangle that we'll draw later
+                Rect rectangle = new Rect(0, rectBottom + 8, width, rectBottom + 12);
 
-            // shrink beat positions to fit into color array available colors
-            float shrinkFactor = beatcolor.length/(float) beatspan;
-            int colorIndex = (int) ((beatpos-1) * shrinkFactor);
+                // shrink beat positions to fit into color array available colors
+                float shrinkFactor = beatcolor.length / (float) beatspan;
+                int colorIndex = (int) ((beatpos - 1) * shrinkFactor);
 
-            // create the Paint and set its color
-            Paint paint = new Paint();
-            paint.setColor(getResources().getColor(R.color.beatcolorgray));
-            canvas.drawRect(rectangle, paint);
-        }
+                // create the Paint and set its color
+                Paint paint = new Paint();
+                paint.setColor(getResources().getColor(R.color.beatcolorgray));
+                canvas.drawRect(rectangle, paint);
+            }
+      //  }
+        //catch (Exception e) {
+       //     Log.e ("drawBeatIndicator", e.getMessage());
+        //}
     }
     /*
     void drawBeatIndicator (int beatspan, int beatpos, int linePos, Canvas canvas) {
@@ -329,84 +353,90 @@ public class ScrollViewExt extends ScrollView {
         }
     }*/
 
+    public void scrollToProgress() {
+        int scrollTo = scrollLine;
+        ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
+
+        if (!scrollActivity.isEditText() && scrollActivity.getSong().getPosition() == 0) {
+            scrollTo = 0;     /// show stuff above starting line of song
+        }
+
+        try {
+            scrollTo(0, scrollActivity.getTextView().getLayout().getLineTop(scrollTo));
+
+        }
+        catch (Exception e) {
+            Log.d("Scroll Error", e.toString());
+        }
+
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         int beatpos = 0;
         float beatspan = 0;
 
+
         ScrollActivity scrollActivity = (ScrollActivity) scrollViewListener;
-        if (scrollActivity.getTextView().getLayout() != null) {
 
-            AutoScroll autoScroll = scrollActivity.getAutoScroll();
-            setScrollLine((int) (autoScroll.getScrollLine()));
+       // if (!scrollActivity.isEditText()) {
+            if (scrollActivity.getTextView().getLayout() != null) {
 
-            ////// line measure position cursor
-            if (autoScroll.getBeatInterval() > 0) {
-                beatspan = !scrollActivity.isPlaying() ? 1 : autoScroll.getGroupArray().getMeasures(-1);
-               // beatspan = autoScroll.getLineMeasures();
-               // if (beatspan > autoScroll.getScoreData().getMeasures()) {
-               //     beatspan = autoScroll.getScoreData().getMeasures();
-               // }
+                AutoScroll autoScroll = scrollActivity.getAutoScroll();
+                setScrollLine((int) (autoScroll.getScrollLine()));
 
-                //beatpos = scrollActivity.getSong().getBeat();
-                beatpos = autoScroll.getProgress() - autoScroll.getGroupArray().getStartLineMeasuresFromTotalMeasures(autoScroll.getProgress()) + 1;
+                ////// line measure position cursor
+                //if (!scrollActivity.isEditText()) {
+                    if (autoScroll.getBeatInterval() > 0) {
+                        beatspan = !scrollActivity.isPlaying() ? 1 : autoScroll.getGroupArray().getMeasures(-1);
+                        // beatspan = autoScroll.getLineMeasures();
+                        // if (beatspan > autoScroll.getScoreData().getMeasures()) {
+                        //     beatspan = autoScroll.getScoreData().getMeasures();
+                        // }
 
-               // int numbeatsmax = (int) beatspan;
-               // beatpos = beatpos % (int) beatspan == 0 ? (int) beatspan : beatpos % (int) beatspan;
-                //beatpos = beatpos % (int) beatspan;
-                drawBeatIndicator(beatspan, beatpos, getCursorLine(), canvas);
+                        //beatpos = scrollActivity.getSong().getBeat();
+                        beatpos = autoScroll.getProgress() - autoScroll.getGroupArray().getStartLineMeasuresFromTotalMeasures(autoScroll.getProgress()) + 1;
+
+                        // int numbeatsmax = (int) beatspan;
+                        // beatpos = beatpos % (int) beatspan == 0 ? (int) beatspan : beatpos % (int) beatspan;
+                        //beatpos = beatpos % (int) beatspan;
+                        drawBeatIndicator(beatspan, beatpos, getCursorLine(), canvas);
+                    }
+                //}
+
+                ////// tempo animation
+                  /*  if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
+                        beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
+                        beatpos = beatpos % autoScroll.getScoreData().getMeasures() == 0 ? autoScroll.getScoreData().getMeasures() : beatpos % autoScroll.getScoreData().getMeasures();
+                        beatspan = autoScroll.getScoreData().getMeasures();
+                        drawBeatIndicator(beatspan, beatpos, 0, canvas);
+                    }*/
+
+
+               /* ////// tempo animation
+                if (autoScroll.getBeatInterval() > 0) {
+                    beatspan = autoScroll.getLineMeasures();
+                    if (beatspan > autoScroll.getScoreData().getMeasuresPerLine()) {
+                        beatspan = autoScroll.getScoreData().getMeasuresPerLine();
+                    }
+
+                    beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasures() + 1;
+                    beatpos = beatpos % beatspan+1;
+                    drawBeatIndicator(beatspan, beatpos, scrollLine + autoScroll.getScoreData().getScrollStart() + 2, canvas);
+                }
+
+                if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
+                    beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
+                    beatpos = beatpos % autoScroll.getScoreData().getMeasures() + 1;
+                    beatspan = autoScroll.getScoreData().getMeasures();
+                    drawBeatIndicator(beatspan, beatpos, 0, canvas);
+                }*/
+
+      //      }
+
+            if (scrollActivity.isPlaying()) {
+                scrollToProgress();
             }
-
-            ////// tempo animation
-          /*  if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
-                beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
-                beatpos = beatpos % autoScroll.getScoreData().getMeasures() == 0 ? autoScroll.getScoreData().getMeasures() : beatpos % autoScroll.getScoreData().getMeasures();
-                beatspan = autoScroll.getScoreData().getMeasures();
-                drawBeatIndicator(beatspan, beatpos, 0, canvas);
-            }*/
-
-
-       /* ////// tempo animation
-        if (autoScroll.getBeatInterval() > 0) {
-            beatspan = autoScroll.getLineMeasures();
-            if (beatspan > autoScroll.getScoreData().getMeasuresPerLine()) {
-                beatspan = autoScroll.getScoreData().getMeasuresPerLine();
-            }
-
-            beatpos = autoScroll.getProgress() - autoScroll.getStartLineMeasures() + 1;
-            beatpos = beatpos % beatspan+1;
-            drawBeatIndicator(beatspan, beatpos, scrollLine + autoScroll.getScoreData().getScrollStart() + 2, canvas);
-        }
-
-        if (!scrollActivity.isPlaying() && autoScroll.getBeatInterval() > 0) {
-            beatpos = (int) (scrollActivity.getElapsedTime() / autoScroll.getBeatInterval());
-            beatpos = beatpos % autoScroll.getScoreData().getMeasures() + 1;
-            beatspan = autoScroll.getScoreData().getMeasures();
-            drawBeatIndicator(beatspan, beatpos, 0, canvas);
-        }*/
-
-            int scrollTo = scrollLine;
-            if (!scrollActivity.isEditText() && scrollActivity.getSong().getPosition() == 0) {
-                scrollTo = 0;     /// show stuff above starting line of song
-            }
-
-
-            //if (enableScrolling) {
-            //if (!scrollActivity.isEditing()) {
-           // scrollTo(0, (int) (scrollTo * lineHeight));
-            Log.d("scrollTo", Integer.toString(scrollTo));
-
-            try {
-                scrollTo(0, scrollActivity.getTextView().getLayout().getLineTop(scrollTo));
-            }
-            catch (Exception e) {
-                Log.d("Scroll Error", e.toString());
-            }
-            //}
-            //else {
-            //    scrollTo(0, (int) ((scrollTo) * lineHeight));
-            //}
-            //}
         }
     }
 }
